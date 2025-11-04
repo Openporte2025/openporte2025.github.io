@@ -5536,26 +5536,10 @@
                     
                     saveState();
                     
-                    // FASE 11a: Re-render se cambiano campi che influenzano la UI
-                    if (productType === 'tapparella' && (field === 'tipoSostituzione' || field === 'manualeMot')) {
-                        render();
-                    }
-                    // Re-render anche se cambiano le misure del cassonetto per aggiornare BRM
-                    if (productType === 'cassonetto' && misureCassonetto.includes(field)) {
-                        render();
-                    }
-                    // Re-render se cambia tagliTelaio per mostrare i nuovi campi COD.TAGLI
-                    if (productType === 'infisso' && field === 'tagliTelaio') {
-                        render();
-                    }
-                    // Re-render se cambia il tipo di infisso per aggiornare i BRM visualizzati
-                    if (productType === 'infisso' && field === 'tipo') {
-                        render();
-                    }
-                    // 🆕 FASE 017: Re-render quando cambia qta per mostrare subito visualizzazione minimale/completa
-                    if (field === 'qta') {
-                        render();
-                    }
+                    // RIMOSSO: render() per evitare reload pagina dopo ogni modifica
+                    // I dati sono già salvati, non serve ricaricare la pagina
+                    // Solo in casi specifici dove cambia la struttura HTML servirebbe,
+                    // ma anche lì è meglio aggiornare solo la parte necessaria
                 }
             }
         }
