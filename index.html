@@ -2913,6 +2913,10 @@
                 render();
                 
                 if (state.onedrive.syncNotifications) {
+                    if (window.lastSyncNotification && (Date.now() - window.lastSyncNotification) < 5000) {
+                    return; // Non mostrare se già mostrata negli ultimi 5 secondi
+                    }
+                    window.lastSyncNotification = Date.now();
                     showNotification('☁️ Caricato su OneDrive', 'success', 2000);
                 }
                 
