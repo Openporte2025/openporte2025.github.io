@@ -1649,7 +1649,7 @@
             // App: Open Porte OneDrive | Ricreata: 03/11/2025
             clientId: '43564a57-a8aa-4b5f-9e05-451c0375439b',
             authority: 'https://login.microsoftonline.com/common/oauth2/v2.0',
-            redirectUri: 'https://openporte2025.github.io/',
+            redirectUri: 'https://openporte2025.github.io/openporte-v15/',
             scopes: ['Files.ReadWrite', 'offline_access'],
             apiEndpoint: 'https://graph.microsoft.com/v1.0',
             folderPath: '/OpenPorte',
@@ -2909,15 +2909,15 @@
                 
                 state.onedrive.lastSyncTime = Date.now();
                 state.onedrive.syncStatus = 'synced';
-                saveState();
-                render();
+                // saveState(); // RIMOSSO - evita loop
+                // render(); // RIMOSSO - evita re-render eccessivi
                 
+                // Mostra notifica solo se non è stata mostrata di recente
                 if (state.onedrive.syncNotifications) {
-                    if (window.lastSyncNotification && (Date.now() - window.lastSyncNotification) < 5000) {
-                    return; // Non mostrare se già mostrata negli ultimi 5 secondi
+                    if (!window.lastSyncNotification || (Date.now() - window.lastSyncNotification) > 5000) {
+                        window.lastSyncNotification = Date.now();
+                        showNotification('☁️ Caricato su OneDrive', 'success', 2000);
                     }
-                    window.lastSyncNotification = Date.now();
-                    showNotification('☁️ Caricato su OneDrive', 'success', 2000);
                 }
                 
                 return true;
@@ -3003,7 +3003,19 @@
             }
         }
         
+        // Variabile globale per tracciare l'ultimo sync
+        let lastSyncAttempt = 0;
+        const MIN_SYNC_INTERVAL = 10000; // Minimo 10 secondi tra sync
+        
         async function performSync() {
+            // Previeni sync troppo frequenti
+            const now = Date.now();
+            if (now - lastSyncAttempt < MIN_SYNC_INTERVAL) {
+                console.log('Sync skipped - troppo frequente');
+                return false;
+            }
+            lastSyncAttempt = now;
+            
             if (!state.onedrive.connected) {
                 showNotification('⚠️ Connetti OneDrive prima', 'info');
                 openSyncSettings();
@@ -3032,10 +3044,8 @@
                     // Sincronizzati
                     state.onedrive.syncStatus = 'synced';
                     state.onedrive.lastSyncTime = Date.now();
-                    saveState();
-                    if (state.onedrive.syncNotifications) {
-                        showNotification('✅ Già sincronizzato', 'success', 1500);
-                    }
+                    // saveState(); // RIMOSSO - non necessario qui
+                    // Non mostrare notifica se già sincronizzato
                     return true;
                 }
                 
@@ -3086,13 +3096,17 @@
             
             stopAutoSync(); // Pulisci timer esistente
             
+            // USA INTERVALLO SICURO DI 5 MINUTI INVECE DI CONFIG
+            const SAFE_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minuti fissi
+            
             syncInterval = setInterval(async () => {
                 if (state.onedrive.connected && state.onedrive.autoSyncEnabled) {
+                    console.log('Auto-sync triggered at', new Date().toLocaleTimeString());
                     await performSync();
                 }
-            }, ONEDRIVE_CONFIG.autoSyncInterval);
+            }, SAFE_SYNC_INTERVAL);
             
-            console.log('Auto-sync attivata (ogni 5 min)');
+            console.log('Auto-sync attivata (ogni 5 min effettivi)');
         }
         
         function stopAutoSync() {
