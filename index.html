@@ -5990,7 +5990,7 @@
                 console.log(`   ✅ ${posizioniAggiornate} posizioni sincronizzate`);
                 
                 saveState();
-                render();
+                // render(); ← RIMOSSO: Evita reload pagina, mantiene focus
             }
         };
         
