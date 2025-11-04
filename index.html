@@ -1663,6 +1663,39 @@
         // Invece di render() completo, aggiorniamo solo gli elementi necessari
         
         /**
+         * ⚡ FASE 024B: Tracking digitazione utente (per sync silenzioso)
+         */
+        let lastTypingTime = 0;
+        const TYPING_TIMEOUT = 3000; // 3 secondi dopo ultima digitazione
+        
+        function markUserTyping() {
+            lastTypingTime = Date.now();
+        }
+        
+        function isUserTyping() {
+            return (Date.now() - lastTypingTime) < TYPING_TIMEOUT;
+        }
+        
+        /**
+         * Aggiorna status sync visualizzato senza render completo
+         */
+        function updateSyncStatusDisplay(status) {
+            // Aggiorna badge sync nel menu principale
+            const syncBadges = document.querySelectorAll('[data-sync-status]');
+            syncBadges.forEach(badge => {
+                const statusMap = {
+                    'syncing': { text: '↻', class: 'text-blue-500 animate-spin' },
+                    'synced': { text: '☁', class: 'text-green-500' },
+                    'error': { text: '⚠', class: 'text-red-500' },
+                    'disconnected': { text: '○', class: 'text-gray-400' }
+                };
+                const config = statusMap[status] || statusMap['disconnected'];
+                badge.textContent = config.text;
+                badge.className = config.class;
+            });
+        }
+        
+        /**
          * Aggiorna un singolo campo DOM senza render completo
          */
         function updateDOMField(elementId, value) {
@@ -2942,7 +2975,8 @@
             
             try {
                 state.onedrive.syncStatus = 'syncing';
-                render();
+                // ⚡ FASE 024B: Aggiorna status DOM invece di render completo
+                updateSyncStatusDisplay('syncing');
                 
                 // Prepara dati per upload
                 const dataToUpload = {
@@ -2977,11 +3011,12 @@
                 
                 state.onedrive.lastSyncTime = Date.now();
                 state.onedrive.syncStatus = 'synced';
-                // saveState(); // RIMOSSO - evita loop
-                // render(); // RIMOSSO - evita re-render eccessivi
+                // ⚡ FASE 024B: Aggiorna status DOM invece di render completo
+                updateSyncStatusDisplay('synced');
                 
-                // Mostra notifica solo se non è stata mostrata di recente
-                if (state.onedrive.syncNotifications) {
+                // Mostra notifica SOLO se abilitato e non di recente
+                // ⚡ FASE 024B: Notifica silenziosa se utente sta digitando
+                if (state.onedrive.syncNotifications && !isUserTyping()) {
                     if (!window.lastSyncNotification || (Date.now() - window.lastSyncNotification) > 5000) {
                         window.lastSyncNotification = Date.now();
                         showNotification('☁️ Caricato su OneDrive', 'success', 2000);
@@ -2993,7 +3028,8 @@
             } catch (error) {
                 console.error('Upload error:', error);
                 state.onedrive.syncStatus = 'error';
-                render();
+                // ⚡ FASE 024B: Aggiorna status DOM invece di render completo
+                updateSyncStatusDisplay('error');
                 showNotification('❌ Errore upload OneDrive', 'error');
                 return false;
             }
@@ -5515,6 +5551,7 @@
         }
 
         function updateProduct(projectId, posId, productType, field, value) {
+            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 const pos = project.positions.find(p => p.id === posId);
@@ -5986,6 +6023,7 @@
         
         // Funzione per aggiornare la config globale degli infissi
         window.updateConfigInfissi = (projectId, field, value) => {
+            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 if (!project.configInfissi) {
@@ -12028,6 +12066,7 @@
         };
 
         window.updateClientData = (projectId, field, value) => {
+            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 if (!project.clientData) project.clientData = {};
@@ -12399,6 +12438,7 @@
         }
 
         window.updateBRMConfig = (projectId, configKey, field, value) => {
+            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 if (!project[configKey]) project[configKey] = {};
@@ -12427,6 +12467,7 @@
         };
 
         window.updateCaratteristicheMuro = (projectId, field, value) => {
+            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 if (!project.caratteristicheMuro) project.caratteristicheMuro = {};
@@ -12457,6 +12498,7 @@
 
         // 🗿 NUOVA FUNZIONE: Aggiorna caratteristiche muro OVERRIDE per una specifica posizione
         window.updateCaratteristicheMuroOverride = (projectId, posId, field, value) => {
+            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 const pos = project.positions.find(p => p.id === posId);
@@ -12567,6 +12609,7 @@
         };
 
         window.updatePosition = (projectId, posId, field, value) => {
+            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 const pos = project.positions.find(p => p.id === posId);
@@ -12578,6 +12621,7 @@
         };
 
         window.updateMisura = (projectId, posId, field, value) => {
+            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 const pos = project.positions.find(p => p.id === posId);
@@ -12590,6 +12634,7 @@
         };
 
         window.updateMisuraWithValidation = (projectId, posId, field, value) => {
+            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 const pos = project.positions.find(p => p.id === posId);
