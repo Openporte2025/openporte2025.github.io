@@ -1897,26 +1897,27 @@
             // Determina se il valore corrente è custom (non nella lista)
             const isCustom = currentValue && currentValue !== '' && !options.includes(currentValue);
             const selectedValue = isCustom ? '__custom__' : (currentValue || '');
+            const isEmpty = !currentValue || currentValue === '';
             
             // ID univoco per l'input custom
             const customInputId = `${fieldName}_custom_${projectId || 'global'}_${posId || 'config'}_${productType || 'infisso'}`;
             
             return `
-                <div class="mb-3">
-                    ${label ? `<label class="form-label">${label}</label>` : ''}
+                <div class="mb-2">
+                    ${label ? `<label class="block text-base font-bold mb-1 text-gray-800">${label}</label>` : ''}
                     
                     <!-- Select principale -->
                     <select 
-                        class="form-select mb-2" 
+                        class="w-full px-3 py-2.5 border-2 rounded-lg text-base font-medium ${isEmpty ? 'border-orange-400 bg-orange-50' : 'border-gray-300 bg-white'} focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
                         onchange="handleSelectCustomChange('${fieldName}', this, '${projectId}', '${posId || ''}', '${productType}')"
                     >
-                        <option value="">Seleziona</option>
+                        <option value="" class="text-gray-400">▼ Seleziona...</option>
                         ${options.map(opt => `
-                            <option value="${opt}" ${selectedValue === opt ? 'selected' : ''}>
+                            <option value="${opt}" ${selectedValue === opt ? 'selected' : ''} class="text-gray-900 font-medium">
                                 ${opt}
                             </option>
                         `).join('')}
-                        <option value="__custom__" ${isCustom ? 'selected' : ''}>
+                        <option value="__custom__" ${isCustom ? 'selected' : ''} class="text-blue-600 font-semibold">
                             🖊️ Scrivi manualmente
                         </option>
                     </select>
@@ -1924,9 +1925,9 @@
                     <!-- Input custom (nascosto se non serve) -->
                     <input 
                         type="text" 
-                        class="form-control" 
+                        class="w-full px-3 py-2.5 border-2 border-blue-400 rounded-lg mt-2 text-base font-medium bg-blue-50 focus:ring-2 focus:ring-blue-500" 
                         id="${customInputId}"
-                        placeholder="Scrivi valore personalizzato..."
+                        placeholder="✏️ Scrivi valore personalizzato..."
                         value="${isCustom ? currentValue : ''}"
                         style="display: ${isCustom ? 'block' : 'none'};"
                         onchange="${posId ? `updateProduct('${projectId}', '${posId}', '${productType}', '${fieldName}', this.value)` : 
@@ -7433,8 +7434,8 @@
                     
                     ${renderRilievoGlobale(project, 'infissi', 'Infissi', '🪟')}
                     
-                    <div class="space-y-4 mt-6">
-                        <div class="grid md:grid-cols-2 gap-4">
+                    <div class="space-y-2 mt-4">
+                        <div class="grid md:grid-cols-2 gap-2">
                             <!-- 1. AZIENDA -->
                             ${renderSelectWithCustom(
                                 'azienda',
@@ -7481,22 +7482,22 @@
 
                             <!-- 5. COLORE INTERNO -->
                             <div>
-                                <label class="block text-sm font-medium mb-1">5. Colore Interno</label>
+                                <label class="block text-base font-bold mb-1 text-gray-800">5. Colore Interno</label>
                                 <input type="text" 
-                                       placeholder="Es: Bianco, RAL 9010, ecc."
+                                       placeholder="✏️ Es: Bianco, RAL 9010..."
                                        value="${project.configInfissi?.coloreInt || ''}"
                                        onchange="updateConfigInfissi('${project.id}', 'coloreInt', this.value)"
-                                       class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
+                                       class="w-full px-3 py-2.5 border-2 rounded-lg text-base font-medium ${!project.configInfissi?.coloreInt ? 'border-orange-400 bg-orange-50' : 'border-gray-300 bg-white'} focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                             </div>
 
                             <!-- 6. COLORE ESTERNO -->
                             <div>
-                                <label class="block text-sm font-medium mb-1">6. Colore Esterno</label>
+                                <label class="block text-base font-bold mb-1 text-gray-800">6. Colore Esterno</label>
                                 <input type="text" 
-                                       placeholder="Es: Marrone, RAL 8014, ecc."
+                                       placeholder="✏️ Es: Marrone, RAL 8014..."
                                        value="${project.configInfissi?.coloreEst || ''}"
                                        onchange="updateConfigInfissi('${project.id}', 'coloreEst', this.value)"
-                                       class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
+                                       class="w-full px-3 py-2.5 border-2 rounded-lg text-base font-medium ${!project.configInfissi?.coloreEst ? 'border-orange-400 bg-orange-50' : 'border-gray-300 bg-white'} focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                             </div>
 
                             <!-- 7. TELAIO -->
@@ -7545,14 +7546,14 @@
 
                             <!-- 11. COD.TAGLI (Editabili - si sincronizzano con le posizioni) -->
                             <div>
-                                <label class="block text-sm font-medium mb-1">11. COD.TAGLI</label>
+                                <label class="block text-base font-bold mb-1 text-gray-800">11. COD.TAGLI</label>
                                 <div class="grid gap-2" style="grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));">
                                     ${(() => {
                                         const tagliTelaio = project.configInfissi?.tagliTelaio || '';
                                         const codTagli = project.configInfissi?.codTagli || [];
                                         
                                         if (codTagli.length === 0) {
-                                            return '<input type="text" readonly placeholder="Seleziona Tagli Telaio" class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-700 font-mono">';
+                                            return '<input type="text" readonly placeholder="▼ Seleziona Tagli Telaio prima" class="w-full px-3 py-2.5 border-2 border-orange-400 bg-orange-50 rounded-lg text-gray-700 font-mono text-center font-medium">';
                                         }
                                         
                                         // Mostra direttamente i campi basati su codTagli (già corretto da updateConfigInfissi)
@@ -7561,11 +7562,11 @@
                                                    value="${taglio}"
                                                    onchange="updateCodTagliGlobale('${project.id}', ${idx}, this.value)"
                                                    placeholder="${taglio}"
-                                                   class="w-full px-2 py-1.5 border-2 border-purple-300 rounded-lg text-gray-700 font-mono text-center font-bold focus:ring-2 focus:ring-purple-500">
+                                                   class="w-full px-2 py-2 border-2 border-purple-400 bg-purple-50 rounded-lg text-gray-800 font-mono text-center font-bold text-base focus:ring-2 focus:ring-purple-500 focus:border-purple-600">
                                         `).join('');
                                     })()}
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1">💡 Questi valori si copiano nelle posizioni (modificabili singolarmente)</p>
+                                <p class="text-sm text-gray-600 mt-1.5 font-medium">💡 Questi valori si copiano nelle posizioni (modificabili singolarmente)</p>
                             </div>
                         </div>
                     </div>
@@ -7588,8 +7589,8 @@
                     
                     ${renderRilievoGlobale(project, 'persiane', 'Persiane', '🚪')}
                     
-                    <div class="space-y-4 mt-6">
-                        <div class="grid md:grid-cols-2 gap-4">
+                    <div class="space-y-2 mt-4">
+                        <div class="grid md:grid-cols-2 gap-2">
                             <!-- 1. AZIENDA -->
                             ${renderSelectWithCustom(
                                 'azienda',
@@ -7695,8 +7696,8 @@
                     
                     ${renderRilievoGlobale(project, 'tapparelle', 'Tapparelle', '🎚️')}
                     
-                    <div class="space-y-4 mt-6">
-                        <div class="grid md:grid-cols-2 gap-4">
+                    <div class="space-y-2 mt-4">
+                        <div class="grid md:grid-cols-2 gap-2">
                             <!-- 1. AZIENDA -->
                             ${renderSelectWithCustom(
                                 'azienda',
@@ -7786,8 +7787,8 @@
                     </h2>
                     <p class="text-gray-600 mb-4">Imposta i valori di default per tutte le zanzariere:</p>
                     
-                    <div class="space-y-4">
-                        <div class="grid md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <div class="grid md:grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-sm font-medium mb-1">1. Tipo Zanzariera</label>
                                 ${(() => {
@@ -7906,8 +7907,8 @@
                     
                     ${renderRilievoGlobale(project, 'cassonetti', 'Cassonetti', '📦')}
                     
-                    <div class="space-y-4 mt-6">
-                        <div class="grid md:grid-cols-2 gap-4">
+                    <div class="space-y-2 mt-4">
+                        <div class="grid md:grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-sm font-medium mb-1">1. Tipo Cassonetto</label>
                                 ${(() => {
