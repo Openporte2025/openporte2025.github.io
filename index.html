@@ -2945,41 +2945,68 @@
         }
         
         async function downloadFromOneDrive() {
+            console.log('🔽 downloadFromOneDrive: INIZIO');
+            
+            // Check 1: Token valido?
+            console.log('🔽 Check token...');
             if (!await ensureValidToken()) {
+                console.error('🔽 ERRORE: Token non valido');
                 showNotification('⚠️ Riconnetti OneDrive', 'error');
                 return false;
             }
+            console.log('🔽 Token OK');
             
             try {
                 state.onedrive.syncStatus = 'syncing';
                 render();
                 
+                // Check 2: Percorso file
                 const filePath = `${ONEDRIVE_CONFIG.folderPath}/${ONEDRIVE_CONFIG.fileName}`;
                 const url = `${ONEDRIVE_CONFIG.apiEndpoint}/me/drive/root:${filePath}:/content`;
+                console.log('🔽 Percorso file:', filePath);
+                console.log('🔽 URL completo:', url);
                 
+                // Check 3: Notifica utente
+                showNotification('📥 Download da OneDrive in corso...', 'info', 3000);
+                
+                // Check 4: Fetch
+                console.log('🔽 Avvio fetch...');
                 const response = await fetch(url, {
                     headers: {
                         'Authorization': `Bearer ${state.onedrive.accessToken}`
                     }
                 });
+                console.log('🔽 Fetch completato. Status:', response.status);
                 
                 if (!response.ok) {
                     if (response.status === 404) {
-                        // File non esiste, crea primo upload
-                        showNotification('📤 Primo upload su OneDrive...', 'info');
+                        console.log('🔽 File non trovato (404). Primo upload?');
+                        showNotification('📤 File non trovato su OneDrive. Primo upload...', 'info');
                         return await uploadToOneDrive();
                     }
-                    throw new Error(`Download failed: ${response.status}`);
+                    console.error('🔽 ERRORE HTTP:', response.status, response.statusText);
+                    throw new Error(`Download failed: ${response.status} ${response.statusText}`);
                 }
                 
+                // Check 5: Parse JSON
+                console.log('🔽 Download OK. Parsing JSON...');
                 const cloudData = await response.json();
+                console.log('🔽 JSON parsed. Progetti trovati:', cloudData.projects?.length || 0);
                 
-                // Backup locale prima del merge
+                // Check 6: Validazione dati
+                if (!cloudData.projects || !Array.isArray(cloudData.projects)) {
+                    console.error('🔽 ERRORE: Dati non validi. projects non è array');
+                    throw new Error('Dati OneDrive non validi');
+                }
+                
+                // Check 7: Backup locale
+                console.log('🔽 Creazione backup locale...');
                 if (state.onedrive.autoBackupEnabled) {
                     createBackup('Pre-sync OneDrive');
                 }
                 
-                // Merge dati preservando token
+                // Check 8: Merge dati
+                console.log('🔽 Merge dati preservando token...');
                 const currentTokens = {
                     accessToken: state.onedrive.accessToken,
                     refreshToken: state.onedrive.refreshToken,
@@ -2998,20 +3025,30 @@
                 state.onedrive.lastSyncTime = Date.now();
                 state.onedrive.syncStatus = 'synced';
                 
+                // Check 9: Salvataggio
+                console.log('🔽 Salvataggio state...');
                 saveState();
+                
+                // Check 10: Render
+                console.log('🔽 Render UI...');
                 render();
                 
-                if (state.onedrive.syncNotifications) {
-                    showNotification('☁️ Scaricato da OneDrive', 'success', 2000);
-                }
+                // Check 11: Notifica successo
+                console.log('🔽 DOWNLOAD COMPLETATO! Progetti:', state.projects.length);
+                showNotification(`✅ ${state.projects.length} progetti scaricati da OneDrive!`, 'success', 3000);
                 
                 return true;
                 
             } catch (error) {
-                console.error('Download error:', error);
+                console.error('🔽 ERRORE DOWNLOAD:', error);
+                console.error('🔽 Error message:', error.message);
+                console.error('🔽 Error stack:', error.stack);
+                
                 state.onedrive.syncStatus = 'error';
                 render();
-                showNotification('❌ Errore download OneDrive', 'error');
+                
+                // Notifica con dettaglio errore
+                showNotification(`❌ Errore download: ${error.message}`, 'error', 5000);
                 return false;
             }
         }
@@ -3132,6 +3169,90 @@
         
         // ─── UI FUNCTIONS ───
         
+        async function testOneDriveConnection() {
+            console.log('🧪 TEST CONNESSIONE ONEDRIVE');
+            showNotification('🧪 Test connessione in corso...', 'info');
+            
+            try {
+                // Test 1: Token valido?
+                if (!state.onedrive.connected) {
+                    throw new Error('OneDrive non connesso');
+                }
+                
+                if (!state.onedrive.accessToken) {
+                    throw new Error('Access token mancante');
+                }
+                
+                console.log('✅ Token presente');
+                
+                // Test 2: Verifica scadenza token
+                if (state.onedrive.tokenExpiry && Date.now() >= state.onedrive.tokenExpiry) {
+                    console.log('⚠️ Token scaduto, refresh...');
+                    await refreshAccessToken();
+                }
+                
+                // Test 3: Test API Microsoft Graph
+                console.log('🧪 Test API Microsoft Graph...');
+                const testUrl = `${ONEDRIVE_CONFIG.apiEndpoint}/me/drive`;
+                const testResponse = await fetch(testUrl, {
+                    headers: {
+                        'Authorization': `Bearer ${state.onedrive.accessToken}`
+                    }
+                });
+                
+                if (!testResponse.ok) {
+                    throw new Error(`API test failed: ${testResponse.status}`);
+                }
+                
+                console.log('✅ API Microsoft Graph OK');
+                
+                // Test 4: Controlla se cartella OpenPorte esiste
+                console.log('🧪 Controllo cartella OpenPorte...');
+                const folderUrl = `${ONEDRIVE_CONFIG.apiEndpoint}/me/drive/root:${ONEDRIVE_CONFIG.folderPath}`;
+                const folderResponse = await fetch(folderUrl, {
+                    headers: {
+                        'Authorization': `Bearer ${state.onedrive.accessToken}`
+                    }
+                });
+                
+                if (folderResponse.ok) {
+                    console.log('✅ Cartella OpenPorte trovata');
+                } else if (folderResponse.status === 404) {
+                    console.log('⚠️ Cartella OpenPorte non esiste');
+                }
+                
+                // Test 5: Controlla se file data.json esiste
+                console.log('🧪 Controllo file data.json...');
+                const filePath = `${ONEDRIVE_CONFIG.folderPath}/${ONEDRIVE_CONFIG.fileName}`;
+                const fileUrl = `${ONEDRIVE_CONFIG.apiEndpoint}/me/drive/root:${filePath}`;
+                const fileResponse = await fetch(fileUrl, {
+                    headers: {
+                        'Authorization': `Bearer ${state.onedrive.accessToken}`
+                    }
+                });
+                
+                if (fileResponse.ok) {
+                    const fileInfo = await fileResponse.json();
+                    console.log('✅ File data.json trovato');
+                    console.log('📄 Size:', fileInfo.size, 'bytes');
+                    console.log('📅 Modified:', fileInfo.lastModifiedDateTime);
+                    showNotification(`✅ Test OK! File trovato (${Math.round(fileInfo.size/1024)}KB)`, 'success', 3000);
+                } else if (fileResponse.status === 404) {
+                    console.log('⚠️ File data.json non esiste su OneDrive');
+                    showNotification('⚠️ File non trovato su OneDrive. Carica prima dal PC!', 'error', 5000);
+                } else {
+                    throw new Error(`File check failed: ${fileResponse.status}`);
+                }
+                
+                return true;
+                
+            } catch (error) {
+                console.error('❌ TEST FALLITO:', error);
+                showNotification(`❌ Test fallito: ${error.message}`, 'error', 5000);
+                return false;
+            }
+        }
+        
         function openSyncSettings() {
             // ☁️ Controllo sicurezza: assicura che onedrive structure esista
             if (!state.onedrive) {
@@ -3219,6 +3340,31 @@
                             <button onclick="uploadToOneDrive()" class="btn-sync">
                                 ⬆️ Carica
                             </button>
+                            <button onclick="testOneDriveConnection()" class="btn-sync" style="background: #8b5cf6;">
+                                🧪 Test Connessione
+                            </button>
+                        </div>
+                    ` : ''}
+                    
+                    ${state.onedrive.connected ? `
+                        <div class="sync-debug" style="margin-top: 16px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                            <p style="font-weight: 600; margin-bottom: 8px;">🔍 Debug Info</p>
+                            <div style="font-size: 12px; color: #64748b; font-family: monospace;">
+                                <div>Progetti locali: <strong>${state.projects?.length || 0}</strong></div>
+                                <div>Token valido: <strong>${state.onedrive.accessToken ? '✅ Sì' : '❌ No'}</strong></div>
+                                <div>Token scade: <strong>${state.onedrive.tokenExpiry ? new Date(state.onedrive.tokenExpiry).toLocaleString('it-IT') : 'N/A'}</strong></div>
+                                <div>Stato sync: <strong>${state.onedrive.syncStatus || 'N/A'}</strong></div>
+                                <div style="margin-top: 8px;">
+                                    <button onclick="window.open('', '_blank').document.write('<pre>' + JSON.stringify(state.onedrive, null, 2) + '</pre>')" 
+                                            style="font-size: 11px; padding: 4px 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                        📋 Mostra Config Completa
+                                    </button>
+                                    <button onclick="console.log('STATE COMPLETO:', state); alert('Vedi console browser (F12)');" 
+                                            style="font-size: 11px; padding: 4px 8px; background: #8b5cf6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 4px;">
+                                        🔍 Log Console
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     ` : ''}
                     
