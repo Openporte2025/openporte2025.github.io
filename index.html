@@ -1659,28 +1659,58 @@
 
         let syncInterval = null;  // Timer per sync automatica
         
-        // ⚡ FASE 024: Sistema debounce per render
-        let renderTimeout = null;  // Timer per render differito
-        const RENDER_DEBOUNCE_MS = 300;  // Millisecondi di attesa prima del render
+        // ⚡ FASE 024B: Sistema aggiornamenti parziali DOM (approccio cloud)
+        // Invece di render() completo, aggiorniamo solo gli elementi necessari
         
         /**
-         * ⚡ FASE 024: Render differito con debounce
-         * Permette di completare interazioni (dropdown, input) prima di ri-renderizzare
+         * Aggiorna un singolo campo DOM senza render completo
          */
-        function deferredRender() {
-            clearTimeout(renderTimeout);
-            renderTimeout = setTimeout(() => {
-                render();
-            }, RENDER_DEBOUNCE_MS);
+        function updateDOMField(elementId, value) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+                    el.value = value;
+                } else {
+                    el.textContent = value;
+                }
+            }
         }
         
         /**
-         * ⚡ FASE 024: Render immediato (per casi critici)
-         * Cancella eventuali render in attesa e renderizza subito
+         * Aggiorna i BRM visualizzati per un prodotto specifico
          */
-        function immediateRender() {
-            clearTimeout(renderTimeout);
-            render();
+        function updateBRMDisplay(projectId, posId, productType) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const pos = project.positions.find(p => p.id === posId);
+            if (!pos) return;
+            
+            const product = pos[productType];
+            if (!product) return;
+            
+            // Aggiorna i campi BRM visualizzati
+            updateDOMField(`brm-l-${posId}-${productType}`, product.BRM_L || '');
+            updateDOMField(`brm-h-${posId}-${productType}`, product.BRM_H || '');
+        }
+        
+        /**
+         * Aggiorna indicatori completamento senza render
+         */
+        function updateCompletenessIndicators(projectId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project || !project.positions) return;
+            
+            project.positions.forEach(pos => {
+                const comp = calculatePositionCompleteness(pos);
+                const indicator = document.getElementById(`completeness-${pos.id}`);
+                if (indicator) {
+                    indicator.textContent = `${comp.percentage}%`;
+                    indicator.className = comp.percentage === 100 
+                        ? 'text-green-600 font-bold' 
+                        : 'text-orange-600 font-bold';
+                }
+            });
         }
 
         // Load/Save Functions
@@ -5570,8 +5600,8 @@
 
         // Validazione B-C per cassonetti
         function validateCassonettoBC(projectId, posId) {
-            // ⚡ FASE 024: Usa render differito per evitare chiusura dropdown
-            deferredRender();
+            // ⚡ FASE 024B: NO render - validazione già eseguita
+            // I messaggi di validazione sono già nel DOM tramite validateAltezzeRealTime
         }
 
         // Validazione in tempo reale per le altezze (mentre scrivi)
@@ -8691,7 +8721,7 @@
                                 <input type="text" value="${pos.name}"
                                        onchange="updatePosition('${project.id}', '${pos.id}', 'name', this.value)"
                                        class="text-xl font-bold border-b-2 border-transparent focus:border-purple-500 outline-none">
-                                <select onchange="deferredSwitchPosition(this)"
+                                <select onchange="switchPosition(this.value)"
                                         class="px-3 py-1 border rounded-lg">
                                     ${project.positions.map(p => `
                                         <option value="${p.id}" ${p.id === pos.id ? 'selected' : ''}>${p.name}</option>
@@ -11777,18 +11807,6 @@
             state.currentPosition = id;
             render();
         };
-        
-        /**
-         * ⚡ FASE 024: Wrapper per switchPosition con delay
-         * Permette al dropdown di chiudersi prima del cambio posizione
-         */
-        window.deferredSwitchPosition = (selectElement) => {
-            const id = selectElement.value;
-            // Ritarda di 100ms per dare tempo al dropdown di chiudersi
-            setTimeout(() => {
-                switchPosition(id);
-            }, 100);
-        };
 
         window.printChecklistRilievi = (projectId) => {
             const project = state.projects.find(p => p.id === projectId);
@@ -12398,8 +12416,9 @@
                 ricalcolaTuttiiBRMGlobali(project, configKey);
                 
                 saveState();
-                // ⚡ FASE 024: Usa render differito per evitare chiusura dropdown
-                deferredRender();
+                // ⚡ FASE 024B: NO render - approccio cloud
+                // I dati sono già salvati, i BRM ricalcolati
+                // L'utente vedrà i cambiamenti al prossimo cambio naturale di vista
             }
         };
 
@@ -12426,8 +12445,8 @@
                     });
                     
                     if (cassUpdated > 0) {
-                        // ⚡ FASE 024: Usa render differito per evitare chiusura dropdown
-                        deferredRender();
+                        // ⚡ FASE 024B: NO render - dati già salvati
+                        // showNotification mostrerà il risultato senza bisogno di render
                         showNotification(`✅ Aggiornati ${cassUpdated} cassonetti con nuovo BSuperiore: ${value}mm`, 'success');
                     }
                 }
@@ -12449,7 +12468,9 @@
                     // aggiorna automaticamente BSuperiore nel cassonetto di questa posizione
                     if (field === 'battutaSuperioreTapparella' && pos.cassonetto) {
                         pos.cassonetto.BSuperiore = value || '0';
-                        deferredRender();  // ⚡ FASE 024: Usa render differito
+                        // ⚡ FASE 024B: Aggiorna DOM diretto invece di render
+                        const bSupEl = document.getElementById(`bsup-${posId}`);
+                        if (bSupEl) bSupEl.value = value || '0';
                         showNotification(`✅ Aggiornato BSuperiore cassonetto: ${value}mm`, 'success');
                     }
                     
@@ -12481,7 +12502,12 @@
                     if (!pos.caratteristicheMuroOverride) pos.caratteristicheMuroOverride = {};
                     pos.caratteristicheMuroOverride.guidaEsistente = value;
                     saveState();
-                    deferredRender();  // ⚡ FASE 024: Usa render differito per mostrare/nascondere i campi guida
+                    
+                    // ⚡ FASE 024B: Manipolazione DOM diretta per mostrare/nascondere campi
+                    const guidaFields = document.querySelector(`[id*="guida-fields-override-${posId}"]`);
+                    if (guidaFields) {
+                        guidaFields.style.display = value === 'si' ? 'block' : 'none';
+                    }
                 }
             }
         };
@@ -12511,7 +12537,14 @@
                     if (!pos.caratteristicheMuroOverride) pos.caratteristicheMuroOverride = {};
                     pos.caratteristicheMuroOverride.falsoEsistente = value;
                     saveState();
-                    deferredRender();  // ⚡ FASE 024: Usa render differito per mostrare/nascondere i campi falso
+                    
+                    // ⚡ FASE 024B: Manipolazione DOM diretta per mostrare/nascondere campi
+                    const falsoSiFields = document.querySelector(`[id*="falso-si-fields-override-${posId}"]`);
+                    const falsoNoFields = document.querySelector(`[id*="falso-no-fields-override-${posId}"]`);
+                    if (falsoSiFields && falsoNoFields) {
+                        falsoSiFields.style.display = value === 'si' ? 'block' : 'none';
+                        falsoNoFields.style.display = value === 'no' ? 'block' : 'none';
+                    }
                 }
             }
         };
