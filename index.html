@@ -2752,6 +2752,19 @@
                         startAutoSync();
                     }
                     
+                    // 🆕 SCARICA AUTOMATICAMENTE I DATI DAL CLOUD
+                    // Se l'utente connette OneDrive su nuovo dispositivo, scarica i progetti esistenti
+                    setTimeout(async () => {
+                        if (state.projects.length === 0) {
+                            // Prova a scaricare dati dal cloud
+                            showNotification('📥 Controllo dati su OneDrive...', 'info');
+                            const downloaded = await downloadFromOneDrive();
+                            if (downloaded) {
+                                showNotification('✅ Progetti sincronizzati da OneDrive!', 'success', 3000);
+                            }
+                        }
+                    }, 1500);
+                    
                     render();
                     
                 } catch (error) {
@@ -6369,17 +6382,79 @@
 
         function ProjectsList() {
             if (state.projects.length === 0) {
+                // Verifica se OneDrive è connesso
+                const isOneDriveConnected = state.onedrive && state.onedrive.connected;
+                
                 return `
                     ${Header()}
-                    <div class="min-h-[70vh] flex items-center justify-center">
-                        <div class="text-center bg-white rounded-2xl p-8 shadow-xl">
-                            <div class="text-6xl mb-4">📋</div>
-                            <h2 class="text-2xl font-bold mb-2">Benvenuto in Open Porte</h2>
-                            <p class="text-gray-600 mb-6">Inizia creando il tuo primo progetto</p>
-                            <button onclick="showNewProjectModal()" 
-                                    class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
-                                + Crea Primo Progetto
-                            </button>
+                    <div class="min-h-[70vh] flex items-center justify-center p-4">
+                        <div class="max-w-2xl w-full space-y-4">
+                            
+                            <!-- Banner OneDrive -->
+                            <div class="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-2xl p-6 shadow-lg">
+                                <div class="flex items-start gap-4">
+                                    <div class="text-5xl flex-shrink-0">☁️</div>
+                                    <div class="flex-1">
+                                        ${!isOneDriveConnected ? `
+                                            <!-- Non connesso: invita a connettere -->
+                                            <h3 class="text-xl font-bold text-blue-900 mb-2">
+                                                Hai progetti su altri dispositivi?
+                                            </h3>
+                                            <p class="text-blue-700 mb-4">
+                                                Connetti OneDrive per sincronizzare i tuoi progetti tra PC, tablet e smartphone. 
+                                                I tuoi dati saranno sempre aggiornati e disponibili ovunque.
+                                            </p>
+                                            <div class="flex flex-wrap gap-3">
+                                                <button onclick="connectOneDrive()" 
+                                                        class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all flex items-center gap-2">
+                                                    <span>🔗</span>
+                                                    <span>Connetti OneDrive</span>
+                                                </button>
+                                                <button onclick="openSyncSettings()" 
+                                                        class="px-6 py-3 bg-white text-blue-600 border-2 border-blue-300 rounded-lg font-semibold hover:bg-blue-50 transition-all">
+                                                    ℹ️ Maggiori Info
+                                                </button>
+                                            </div>
+                                        ` : `
+                                            <!-- Connesso ma nessun progetto locale: scarica dal cloud -->
+                                            <h3 class="text-xl font-bold text-blue-900 mb-2">
+                                                🟢 OneDrive Connesso
+                                            </h3>
+                                            <p class="text-blue-700 mb-4">
+                                                Non ci sono progetti su questo dispositivo. Se hai progetti salvati su OneDrive, 
+                                                scaricali ora per sincronizzare i tuoi dati.
+                                            </p>
+                                            <div class="flex flex-wrap gap-3">
+                                                <button onclick="downloadFromOneDrive()" 
+                                                        class="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all flex items-center gap-2">
+                                                    <span>⬇️</span>
+                                                    <span>Scarica da OneDrive</span>
+                                                </button>
+                                                <button onclick="openSyncSettings()" 
+                                                        class="px-6 py-3 bg-white text-blue-600 border-2 border-blue-300 rounded-lg font-semibold hover:bg-blue-50 transition-all">
+                                                    ⚙️ Impostazioni Sync
+                                                </button>
+                                            </div>
+                                        `}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Card Benvenuto -->
+                            <div class="text-center bg-white rounded-2xl p-8 shadow-xl">
+                                <div class="text-6xl mb-4">📋</div>
+                                <h2 class="text-2xl font-bold mb-2">Benvenuto in Open Porte</h2>
+                                <p class="text-gray-600 mb-6">
+                                    ${!isOneDriveConnected ? 
+                                        'Inizia creando il tuo primo progetto oppure connetti OneDrive per sincronizzare' : 
+                                        'Inizia creando il tuo primo progetto'}
+                                </p>
+                                <button onclick="showNewProjectModal()" 
+                                        class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
+                                    + Crea Primo Progetto
+                                </button>
+                            </div>
+                            
                         </div>
                     </div>
                 `;
