@@ -1658,6 +1658,30 @@
         };
 
         let syncInterval = null;  // Timer per sync automatica
+        
+        // ⚡ FASE 024: Sistema debounce per render
+        let renderTimeout = null;  // Timer per render differito
+        const RENDER_DEBOUNCE_MS = 300;  // Millisecondi di attesa prima del render
+        
+        /**
+         * ⚡ FASE 024: Render differito con debounce
+         * Permette di completare interazioni (dropdown, input) prima di ri-renderizzare
+         */
+        function deferredRender() {
+            clearTimeout(renderTimeout);
+            renderTimeout = setTimeout(() => {
+                render();
+            }, RENDER_DEBOUNCE_MS);
+        }
+        
+        /**
+         * ⚡ FASE 024: Render immediato (per casi critici)
+         * Cancella eventuali render in attesa e renderizza subito
+         */
+        function immediateRender() {
+            clearTimeout(renderTimeout);
+            render();
+        }
 
         // Load/Save Functions
         function loadState() {
@@ -5546,8 +5570,8 @@
 
         // Validazione B-C per cassonetti
         function validateCassonettoBC(projectId, posId) {
-            // Forza re-render per aggiornare il messaggio di validazione
-            render();
+            // ⚡ FASE 024: Usa render differito per evitare chiusura dropdown
+            deferredRender();
         }
 
         // Validazione in tempo reale per le altezze (mentre scrivi)
@@ -8667,7 +8691,7 @@
                                 <input type="text" value="${pos.name}"
                                        onchange="updatePosition('${project.id}', '${pos.id}', 'name', this.value)"
                                        class="text-xl font-bold border-b-2 border-transparent focus:border-purple-500 outline-none">
-                                <select onchange="switchPosition(this.value)"
+                                <select onchange="deferredSwitchPosition(this)"
                                         class="px-3 py-1 border rounded-lg">
                                     ${project.positions.map(p => `
                                         <option value="${p.id}" ${p.id === pos.id ? 'selected' : ''}>${p.name}</option>
@@ -11753,6 +11777,18 @@
             state.currentPosition = id;
             render();
         };
+        
+        /**
+         * ⚡ FASE 024: Wrapper per switchPosition con delay
+         * Permette al dropdown di chiudersi prima del cambio posizione
+         */
+        window.deferredSwitchPosition = (selectElement) => {
+            const id = selectElement.value;
+            // Ritarda di 100ms per dare tempo al dropdown di chiudersi
+            setTimeout(() => {
+                switchPosition(id);
+            }, 100);
+        };
 
         window.printChecklistRilievi = (projectId) => {
             const project = state.projects.find(p => p.id === projectId);
@@ -12362,7 +12398,8 @@
                 ricalcolaTuttiiBRMGlobali(project, configKey);
                 
                 saveState();
-                render();
+                // ⚡ FASE 024: Usa render differito per evitare chiusura dropdown
+                deferredRender();
             }
         };
 
@@ -12389,7 +12426,8 @@
                     });
                     
                     if (cassUpdated > 0) {
-                        render();
+                        // ⚡ FASE 024: Usa render differito per evitare chiusura dropdown
+                        deferredRender();
                         showNotification(`✅ Aggiornati ${cassUpdated} cassonetti con nuovo BSuperiore: ${value}mm`, 'success');
                     }
                 }
@@ -12411,7 +12449,7 @@
                     // aggiorna automaticamente BSuperiore nel cassonetto di questa posizione
                     if (field === 'battutaSuperioreTapparella' && pos.cassonetto) {
                         pos.cassonetto.BSuperiore = value || '0';
-                        render();
+                        deferredRender();  // ⚡ FASE 024: Usa render differito
                         showNotification(`✅ Aggiornato BSuperiore cassonetto: ${value}mm`, 'success');
                     }
                     
@@ -12443,7 +12481,7 @@
                     if (!pos.caratteristicheMuroOverride) pos.caratteristicheMuroOverride = {};
                     pos.caratteristicheMuroOverride.guidaEsistente = value;
                     saveState();
-                    render(); // Re-render per mostrare/nascondere i campi guida
+                    deferredRender();  // ⚡ FASE 024: Usa render differito per mostrare/nascondere i campi guida
                 }
             }
         };
@@ -12473,7 +12511,7 @@
                     if (!pos.caratteristicheMuroOverride) pos.caratteristicheMuroOverride = {};
                     pos.caratteristicheMuroOverride.falsoEsistente = value;
                     saveState();
-                    render(); // Re-render per mostrare/nascondere i campi falso
+                    deferredRender();  // ⚡ FASE 024: Usa render differito per mostrare/nascondere i campi falso
                 }
             }
         };
@@ -12642,9 +12680,9 @@
                 if (pos && pos.tapparella && pos.tapparella.motori && pos.tapparella.motori[motoreIdx]) {
                     pos.tapparella.motori[motoreIdx][field] = value;
                     saveState();
-                    // Se cambia alimentazione, ri-renderizza per mostrare/nascondere trasmettitore
+                    // ⚡ FASE 024: Se cambia alimentazione, ri-renderizza con debounce per mostrare/nascondere trasmettitore
                     if (field === 'alimentazione') {
-                        render();
+                        deferredRender();
                     }
                 }
             }
@@ -13365,6 +13403,22 @@ ${pos.cassonetto.BRM_C !== undefined && pos.cassonetto.BRM_C !== null ? `<tr><td
 ${pos.cassonetto.BRM_B !== undefined && pos.cassonetto.BRM_B !== null ? `<tr><td><strong>BRM_B</strong></td><td><strong>${pos.cassonetto.BRM_B ?? '-'} mm</strong></td></tr>` : ''}
 ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` : ''}
 </div>`;
+        }
+
+        // ⚡ FASE 024: Render differito con debounce
+        // Permette all'utente di fare più modifiche consecutive senza interruzioni
+        // Il render viene eseguito solo dopo 300ms di "silenzio"
+        function deferredRender() {
+            // Cancella il timer precedente se esiste
+            if (renderTimeout) {
+                clearTimeout(renderTimeout);
+            }
+            
+            // Schedula un nuovo render tra 300ms
+            renderTimeout = setTimeout(() => {
+                render();
+                renderTimeout = null;
+            }, RENDER_DEBOUNCE_MS);
         }
 
         // Main Render Function
