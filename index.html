@@ -7977,22 +7977,30 @@
                             )}
                             
                             <!-- 6. GUIDA -->
-                            <div>
-                                <label class="block text-sm font-medium mb-1">6. Guida</label>
-                                <input type="text" placeholder="Es: Standard, Rinforzata"
-                                       value="${project.configTapparelle?.guida || ''}"
-                                       onchange="updateConfigTapparelle('${project.id}', 'guida', this.value)"
-                                       class="w-full px-3 py-2 border rounded-lg">
-                            </div>
+                            ${renderSelectWithCustom({
+                                fieldId: `guida_config_${project.id}`,
+                                fieldName: 'guida',
+                                currentValue: project.configTapparelle?.guida || '',
+                                options: ['Standard', 'Rinforzata', 'Slim', 'Doppia', 'Tripla'],
+                                placeholder: 'Seleziona guida...',
+                                customPlaceholder: 'Scrivi guida...',
+                                onChangeFn: `updateConfigTapparelle('${project.id}', 'guida', value)`,
+                                context: 'config-tapparella',
+                                label: '6. Guida'
+                            })}
                             
                             <!-- 7. COLORE GUIDA -->
-                            <div>
-                                <label class="block text-sm font-medium mb-1">7. Colore Guida</label>
-                                <input type="text" placeholder="Es: Bianco, Marrone"
-                                       value="${project.configTapparelle?.coloreGuida || ''}"
-                                       onchange="updateConfigTapparelle('${project.id}', 'coloreGuida', this.value)"
-                                       class="w-full px-3 py-2 border rounded-lg">
-                            </div>
+                            ${renderSelectWithCustom({
+                                fieldId: `coloreGuida_config_${project.id}`,
+                                fieldName: 'coloreGuida',
+                                currentValue: project.configTapparelle?.coloreGuida || '',
+                                options: ['Bianco', 'Marrone', 'Grigio', 'Nero', 'Avorio'],
+                                placeholder: 'Seleziona colore...',
+                                customPlaceholder: 'Scrivi colore...',
+                                onChangeFn: `updateConfigTapparelle('${project.id}', 'coloreGuida', value)`,
+                                context: 'config-tapparella',
+                                label: '7. Colore Guida'
+                            })}
                         </div>
                     </div>
                     
@@ -10551,18 +10559,17 @@
                                             <option value="grigio">
                                         </datalist>
                                     </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Manuale/Motorizzato</label>
-                                        <input type="text" value="${tap.manualeMot || ''}"
-                                               placeholder="Motorizzata"
-                                               list="manualeMot-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'manualeMot', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="manualeMot-list-${pos.id}">
-                                            <option value="Manuale">
-                                            <option value="Motorizzata">
-                                        </datalist>
-                                    </div>
+                                    ${renderSelectWithCustom({
+                                        fieldId: `manualeMot_${project.id}_${pos.id}`,
+                                        fieldName: 'manualeMot',
+                                        currentValue: tap.manualeMot || '',
+                                        options: ['Manuale', 'Motorizzata'],
+                                        placeholder: 'Seleziona...',
+                                        customPlaceholder: 'Scrivi...',
+                                        onChangeFn: `updateProduct('${project.id}', '${pos.id}', 'tapparella', 'manualeMot', value)`,
+                                        context: 'pos-tapparella',
+                                        label: 'Manuale/Motorizzato'
+                                    })}
                                 </div>
 
                                 <!-- FASE 11a: TIPO SOSTITUZIONE -->
@@ -10602,31 +10609,28 @@
                                 <!-- CAMPI CONDIZIONALI -->
                                 ${tap.tipoSostituzione !== 'Solo Motore' ? `
                                 <div class="grid md:grid-cols-2 gap-3 mt-3">
-                                    <div>
-                                        <label class="text-xs font-medium">Guida</label>
-                                        <input type="text" value="${tap.guida || ''}"
-                                               placeholder="--"
-                                               list="guida-tap-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'guida', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="guida-tap-list-${pos.id}">
-                                            <option value="Standard">
-                                            <option value="Rinforzata">
-                                        </datalist>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Colore Guida</label>
-                                        <input type="text" value="${tap.coloreGuida || ''}"
-                                               placeholder="--"
-                                               list="coloreGuida-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'coloreGuida', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="coloreGuida-list-${pos.id}">
-                                            <option value="bianco">
-                                            <option value="marrone">
-                                            <option value="grigio">
-                                        </datalist>
-                                    </div>
+                                    ${renderSelectWithCustom({
+                                        fieldId: `guida_tap_${project.id}_${pos.id}`,
+                                        fieldName: 'guida',
+                                        currentValue: tap.guida || '',
+                                        options: ['Standard', 'Rinforzata', 'Slim', 'Doppia'],
+                                        placeholder: 'Seleziona guida...',
+                                        customPlaceholder: 'Scrivi guida...',
+                                        onChangeFn: `updateProduct('${project.id}', '${pos.id}', 'tapparella', 'guida', value)`,
+                                        context: 'pos-tapparella',
+                                        label: 'Guida'
+                                    })}
+                                    ${renderSelectWithCustom({
+                                        fieldId: `coloreGuida_tap_${project.id}_${pos.id}`,
+                                        fieldName: 'coloreGuida',
+                                        currentValue: tap.coloreGuida || '',
+                                        options: ['Bianco', 'Marrone', 'Grigio', 'Nero', 'Avorio'],
+                                        placeholder: 'Seleziona colore...',
+                                        customPlaceholder: 'Scrivi colore...',
+                                        onChangeFn: `updateProduct('${project.id}', '${pos.id}', 'tapparella', 'coloreGuida', value)`,
+                                        context: 'pos-tapparella',
+                                        label: 'Colore Guida'
+                                    })}
                                 </div>
                                 ` : ''}
                             </div>
