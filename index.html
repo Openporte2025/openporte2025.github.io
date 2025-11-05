@@ -2749,6 +2749,24 @@
             return result;
         }
 
+        // 🚨 FASE 027B: Determina se conflitto è auto-mergeable
+        function isAutoMergeable(conflict) {
+            // Auto-merge se SOLO differenza numero posizioni
+            // Chiedi utente se ci sono altre differenze (prodotti, caratteristiche, client)
+            const { comparison } = conflict;
+            const diffs = comparison.differences;
+            
+            // Se solo posizioni diverse → AUTO-MERGE sicuro
+            if (diffs.positions && !diffs.products && !diffs.caratteristiche && !diffs.clientData) {
+                console.log('  🔀 Auto-mergeable: solo posizioni diverse');
+                return true;
+            }
+            
+            // Altrimenti chiedi
+            console.log('  ❓ Non auto-mergeable: altre differenze', diffs);
+            return false;
+        }
+
         function applyConflictResolution(conflict, resolution) {
             // Applica la risoluzione scelta dall'utente
             const { imported, existing } = conflict;
@@ -3356,15 +3374,33 @@
                 const mergeResult = await mergeOneDriveData(cloudData);
                 
                 if (mergeResult.hasConflicts) {
-                    // Ci sono conflitti → gestisci
+                    // Ci sono conflitti → analizza tipo
                     console.log('🔽 Conflitti rilevati:', mergeResult.conflicts.length);
+                    
                     for (const conflict of mergeResult.conflicts) {
-                        const resolution = await resolveConflict(conflict);
-                        if (resolution === 'cancel') {
-                            showNotification('❌ Sync annullata', 'error');
-                            return false;
+                        // 🚨 FASE 027B: Auto-merge se solo differenza posizioni
+                        const autoMergeable = isAutoMergeable(conflict);
+                        
+                        if (autoMergeable) {
+                            // AUTO-MERGE: solo differenza posizioni → unisci automaticamente
+                            console.log('🔽 Auto-merge per:', conflict.existing.name);
+                            applyConflictResolution(conflict, 'merge');
+                        } else {
+                            // CHIEDI utente: conflitti complessi
+                            console.log('🔽 Richiesta utente per:', conflict.existing.name);
+                            const resolution = await resolveConflict(conflict);
+                            if (resolution === 'cancel') {
+                                showNotification('❌ Sync annullata', 'error');
+                                return false;
+                            }
+                            applyConflictResolution(conflict, resolution);
                         }
-                        applyConflictResolution(conflict, resolution);
+                    }
+                    
+                    // Notifica quanti auto-merged
+                    const autoMerged = mergeResult.conflicts.filter(c => isAutoMergeable(c)).length;
+                    if (autoMerged > 0) {
+                        console.log(`✅ ${autoMerged} progetti auto-merged senza dialogs`);
                     }
                 } else {
                     // Nessun conflitto → applica direttamente
@@ -3425,31 +3461,20 @@
             }
             
             try {
-                // Controlla quale versione è più recente
+                // 🚨 FASE 027B FIX: SEMPRE download con merge, MAI sovrascrivere
+                console.log('🔄 SYNC: Avvio download con merge intelligente');
+                
                 const cloudMeta = await getCloudFileMetadata();
                 
                 if (!cloudMeta) {
-                    // File non esiste, upload
+                    // File non esiste su cloud, upload locale
+                    console.log('🔄 SYNC: File non su cloud → upload');
                     return await uploadToOneDrive();
                 }
                 
-                const localModified = state.metadata?.lastModified || 0;
-                const cloudModified = new Date(cloudMeta.lastModifiedDateTime).getTime();
-                
-                if (cloudModified > localModified + 60000) { // Cloud più recente di 1 minuto
-                    // Scarica da cloud
-                    return await downloadFromOneDrive();
-                } else if (localModified > cloudModified) {
-                    // Carica su cloud
-                    return await uploadToOneDrive();
-                } else {
-                    // Sincronizzati
-                    state.onedrive.syncStatus = 'synced';
-                    state.onedrive.lastSyncTime = Date.now();
-                    // saveState(); // RIMOSSO - non necessario qui
-                    // Non mostrare notifica se già sincronizzato
-                    return true;
-                }
+                // File esiste su cloud → SEMPRE merge per sicurezza
+                console.log('🔄 SYNC: File su cloud → download con merge');
+                return await downloadFromOneDrive();
                 
             } catch (error) {
                 console.error('Sync error:', error);
@@ -4003,17 +4028,17 @@
                     
                     <!-- Azioni Rapide -->
                     <div class="menu-actions">
-                        <button class="menu-action-btn" style="background: #10b981; color: white; font-weight: bold;" onclick="forceSave(); closeProjectMenu();">
+                        <button class="menu-action-btn" style="background: #10b981; color: white; font-weight: bold; border: 2px solid #059669;" onclick="forceSave(); closeProjectMenu();">
                             💾 SALVA FORZATO
                         </button>
                         <button class="menu-action-btn" onclick="exportCurrentProjectJSON(); closeProjectMenu();">
-                            📤 Esporta JSON Progetto
+                            📤 Export JSON
                         </button>
                         <button class="menu-action-btn" onclick="printCurrentProjectPDF(); closeProjectMenu();">
-                            🖨️ Esporta PDF
+                            🖨️ Export PDF
                         </button>
                         <button class="menu-action-btn" onclick="importProjectsJSON(); closeProjectMenu();">
-                            📥 Importa JSON
+                            📥 Import JSON
                         </button>
                         <button class="menu-action-btn primary" onclick="tornaAllaLista();">
                             ← Lista Progetti
@@ -7980,30 +8005,22 @@
                             )}
                             
                             <!-- 6. GUIDA -->
-                            ${renderSelectWithCustom({
-                                fieldId: `guida_config_${project.id}`,
-                                fieldName: 'guida',
-                                currentValue: project.configTapparelle?.guida || '',
-                                options: ['Standard', 'Rinforzata', 'Slim', 'Doppia', 'Tripla'],
-                                placeholder: 'Seleziona guida...',
-                                customPlaceholder: 'Scrivi guida...',
-                                onChangeFn: `updateConfigTapparelle('${project.id}', 'guida', value)`,
-                                context: 'config-tapparella',
-                                label: '6. Guida'
-                            })}
+                            <div>
+                                <label class="block text-sm font-medium mb-1">6. Guida</label>
+                                <input type="text" placeholder="Es: Standard, Rinforzata"
+                                       value="${project.configTapparelle?.guida || ''}"
+                                       onchange="updateConfigTapparelle('${project.id}', 'guida', this.value)"
+                                       class="w-full px-3 py-2 border rounded-lg">
+                            </div>
                             
                             <!-- 7. COLORE GUIDA -->
-                            ${renderSelectWithCustom({
-                                fieldId: `coloreGuida_config_${project.id}`,
-                                fieldName: 'coloreGuida',
-                                currentValue: project.configTapparelle?.coloreGuida || '',
-                                options: ['Bianco', 'Marrone', 'Grigio', 'Nero', 'Avorio'],
-                                placeholder: 'Seleziona colore...',
-                                customPlaceholder: 'Scrivi colore...',
-                                onChangeFn: `updateConfigTapparelle('${project.id}', 'coloreGuida', value)`,
-                                context: 'config-tapparella',
-                                label: '7. Colore Guida'
-                            })}
+                            <div>
+                                <label class="block text-sm font-medium mb-1">7. Colore Guida</label>
+                                <input type="text" placeholder="Es: Bianco, Marrone"
+                                       value="${project.configTapparelle?.coloreGuida || ''}"
+                                       onchange="updateConfigTapparelle('${project.id}', 'coloreGuida', this.value)"
+                                       class="w-full px-3 py-2 border rounded-lg">
+                            </div>
                         </div>
                     </div>
                     
@@ -8237,6 +8254,68 @@
                                                value="${isCustom ? current : ''}"
                                                onchange="updateConfigCassonetti('${project.id}', 'coibentazione', this.value)"
                                                placeholder="Inserisci coibentazione personalizzata..."
+                                               style="display: ${isCustom ? 'block' : 'none'};"
+                                               class="w-full px-3 py-2 border rounded-lg mt-2">
+                                    `;
+                                })()}
+                            </div>
+                            
+                            <!-- 🆕 FASE 027E: ISOLAMENTO -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">5. Isolamento</label>
+                                ${(() => {
+                                    const options = ['Sì', 'No', 'Parziale', 'Standard', 'Rinforzato'];
+                                    const current = project.configCassonetti?.isolamento || '';
+                                    const isCustom = current && !options.includes(current);
+                                    const selectId = `cass-isol-${project.id}`;
+                                    const inputId = `cass-isol-input-${project.id}`;
+                                    
+                                    return `
+                                        <select id="${selectId}" 
+                                                onchange="handleConfigSelectWithCustom('${project.id}', 'cassonetti', 'isolamento', '${selectId}', '${inputId}', this.value)"
+                                                class="w-full px-3 py-2 border rounded-lg">
+                                            <option value="">Seleziona...</option>
+                                            ${options.map(opt => `
+                                                <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
+                                            `).join('')}
+                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altro e scrivo...</option>
+                                        </select>
+                                        <input type="text" 
+                                               id="${inputId}"
+                                               value="${isCustom ? current : ''}"
+                                               onchange="updateConfigCassonetti('${project.id}', 'isolamento', this.value)"
+                                               placeholder="Inserisci isolamento personalizzato..."
+                                               style="display: ${isCustom ? 'block' : 'none'};"
+                                               class="w-full px-3 py-2 border rounded-lg mt-2">
+                                    `;
+                                })()}
+                            </div>
+                            
+                            <!-- 🆕 FASE 027E: MONOBLOCCO -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">6. Monoblocco</label>
+                                ${(() => {
+                                    const options = ['Sì', 'No'];
+                                    const current = project.configCassonetti?.monoblocco || '';
+                                    const isCustom = current && !options.includes(current);
+                                    const selectId = `cass-mono-${project.id}`;
+                                    const inputId = `cass-mono-input-${project.id}`;
+                                    
+                                    return `
+                                        <select id="${selectId}" 
+                                                onchange="handleConfigSelectWithCustom('${project.id}', 'cassonetti', 'monoblocco', '${selectId}', '${inputId}', this.value)"
+                                                class="w-full px-3 py-2 border rounded-lg">
+                                            <option value="">Seleziona...</option>
+                                            ${options.map(opt => `
+                                                <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
+                                            `).join('')}
+                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altro e scrivo...</option>
+                                        </select>
+                                        <input type="text" 
+                                               id="${inputId}"
+                                               value="${isCustom ? current : ''}"
+                                               onchange="updateConfigCassonetti('${project.id}', 'monoblocco', this.value)"
+                                               placeholder="Inserisci valore personalizzato..."
                                                style="display: ${isCustom ? 'block' : 'none'};"
                                                class="w-full px-3 py-2 border rounded-lg mt-2">
                                     `;
@@ -10562,17 +10641,18 @@
                                             <option value="grigio">
                                         </datalist>
                                     </div>
-                                    ${renderSelectWithCustom({
-                                        fieldId: `manualeMot_${project.id}_${pos.id}`,
-                                        fieldName: 'manualeMot',
-                                        currentValue: tap.manualeMot || '',
-                                        options: ['Manuale', 'Motorizzata'],
-                                        placeholder: 'Seleziona...',
-                                        customPlaceholder: 'Scrivi...',
-                                        onChangeFn: `updateProduct('${project.id}', '${pos.id}', 'tapparella', 'manualeMot', value)`,
-                                        context: 'pos-tapparella',
-                                        label: 'Manuale/Motorizzato'
-                                    })}
+                                    <div>
+                                        <label class="text-xs font-medium">Manuale/Motorizzato</label>
+                                        <input type="text" value="${tap.manualeMot || ''}"
+                                               placeholder="Motorizzata"
+                                               list="manualeMot-list-${pos.id}"
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'manualeMot', this.value)"
+                                               class="w-full compact-input border rounded mt-1">
+                                        <datalist id="manualeMot-list-${pos.id}">
+                                            <option value="Manuale">
+                                            <option value="Motorizzata">
+                                        </datalist>
+                                    </div>
                                 </div>
 
                                 <!-- FASE 11a: TIPO SOSTITUZIONE -->
@@ -10612,28 +10692,31 @@
                                 <!-- CAMPI CONDIZIONALI -->
                                 ${tap.tipoSostituzione !== 'Solo Motore' ? `
                                 <div class="grid md:grid-cols-2 gap-3 mt-3">
-                                    ${renderSelectWithCustom({
-                                        fieldId: `guida_tap_${project.id}_${pos.id}`,
-                                        fieldName: 'guida',
-                                        currentValue: tap.guida || '',
-                                        options: ['Standard', 'Rinforzata', 'Slim', 'Doppia'],
-                                        placeholder: 'Seleziona guida...',
-                                        customPlaceholder: 'Scrivi guida...',
-                                        onChangeFn: `updateProduct('${project.id}', '${pos.id}', 'tapparella', 'guida', value)`,
-                                        context: 'pos-tapparella',
-                                        label: 'Guida'
-                                    })}
-                                    ${renderSelectWithCustom({
-                                        fieldId: `coloreGuida_tap_${project.id}_${pos.id}`,
-                                        fieldName: 'coloreGuida',
-                                        currentValue: tap.coloreGuida || '',
-                                        options: ['Bianco', 'Marrone', 'Grigio', 'Nero', 'Avorio'],
-                                        placeholder: 'Seleziona colore...',
-                                        customPlaceholder: 'Scrivi colore...',
-                                        onChangeFn: `updateProduct('${project.id}', '${pos.id}', 'tapparella', 'coloreGuida', value)`,
-                                        context: 'pos-tapparella',
-                                        label: 'Colore Guida'
-                                    })}
+                                    <div>
+                                        <label class="text-xs font-medium">Guida</label>
+                                        <input type="text" value="${tap.guida || ''}"
+                                               placeholder="--"
+                                               list="guida-tap-list-${pos.id}"
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'guida', this.value)"
+                                               class="w-full compact-input border rounded mt-1">
+                                        <datalist id="guida-tap-list-${pos.id}">
+                                            <option value="Standard">
+                                            <option value="Rinforzata">
+                                        </datalist>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Colore Guida</label>
+                                        <input type="text" value="${tap.coloreGuida || ''}"
+                                               placeholder="--"
+                                               list="coloreGuida-list-${pos.id}"
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'coloreGuida', this.value)"
+                                               class="w-full compact-input border rounded mt-1">
+                                        <datalist id="coloreGuida-list-${pos.id}">
+                                            <option value="bianco">
+                                            <option value="marrone">
+                                            <option value="grigio">
+                                        </datalist>
+                                    </div>
                                 </div>
                                 ` : ''}
                             </div>
@@ -11275,24 +11358,16 @@
                                         </select>
                                     </div>
 
-                                    <!-- FASE 11a: NUOVO CAMPO TIPO CASSONETTO -->
-                                    <div>
-                                        <label class="text-xs font-medium">📏 Tipo Cassonetto</label>
-                                        <input type="text" value="${cas.tipoCassonetto || ''}"
-                                               placeholder="LARGH_CASS"
-                                               list="tipoCass-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'tipoCassonetto', this.value)"
-                                               class="w-full compact-input border-2 border-yellow-400 rounded mt-1 font-semibold bg-yellow-50">
-                                        <datalist id="tipoCass-list-${pos.id}">
-                                            <option value="LARGH_CASS">
-                                            <option value="LS">
-                                            <option value="LVT">
-                                            <option value="TMV">
-                                            <option value="LP">
-                                            <option value="MIS_FIN_INF_L">
-                                            <option value="LS+SRDX+SRSX">
-                                        </datalist>
-                                    </div>
+                                    <!-- 🆕 FASE 027E: Tipo Cassonetto con select+custom -->
+                                    ${renderSelectWithCustom(
+                                        'tipoCassonetto',
+                                        cas.tipoCassonetto || '',
+                                        ['LARGH_CASS', 'LS', 'LVT', 'TMV', 'LP', 'MIS_FIN_INF_L', 'LS+SRDX+SRSX'],
+                                        project.id,
+                                        pos.id,
+                                        'cassonetto',
+                                        '📏 Tipo Cassonetto'
+                                    )}
 
                                     <div>
                                         <label class="text-xs font-medium">Tipo</label>
@@ -11307,6 +11382,32 @@
                                             <option value="Cassonetto ispezionabile">
                                         </datalist>
                                     </div>
+                                </div>
+                                
+                                <!-- 🆕 FASE 027E: NUOVI CAMPI ISOLAMENTO E MONOBLOCCO -->
+                                <div class="grid md:grid-cols-2 gap-3 mt-3">
+                                    ${renderSelectWithCustom(
+                                        'isolamento',
+                                        cas.isolamento || project.configCassonetti?.isolamento || '',
+                                        ['Sì', 'No', 'Parziale', 'Standard', 'Rinforzato'],
+                                        project.id,
+                                        pos.id,
+                                        'cassonetto',
+                                        '🛡️ Isolamento'
+                                    )}
+                                    
+                                    ${renderSelectWithCustom(
+                                        'monoblocco',
+                                        cas.monoblocco || project.configCassonetti?.monoblocco || '',
+                                        ['Sì', 'No'],
+                                        project.id,
+                                        pos.id,
+                                        'cassonetto',
+                                        '📦 Monoblocco'
+                                    )}
+                                </div>
+                                
+                                <div class="grid md:grid-cols-3 gap-3 mt-3">
                                     <div>
                                         <label class="text-xs font-medium">Azienda</label>
                                         <input type="text" value="${cas.azienda || ''}"
@@ -13013,74 +13114,36 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 
-                showNotification(`✅ Esportati ${state.projects.length} progetti`, 'success');
-            } catch (error) {
-                console.error('Errore export:', error);
-                showNotification('❌ Errore durante export', 'error');
-            }
-        };
-
-        // 🆕 FASE 027D: Export singolo progetto corrente
-        window.exportCurrentProjectJSON = () => {
-            try {
-                const currentProject = state.projects.find(p => p.id === state.currentProject);
-                if (!currentProject) {
-                    showNotification('⚠️ Nessun progetto aperto', 'error');
-                    return;
-                }
-                
-                const data = {
-                    ...currentProject,
-                    exportDate: new Date().toISOString(),
-                    version: '3.5-FASE027D'
-                };
-                
-                const jsonString = JSON.stringify(data, null, 2);
-                const blob = new Blob([jsonString], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                const fileName = `${currentProject.name || 'progetto'}-${new Date().toISOString().split('T')[0]}.json`;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                showNotification(`✅ Progetto "${currentProject.name}" esportato`, 'success');
-            } catch (error) {
-                console.error('Errore export progetto:', error);
-                showNotification('❌ Errore durante export', 'error');
-            }
-        };
-
-        // 🆕 FASE 027D: Salvataggio forzato (localStorage + OneDrive)
-        window.forceSave = async () => {
-            try {
-                showNotification('💾 Salvataggio forzato...', 'info');
-                
-                // 1. Salva localStorage
-                saveState();
-                
-                // 2. Se OneDrive connesso, upload immediato
-                if (state.onedrive?.connected) {
-                    await uploadToOneDrive();
-                    showNotification('✅ Salvato su localStorage + OneDrive', 'success');
-                } else {
-                    showNotification('✅ Salvato su localStorage (OneDrive non connesso)', 'success');
-                }
-            } catch (error) {
-                console.error('Errore salvataggio forzato:', error);
-                showNotification('❌ Errore salvataggio', 'error');
-            }
-        };
-                URL.revokeObjectURL(url);
-                
                 showNotification(`Export completato! ${data.totalProjects} progetti`, 'success');
                 
             } catch (error) {
                 console.error('Errore export:', error);
                 showNotification(`Errore durante export: ${error.message}`, 'error');
+            }
+        };
+
+        // 🆕 FASE 027E: Salvataggio forzato immediato
+        window.forceSave = async () => {
+            try {
+                showNotification('💾 Salvataggio forzato in corso...', 'info');
+                
+                // 1. Salva localStorage immediato
+                saveState();
+                
+                // 2. Se OneDrive connesso, carica subito
+                if (state.onedrive?.connected) {
+                    const uploaded = await uploadToOneDrive();
+                    if (uploaded) {
+                        showNotification('✅ Salvato su localStorage + OneDrive!', 'success', 4000);
+                    } else {
+                        showNotification('✅ Salvato su localStorage (OneDrive: errore)', 'warning', 4000);
+                    }
+                } else {
+                    showNotification('✅ Salvato su localStorage (OneDrive non connesso)', 'success', 3000);
+                }
+            } catch (error) {
+                console.error('Errore salvataggio forzato:', error);
+                showNotification('❌ Errore durante salvataggio', 'error');
             }
         };
 
