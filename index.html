@@ -1649,7 +1649,7 @@
             // App: Open Porte OneDrive | Ricreata: 03/11/2025
             clientId: '43564a57-a8aa-4b5f-9e05-451c0375439b',
             authority: 'https://login.microsoftonline.com/common/oauth2/v2.0',
-            redirectUri: 'https://openporte2025.github.io/',
+            redirectUri: 'https://openporte2025.github.io/openporte-v15/',
             scopes: ['Files.ReadWrite', 'offline_access'],
             apiEndpoint: 'https://graph.microsoft.com/v1.0',
             folderPath: '/OpenPorte',
@@ -1659,91 +1659,28 @@
 
         let syncInterval = null;  // Timer per sync automatica
         
-        // ⚡ FASE 024B: Sistema aggiornamenti parziali DOM (approccio cloud)
-        // Invece di render() completo, aggiorniamo solo gli elementi necessari
+        // ⚡ FASE 024: Sistema debounce per render
+        let renderTimeout = null;  // Timer per render differito
+        const RENDER_DEBOUNCE_MS = 300;  // Millisecondi di attesa prima del render
         
         /**
-         * ⚡ FASE 024B: Tracking digitazione utente (per sync silenzioso)
+         * ⚡ FASE 024: Render differito con debounce
+         * Permette di completare interazioni (dropdown, input) prima di ri-renderizzare
          */
-        let lastTypingTime = 0;
-        const TYPING_TIMEOUT = 3000; // 3 secondi dopo ultima digitazione
-        
-        function markUserTyping() {
-            lastTypingTime = Date.now();
-        }
-        
-        function isUserTyping() {
-            return (Date.now() - lastTypingTime) < TYPING_TIMEOUT;
-        }
-        
-        /**
-         * Aggiorna status sync visualizzato senza render completo
-         */
-        function updateSyncStatusDisplay(status) {
-            // Aggiorna badge sync nel menu principale
-            const syncBadges = document.querySelectorAll('[data-sync-status]');
-            syncBadges.forEach(badge => {
-                const statusMap = {
-                    'syncing': { text: '↻', class: 'text-blue-500 animate-spin' },
-                    'synced': { text: '☁', class: 'text-green-500' },
-                    'error': { text: '⚠', class: 'text-red-500' },
-                    'disconnected': { text: '○', class: 'text-gray-400' }
-                };
-                const config = statusMap[status] || statusMap['disconnected'];
-                badge.textContent = config.text;
-                badge.className = config.class;
-            });
+        function deferredRender() {
+            clearTimeout(renderTimeout);
+            renderTimeout = setTimeout(() => {
+                render();
+            }, RENDER_DEBOUNCE_MS);
         }
         
         /**
-         * Aggiorna un singolo campo DOM senza render completo
+         * ⚡ FASE 024: Render immediato (per casi critici)
+         * Cancella eventuali render in attesa e renderizza subito
          */
-        function updateDOMField(elementId, value) {
-            const el = document.getElementById(elementId);
-            if (el) {
-                if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
-                    el.value = value;
-                } else {
-                    el.textContent = value;
-                }
-            }
-        }
-        
-        /**
-         * Aggiorna i BRM visualizzati per un prodotto specifico
-         */
-        function updateBRMDisplay(projectId, posId, productType) {
-            const project = state.projects.find(p => p.id === projectId);
-            if (!project) return;
-            
-            const pos = project.positions.find(p => p.id === posId);
-            if (!pos) return;
-            
-            const product = pos[productType];
-            if (!product) return;
-            
-            // Aggiorna i campi BRM visualizzati
-            updateDOMField(`brm-l-${posId}-${productType}`, product.BRM_L || '');
-            updateDOMField(`brm-h-${posId}-${productType}`, product.BRM_H || '');
-        }
-        
-        /**
-         * Aggiorna indicatori completamento senza render
-         */
-        function updateCompletenessIndicators(projectId) {
-            const project = state.projects.find(p => p.id === projectId);
-            if (!project || !project.positions) return;
-            
-            project.positions.forEach(pos => {
-                const comp = calculatePositionCompleteness(pos);
-                const indicator = document.getElementById(`completeness-${pos.id}`);
-                if (indicator) {
-                    indicator.textContent = `${comp.percentage}%`;
-                    indicator.className = comp.percentage === 100 
-                        ? 'text-green-600 font-bold' 
-                        : 'text-orange-600 font-bold';
-                }
-            });
+        function immediateRender() {
+            clearTimeout(renderTimeout);
+            render();
         }
 
         // Load/Save Functions
@@ -1931,115 +1868,6 @@
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
         }
-        
-        // ═══════════════════════════════════════════════════════════════
-        // ⚡ FASE 024C: SISTEMA UNIVERSALE TOGGLE SELECT/INPUT
-        // ═══════════════════════════════════════════════════════════════
-        
-        /**
-         * Toggle universale tra select e input per qualsiasi campo
-         * @param {string} fieldId - ID base del campo (es. 'azienda', 'coloreInt')
-         * @param {string} context - Contesto univoco (es. 'infisso-proj123', 'pos456')
-         */
-        window.toggleFieldMode = (fieldId, context) => {
-            const selectEl = document.getElementById(`${fieldId}-select-${context}`);
-            const inputEl = document.getElementById(`${fieldId}-input-${context}`);
-            const btnEl = document.getElementById(`${fieldId}-toggle-${context}`);
-            
-            if (!selectEl || !inputEl) return;
-            
-            if (selectEl.style.display === 'none') {
-                // Torna a SELECT
-                selectEl.style.display = 'block';
-                inputEl.style.display = 'none';
-                if (btnEl) btnEl.innerHTML = '✏️ Scrivi manualmente';
-                
-                // Trasferisci valore da input a select se presente
-                if (inputEl.value && inputEl.value.trim() !== '') {
-                    // Se il valore non è nelle opzioni, aggiungilo temporaneamente
-                    const existingOption = Array.from(selectEl.options).find(opt => opt.value === inputEl.value);
-                    if (!existingOption) {
-                        const newOption = document.createElement('option');
-                        newOption.value = inputEl.value;
-                        newOption.text = inputEl.value;
-                        newOption.selected = true;
-                        selectEl.appendChild(newOption);
-                    } else {
-                        selectEl.value = inputEl.value;
-                    }
-                }
-            } else {
-                // Passa a INPUT
-                selectEl.style.display = 'none';
-                inputEl.style.display = 'block';
-                if (btnEl) btnEl.innerHTML = '📋 Torna a selezione';
-                
-                // Trasferisci valore da select a input
-                if (selectEl.value && selectEl.value !== '') {
-                    inputEl.value = selectEl.value;
-                }
-                inputEl.focus();
-            }
-        };
-        
-        /**
-         * Genera HTML per campo con toggle select/input
-         * @param {Object} config - Configurazione campo
-         * @returns {string} HTML completo del campo
-         */
-        function renderFieldWithToggle(config) {
-            const {
-                fieldId,           // 'azienda', 'coloreInt', ecc.
-                context,           // 'infisso-proj123' o 'pos456'
-                label,             // 'Azienda'
-                currentValue,      // Valore corrente
-                options,           // Array opzioni ['Oknoplast', 'Finstral', ...]
-                updateFunction,    // Nome funzione da chiamare (es. 'updateConfigInfissi')
-                updateParams,      // Parametri per la funzione update
-                required = false   // Se il campo è obbligatorio
-            } = config;
-            
-            const isEmpty = !currentValue || currentValue === '';
-            const borderClass = required && isEmpty ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white';
-            const statusIcon = required ? (isEmpty ? '<span class="text-red-600">●</span>' : '<span class="text-green-600">✓</span>') : '';
-            
-            // Costruisci parametri per update function
-            const updateCall = `${updateFunction}(${updateParams.map(p => `'${p}'`).join(', ')}, this.value)`;
-            
-            return `
-                <div class="mb-3">
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="text-sm font-semibold flex items-center gap-2">
-                            ${label}
-                            ${statusIcon}
-                        </label>
-                        <button onclick="toggleFieldMode('${fieldId}', '${context}')" 
-                                id="${fieldId}-toggle-${context}"
-                                class="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-full font-medium transition">
-                            ✏️ Scrivi manualmente
-                        </button>
-                    </div>
-                    
-                    <!-- SELECT MODE (default) -->
-                    <select id="${fieldId}-select-${context}"
-                            onchange="${updateCall}"
-                            class="w-full px-3 py-2 border-2 ${borderClass} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            style="display: block;">
-                        <option value="">Seleziona...</option>
-                        ${options.map(opt => `<option value="${opt}" ${currentValue === opt ? 'selected' : ''}>${opt}</option>`).join('')}
-                    </select>
-                    
-                    <!-- INPUT MODE (hidden) -->
-                    <input type="text" 
-                           id="${fieldId}-input-${context}"
-                           value="${currentValue || ''}"
-                           oninput="${updateCall}"
-                           placeholder="Scrivi ${label.toLowerCase()}..."
-                           class="w-full px-3 py-2 border-2 ${borderClass} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                           style="display: none;">
-                </div>
-            `;
-        }
 
         // ═══════════════════════════════════════════════════════════════
         // 🎯 SELECT CON CUSTOM INPUT - FASE 020
@@ -2071,7 +1899,7 @@
                         // È una posizione
                         updateProduct(projectId, posId, productType, fieldName, value);
                     } else {
-                        // È config globale o rilievo globale
+                        // È config globale
                         if (productType === 'infisso') {
                             updateConfigInfissi(projectId, fieldName, value);
                         } else if (productType === 'persiana') {
@@ -2082,9 +1910,6 @@
                             updateConfigZanzariere(projectId, fieldName, value);
                         } else if (productType === 'cassonetto') {
                             updateConfigCassonetti(projectId, fieldName, value);
-                        } else if (productType === 'infissi' || productType === 'persiane' || productType === 'tapparelle' || productType === 'zanzariere' || productType === 'cassonetti') {
-                            // Rilievo Globale (productType plurale)
-                            updateRilievoGlobale(projectId, productType, fieldName, value);
                         }
                     }
                 }, 50); // 50ms di delay
@@ -2537,17 +2362,8 @@
                         <div class="space-y-3 mb-6">
                             <p class="font-semibold">Cosa vuoi fare?</p>
                             
-                            <label class="flex items-center p-3 border-2 border-purple-300 bg-purple-50 rounded-lg cursor-pointer hover:bg-purple-100">
-                                <input type="radio" name="resolution" value="merge" class="mr-3" checked>
-                                <div>
-                                    <p class="font-semibold text-purple-700">🔀 Unisci (MERGE) - CONSIGLIATO</p>
-                                    <p class="text-sm text-gray-700">Combina entrambe le versioni senza perdere dati</p>
-                                    <p class="text-xs text-purple-600 mt-1">✓ Preserva tutte le posizioni di entrambe le versioni</p>
-                                </div>
-                            </label>
-                            
                             <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-blue-50">
-                                <input type="radio" name="resolution" value="replace" class="mr-3">
+                                <input type="radio" name="resolution" value="replace" class="mr-3" ${comparison.newerProject === 'project2' ? 'checked' : ''}>
                                 <div>
                                     <p class="font-semibold">Sostituisci con versione importata</p>
                                     <p class="text-sm text-gray-600">La versione locale sarà sovrascritta</p>
@@ -2555,7 +2371,7 @@
                             </label>
                             
                             <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-green-50">
-                                <input type="radio" name="resolution" value="keep" class="mr-3">
+                                <input type="radio" name="resolution" value="keep" class="mr-3" ${comparison.newerProject === 'project1' ? 'checked' : ''}>
                                 <div>
                                     <p class="font-semibold">Mantieni versione locale</p>
                                     <p class="text-sm text-gray-600">La versione importata sarà ignorata</p>
@@ -2624,131 +2440,6 @@
             `;
         }
 
-        // 🆕 FASE 027: MERGE INTELLIGENTE PROGETTI
-        function mergeProjects(local, remote) {
-            // Unisce due versioni dello stesso progetto preservando tutti i dati
-            console.log('🔀 MERGE progetti:', local.name);
-            console.log('  📱 Locale:', local.positions?.length || 0, 'posizioni');
-            console.log('  ☁️ Remote:', remote.positions?.length || 0, 'posizioni');
-            
-            // Base: parte dalla versione più recente
-            const localTime = new Date(local.metadata?.lastModified || 0);
-            const remoteTime = new Date(remote.metadata?.lastModified || 0);
-            const base = localTime > remoteTime ? {...local} : {...remote};
-            
-            // Merge posizioni (il più importante!)
-            const mergedPositions = mergePositions(
-                local.positions || [], 
-                remote.positions || []
-            );
-            
-            base.positions = mergedPositions;
-            
-            // Aggiorna metadata
-            if (!base.metadata) base.metadata = {};
-            base.metadata.lastModified = new Date().toISOString();
-            base.metadata.mergeCount = (base.metadata.mergeCount || 0) + 1;
-            base.metadata.lastMerge = {
-                localPositions: local.positions?.length || 0,
-                remotePositions: remote.positions?.length || 0,
-                mergedPositions: mergedPositions.length,
-                timestamp: new Date().toISOString()
-            };
-            
-            console.log('  ✅ Merge completato:', mergedPositions.length, 'posizioni totali');
-            
-            return base;
-        }
-
-        function mergePositions(localPositions, remotePositions) {
-            // Unisce array di posizioni senza perdere nulla
-            const merged = [];
-            const processedIds = new Set();
-            
-            // Map per accesso rapido
-            const localMap = new Map(localPositions.map(p => [p.id, p]));
-            const remoteMap = new Map(remotePositions.map(p => [p.id, p]));
-            
-            // 1. Processa posizioni locali
-            localPositions.forEach(localPos => {
-                const remotePos = remoteMap.get(localPos.id);
-                
-                if (!remotePos) {
-                    // Posizione solo locale → mantieni
-                    merged.push(localPos);
-                } else {
-                    // Posizione in entrambi → prendi più recente o merge campi
-                    const localTime = new Date(localPos.metadata?.lastModified || 0);
-                    const remoteTime = new Date(remotePos.metadata?.lastModified || 0);
-                    
-                    merged.push(localTime >= remoteTime ? localPos : remotePos);
-                }
-                
-                processedIds.add(localPos.id);
-            });
-            
-            // 2. Aggiungi posizioni solo remote (non ancora processate)
-            remotePositions.forEach(remotePos => {
-                if (!processedIds.has(remotePos.id)) {
-                    merged.push(remotePos);
-                }
-            });
-            
-            return merged;
-        }
-
-        // 🆕 FASE 027: MERGE ONEDRIVE DATA
-        async function mergeOneDriveData(cloudData) {
-            // Analizza e unisce dati OneDrive con locali
-            console.log('☁️ MERGE OneDrive: inizio analisi');
-            console.log('  📱 Progetti locali:', state.projects.length);
-            console.log('  ☁️ Progetti cloud:', cloudData.projects?.length || 0);
-            
-            const result = {
-                hasConflicts: false,
-                conflicts: [],
-                newProjects: [],
-                identicalProjects: []
-            };
-            
-            const cloudProjects = cloudData.projects || [];
-            
-            cloudProjects.forEach(cloudProject => {
-                const localProject = state.projects.find(p => p.id === cloudProject.id);
-                
-                if (!localProject) {
-                    // Progetto solo su cloud → aggiungi
-                    console.log('  ➕ Nuovo da cloud:', cloudProject.name);
-                    result.newProjects.push(cloudProject);
-                } else {
-                    // Progetto esiste in entrambi → confronta
-                    const comparison = compareProjects(localProject, cloudProject);
-                    
-                    if (comparison.identical) {
-                        // Identici → nessun conflitto
-                        console.log('  ✅ Identico:', cloudProject.name);
-                        result.identicalProjects.push(cloudProject);
-                    } else {
-                        // Diversi → conflitto!
-                        console.log('  ⚠️ Conflitto:', cloudProject.name);
-                        result.hasConflicts = true;
-                        result.conflicts.push({
-                            imported: cloudProject,
-                            existing: localProject,
-                            comparison: comparison
-                        });
-                    }
-                }
-            });
-            
-            console.log('☁️ MERGE OneDrive: analisi completata');
-            console.log('  ➕ Nuovi:', result.newProjects.length);
-            console.log('  ⚠️ Conflitti:', result.conflicts.length);
-            console.log('  ✅ Identici:', result.identicalProjects.length);
-            
-            return result;
-        }
-
         function applyConflictResolution(conflict, resolution) {
             // Applica la risoluzione scelta dall'utente
             const { imported, existing } = conflict;
@@ -2769,15 +2460,6 @@
                         existing.metadata.syncStatus = 'synced';
                     }
                     // Non fare nulla
-                    break;
-                    
-                case 'merge':
-                    // 🆕 FASE 027: MERGE INTELLIGENTE - Unisce posizioni senza perdere nulla
-                    const merged = mergeProjects(existing, imported);
-                    if (merged.metadata) {
-                        merged.metadata.syncStatus = 'synced';
-                    }
-                    state.projects[existingIndex] = merged;
                     break;
                     
                 case 'duplicate':
@@ -3230,8 +2912,7 @@
             
             try {
                 state.onedrive.syncStatus = 'syncing';
-                // ⚡ FASE 024B: Aggiorna status DOM invece di render completo
-                updateSyncStatusDisplay('syncing');
+                // ⚡ RIMOSSO render() - causa chiusura tastiera
                 
                 // Prepara dati per upload
                 const dataToUpload = {
@@ -3266,12 +2947,11 @@
                 
                 state.onedrive.lastSyncTime = Date.now();
                 state.onedrive.syncStatus = 'synced';
-                // ⚡ FASE 024B: Aggiorna status DOM invece di render completo
-                updateSyncStatusDisplay('synced');
+                // saveState(); // RIMOSSO - evita loop
+                // render(); // RIMOSSO - evita re-render eccessivi
                 
-                // Mostra notifica SOLO se abilitato e non di recente
-                // ⚡ FASE 024B: Notifica silenziosa se utente sta digitando
-                if (state.onedrive.syncNotifications && !isUserTyping()) {
+                // Mostra notifica solo se non è stata mostrata di recente
+                if (state.onedrive.syncNotifications) {
                     if (!window.lastSyncNotification || (Date.now() - window.lastSyncNotification) > 5000) {
                         window.lastSyncNotification = Date.now();
                         showNotification('☁️ Caricato su OneDrive', 'success', 2000);
@@ -3283,8 +2963,7 @@
             } catch (error) {
                 console.error('Upload error:', error);
                 state.onedrive.syncStatus = 'error';
-                // ⚡ FASE 024B: Aggiorna status DOM invece di render completo
-                updateSyncStatusDisplay('error');
+                // ⚡ RIMOSSO render() - causa chiusura tastiera
                 showNotification('❌ Errore upload OneDrive', 'error');
                 return false;
             }
@@ -3351,28 +3030,22 @@
                     createBackup('Pre-sync OneDrive');
                 }
                 
-                // Check 8: MERGE INTELLIGENTE invece di sovrascrivere
-                console.log('🔽 MERGE INTELLIGENTE dati OneDrive...');
-                const mergeResult = await mergeOneDriveData(cloudData);
+                // Check 8: Merge dati
+                console.log('🔽 Merge dati preservando token...');
+                const currentTokens = {
+                    accessToken: state.onedrive.accessToken,
+                    refreshToken: state.onedrive.refreshToken,
+                    tokenExpiry: state.onedrive.tokenExpiry
+                };
                 
-                if (mergeResult.hasConflicts) {
-                    // Ci sono conflitti → gestisci
-                    console.log('🔽 Conflitti rilevati:', mergeResult.conflicts.length);
-                    for (const conflict of mergeResult.conflicts) {
-                        const resolution = await resolveConflict(conflict);
-                        if (resolution === 'cancel') {
-                            showNotification('❌ Sync annullata', 'error');
-                            return false;
-                        }
-                        applyConflictResolution(conflict, resolution);
+                state = {
+                    ...cloudData,
+                    onedrive: {
+                        ...cloudData.onedrive,
+                        ...currentTokens,
+                        connected: true
                     }
-                } else {
-                    // Nessun conflitto → applica direttamente
-                    console.log('🔽 Nessun conflitto, applico merge diretto');
-                    mergeResult.newProjects.forEach(project => {
-                        state.projects.push(project);
-                    });
-                }
+                };
                 
                 state.onedrive.lastSyncTime = Date.now();
                 state.onedrive.syncStatus = 'synced';
@@ -4003,11 +3676,8 @@
                     
                     <!-- Azioni Rapide -->
                     <div class="menu-actions">
-                        <button class="menu-action-btn" style="background: #10b981; color: white; font-weight: bold;" onclick="forceSave(); closeProjectMenu();">
-                            💾 SALVA FORZATO
-                        </button>
                         <button class="menu-action-btn" onclick="exportCurrentProjectJSON(); closeProjectMenu();">
-                            📤 Esporta JSON Progetto
+                            💾 Esporta JSON
                         </button>
                         <button class="menu-action-btn" onclick="printCurrentProjectPDF(); closeProjectMenu();">
                             🖨️ Esporta PDF
@@ -5033,7 +4703,6 @@
         // 🆕 FASE 13 - Gestione Rilievo Globale per Prodotti
         // 🆕 FASE 014 - Sincronizzazione Intelligente Globale → Posizioni
         function updateRilievoGlobale(projectId, productType, field, value) {
-            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 const rilievoKey = `rilievo${productType.charAt(0).toUpperCase() + productType.slice(1)}`;
@@ -5115,9 +4784,98 @@
             }
         }
 
-        // 🆕 FASE 027 - toggleMaterialeMode e toggleMaterialePosMode RIMOSSE: usa renderSelectWithCustom standard
+        function toggleMaterialeMode(productType, projectId) {
+            const selectEl = document.getElementById(`materiale-select-${productType}-${projectId}`);
+            const inputEl = document.getElementById(`materiale-input-${productType}-${projectId}`);
+            const toggleBtn = document.getElementById(`materiale-toggle-${productType}-${projectId}`);
+            
+            if (selectEl && inputEl && toggleBtn) {
+                if (selectEl.style.display === 'none') {
+                    // Passa a SELECT
+                    selectEl.style.display = 'block';
+                    inputEl.style.display = 'none';
+                    toggleBtn.innerHTML = '✏️ Scrivi';
+                    // Sincronizza valore
+                    const currentValue = inputEl.value;
+                    // Se il valore esiste nelle opzioni, selezionalo
+                    const optionExists = Array.from(selectEl.options).some(opt => opt.value === currentValue);
+                    if (optionExists) {
+                        selectEl.value = currentValue;
+                    } else {
+                        selectEl.value = '';
+                    }
+                } else {
+                    // Passa a INPUT
+                    selectEl.style.display = 'none';
+                    inputEl.style.display = 'block';
+                    toggleBtn.innerHTML = '📋 Tendina';
+                    // Sincronizza valore
+                    inputEl.value = selectEl.value;
+                }
+            }
+        }
 
-        // 🆕 FASE 027 - toggleAmbienteMode RIMOSSA: usa renderSelectWithCustom standard
+        function toggleMaterialePosMode(posId) {
+            const selectEl = document.getElementById(`materiale-pos-select-${posId}`);
+            const inputEl = document.getElementById(`materiale-pos-input-${posId}`);
+            const toggleBtn = document.getElementById(`materiale-pos-toggle-${posId}`);
+            
+            if (selectEl && inputEl && toggleBtn) {
+                if (selectEl.style.display === 'none') {
+                    // Passa a SELECT
+                    selectEl.style.display = 'block';
+                    inputEl.style.display = 'none';
+                    toggleBtn.innerHTML = '✏️ Scrivi';
+                    // Sincronizza valore
+                    const currentValue = inputEl.value;
+                    const optionExists = Array.from(selectEl.options).some(opt => opt.value === currentValue);
+                    if (optionExists) {
+                        selectEl.value = currentValue;
+                    } else {
+                        selectEl.value = '';
+                    }
+                } else {
+                    // Passa a INPUT
+                    selectEl.style.display = 'none';
+                    inputEl.style.display = 'block';
+                    toggleBtn.innerHTML = '📋 Tendina';
+                    inputEl.value = selectEl.value;
+                }
+            }
+        }
+
+        // 🆕 CHAT 011 - Toggle Ambiente (Dropdown ↔ Free Text)
+        function toggleAmbienteMode(projectId, posId) {
+            const selectEl = document.getElementById(`ambiente-select-${posId}`);
+            const inputEl = document.getElementById(`ambiente-input-${posId}`);
+            const toggleBtn = document.getElementById(`ambiente-toggle-${posId}`);
+            
+            if (selectEl && inputEl && toggleBtn) {
+                if (selectEl.style.display === 'none') {
+                    // Passa a DROPDOWN
+                    selectEl.style.display = 'block';
+                    inputEl.style.display = 'none';
+                    toggleBtn.innerHTML = '✏️ Scrivi';
+                    toggleBtn.title = 'Passa a scrittura libera';
+                    // Sincronizza valore: se il valore attuale esiste nel dropdown, selezionalo
+                    const currentValue = inputEl.value;
+                    const optionExists = Array.from(selectEl.options).some(opt => opt.value === currentValue);
+                    if (optionExists && currentValue) {
+                        selectEl.value = currentValue;
+                    } else {
+                        selectEl.value = currentValue || ''; // Mantieni valore anche se non in lista
+                    }
+                } else {
+                    // Passa a FREE TEXT
+                    selectEl.style.display = 'none';
+                    inputEl.style.display = 'block';
+                    toggleBtn.innerHTML = '📋 Tendina';
+                    toggleBtn.title = 'Torna alla tendina';
+                    // Sincronizza valore: trasferisci dal dropdown all'input
+                    inputEl.value = selectEl.value;
+                }
+            }
+        }
 
         function copiaRilievoDaGlobale(projectId, posId) {
             const project = state.projects.find(p => p.id === projectId);
@@ -5155,7 +4913,6 @@
         }
 
         function updateRilievoProdotto(projectId, posId, productType, field, value) {
-            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             const pos = project?.positions.find(p => p.id === posId);
             
@@ -5233,7 +4990,33 @@
             }
         }
 
-        // 🆕 FASE 027 - toggleMaterialeProdottoMode RIMOSSA: usa renderSelectWithCustom standard
+        function toggleMaterialeProdottoMode(uniqueId) {
+            const selectEl = document.getElementById(`materiale-select-${uniqueId}`);
+            const inputEl = document.getElementById(`materiale-input-${uniqueId}`);
+            const toggleBtn = document.getElementById(`materiale-toggle-${uniqueId}`);
+            
+            if (selectEl && inputEl && toggleBtn) {
+                if (selectEl.style.display === 'none') {
+                    // Passa a SELECT
+                    selectEl.style.display = 'block';
+                    inputEl.style.display = 'none';
+                    toggleBtn.innerHTML = '✏️ Scrivi';
+                    const currentValue = inputEl.value;
+                    const optionExists = Array.from(selectEl.options).some(opt => opt.value === currentValue);
+                    if (optionExists) {
+                        selectEl.value = currentValue;
+                    } else {
+                        selectEl.value = '';
+                    }
+                } else {
+                    // Passa a INPUT
+                    selectEl.style.display = 'none';
+                    inputEl.style.display = 'block';
+                    toggleBtn.innerHTML = '📋 Tendina';
+                    inputEl.value = selectEl.value;
+                }
+            }
+        }
 
         function getRilievoGlobale(project, productType) {
             const rilievoKey = `rilievo${productType.charAt(0).toUpperCase() + productType.slice(1)}`;
@@ -5702,7 +5485,6 @@
         }
 
         function updateProduct(projectId, posId, productType, field, value) {
-            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 const pos = project.positions.find(p => p.id === posId);
@@ -5788,8 +5570,8 @@
 
         // Validazione B-C per cassonetti
         function validateCassonettoBC(projectId, posId) {
-            // ⚡ FASE 024B: NO render - validazione già eseguita
-            // I messaggi di validazione sono già nel DOM tramite validateAltezzeRealTime
+            // ⚡ FASE 024: Usa render differito per evitare chiusura dropdown
+            deferredRender();
         }
 
         // Validazione in tempo reale per le altezze (mentre scrivi)
@@ -6174,7 +5956,6 @@
         
         // Funzione per aggiornare la config globale degli infissi
         window.updateConfigInfissi = (projectId, field, value) => {
-            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 if (!project.configInfissi) {
@@ -7292,38 +7073,37 @@
                     <div class="grid md:grid-cols-2 gap-4">
                         <!-- 1. MATERIALE -->
                         <div>
-                            <label class="block text-sm font-semibold mb-2 flex items-center gap-2">
-                                🔧 Materiale
-                                ${!rilievo.materiale || rilievo.materiale.trim() === '' ? '<span class="text-red-600">●</span>' : '<span class="text-green-600">✓</span>'}
-                            </label>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="block text-sm font-semibold flex items-center gap-2">
+                                    🔧 Materiale
+                                    ${!rilievo.materiale || rilievo.materiale.trim() === '' ? '<span class="text-red-600">●</span>' : '<span class="text-green-600">✓</span>'}
+                                </label>
+                                <button onclick="toggleMaterialeMode('${productType}', '${project.id}')" 
+                                        id="materiale-toggle-${productType}-${project.id}"
+                                        class="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-full font-medium transition">
+                                    ✏️ Scrivi
+                                </button>
+                            </div>
                             
-                            ${(() => {
-                                const options = ['Legno', 'PVC', 'Alluminio', 'Ferro', 'Acciaio'];
-                                const isCustom = rilievo.materiale && !options.includes(rilievo.materiale);
-                                const isEmpty = !rilievo.materiale || rilievo.materiale.trim() === '';
-                                
-                                return `
-                                    <!-- Select principale -->
-                                    <select 
-                                        class="w-full px-3 py-2 border-2 rounded-lg ${isEmpty ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'} focus:ring-2 focus:ring-purple-500" 
-                                        onchange="handleSelectCustomChange('materiale', this, '${project.id}', '', '${productType}')">
-                                        <option value="">▼ Seleziona...</option>
-                                        ${options.map(opt => `
-                                            <option value="${opt}" ${rilievo.materiale === opt ? 'selected' : ''}>${opt}</option>
-                                        `).join('')}
-                                        <option value="__custom__" ${isCustom ? 'selected' : ''} class="text-blue-600 font-semibold">🖊️ Scrivi manualmente</option>
-                                    </select>
-                                    
-                                    <!-- Input custom -->
-                                    <input type="text" 
-                                           class="w-full px-3 py-2 border-2 border-blue-400 rounded-lg mt-2 bg-blue-50 focus:ring-2 focus:ring-blue-500" 
-                                           id="materiale_custom_${project.id}_config_${productType}"
-                                           placeholder="✏️ Scrivi valore personalizzato..."
-                                           value="${isCustom ? rilievo.materiale : ''}"
-                                           style="display: ${isCustom ? 'block' : 'none'};"
-                                           oninput="updateRilievoGlobale('${project.id}', '${productType}', 'materiale', this.value)">
-                                `;
-                            })()}
+                            <!-- SELECT MODE (default) -->
+                            <select id="materiale-select-${productType}-${project.id}"
+                                    onchange="updateRilievoGlobale('${project.id}', '${productType}', 'materiale', this.value)"
+                                    class="w-full px-3 py-2 border-2 ${!rilievo.materiale || rilievo.materiale.trim() === '' ? 'border-red-300 bg-red-50' : 'border-green-300 bg-white'} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="">Seleziona...</option>
+                                <option value="Legno" ${rilievo.materiale === 'Legno' ? 'selected' : ''}>Legno</option>
+                                <option value="PVC" ${rilievo.materiale === 'PVC' ? 'selected' : ''}>PVC</option>
+                                <option value="Alluminio" ${rilievo.materiale === 'Alluminio' ? 'selected' : ''}>Alluminio</option>
+                                <option value="Ferro" ${rilievo.materiale === 'Ferro' ? 'selected' : ''}>Ferro</option>
+                            </select>
+                            
+                            <!-- INPUT MODE (hidden by default) -->
+                            <input type="text" 
+                                   id="materiale-input-${productType}-${project.id}"
+                                   value="${rilievo.materiale || ''}"
+                                   onchange="updateRilievoGlobale('${project.id}', '${productType}', 'materiale', this.value)"
+                                   placeholder="Inserisci materiale..."
+                                   style="display: none;"
+                                   class="w-full px-3 py-2 border-2 ${!rilievo.materiale || rilievo.materiale.trim() === '' ? 'border-red-300 bg-red-50' : 'border-green-300 bg-white'} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
                         </div>
                         
                         <!-- 2. NOTE AGGIUNTIVE -->
@@ -7980,30 +7760,22 @@
                             )}
                             
                             <!-- 6. GUIDA -->
-                            ${renderSelectWithCustom({
-                                fieldId: `guida_config_${project.id}`,
-                                fieldName: 'guida',
-                                currentValue: project.configTapparelle?.guida || '',
-                                options: ['Standard', 'Rinforzata', 'Slim', 'Doppia', 'Tripla'],
-                                placeholder: 'Seleziona guida...',
-                                customPlaceholder: 'Scrivi guida...',
-                                onChangeFn: `updateConfigTapparelle('${project.id}', 'guida', value)`,
-                                context: 'config-tapparella',
-                                label: '6. Guida'
-                            })}
+                            <div>
+                                <label class="block text-sm font-medium mb-1">6. Guida</label>
+                                <input type="text" placeholder="Es: Standard, Rinforzata"
+                                       value="${project.configTapparelle?.guida || ''}"
+                                       onchange="updateConfigTapparelle('${project.id}', 'guida', this.value)"
+                                       class="w-full px-3 py-2 border rounded-lg">
+                            </div>
                             
                             <!-- 7. COLORE GUIDA -->
-                            ${renderSelectWithCustom({
-                                fieldId: `coloreGuida_config_${project.id}`,
-                                fieldName: 'coloreGuida',
-                                currentValue: project.configTapparelle?.coloreGuida || '',
-                                options: ['Bianco', 'Marrone', 'Grigio', 'Nero', 'Avorio'],
-                                placeholder: 'Seleziona colore...',
-                                customPlaceholder: 'Scrivi colore...',
-                                onChangeFn: `updateConfigTapparelle('${project.id}', 'coloreGuida', value)`,
-                                context: 'config-tapparella',
-                                label: '7. Colore Guida'
-                            })}
+                            <div>
+                                <label class="block text-sm font-medium mb-1">7. Colore Guida</label>
+                                <input type="text" placeholder="Es: Bianco, Marrone"
+                                       value="${project.configTapparelle?.coloreGuida || ''}"
+                                       onchange="updateConfigTapparelle('${project.id}', 'coloreGuida', this.value)"
+                                       class="w-full px-3 py-2 border rounded-lg">
+                            </div>
                         </div>
                     </div>
                     
@@ -8919,7 +8691,7 @@
                                 <input type="text" value="${pos.name}"
                                        onchange="updatePosition('${project.id}', '${pos.id}', 'name', this.value)"
                                        class="text-xl font-bold border-b-2 border-transparent focus:border-purple-500 outline-none">
-                                <select onchange="switchPosition(this.value)"
+                                <select onchange="deferredSwitchPosition(this)"
                                         class="px-3 py-1 border rounded-lg">
                                     ${project.positions.map(p => `
                                         <option value="${p.id}" ${p.id === pos.id ? 'selected' : ''}>${p.name}</option>
@@ -8974,18 +8746,39 @@
                             <label class="text-xs font-medium">
                                 Ambiente <span class="text-red-600 font-bold">*</span>
                             </label>
-                            ${renderSelectWithCustom({
-                                fieldId: `ambiente_${pos.id}`,
-                                fieldName: 'ambiente',
-                                currentValue: pos.ambiente || '',
-                                options: ['Sala', 'Soggiorno', 'Cucina', 'Camera', 'Stanza', 'Cameretta', 'Matrimoniale', 'Disimpegno', 'Studio', 'Ufficio', 'Bagno1', 'Bagno2', 'Ripostiglio', 'Lavanderia', 'Scala', 'Cantina', 'Garage'],
-                                placeholder: '⚠️ Seleziona ambiente...',
-                                customPlaceholder: 'Scrivi ambiente...',
-                                onChangeFn: `updatePosition('${project.id}', '${pos.id}', 'ambiente', value)`,
-                                context: 'position',
-                                isRequired: true,
-                                showValidation: !pos.ambiente
-                            })}
+                            <div class="flex items-center gap-2 mt-1">
+                                <!-- DROPDOWN (default visibile) -->
+                                <select id="ambiente-select-${pos.id}"
+                                        onchange="updatePosition('${project.id}', '${pos.id}', 'ambiente', this.value)"
+                                        class="flex-1 compact-input border rounded ${!pos.ambiente ? 'border-red-500 bg-red-50' : ''}"
+                                        style="display: block;">
+                                    <option value="">⚠️ Seleziona ambiente...</option>
+                                    ${['Sala', 'Soggiorno', 'Cucina', 'Camera', 'Stanza', 'Cameretta', 'Matrimoniale', 'Disimpegno', 'Studio', 'Ufficio', 'Bagno1', 'Bagno2', 'Ripostiglio', 'Lavanderia', 'Scala', 'Cantina', 'Garage'].map(amb => `
+                                        <option value="${amb}" ${pos.ambiente === amb ? 'selected' : ''}>${amb}</option>
+                                    `).join('')}
+                                </select>
+                                
+                                <!-- FREE TEXT INPUT (nascosto di default) -->
+                                <input type="text" 
+                                       id="ambiente-input-${pos.id}"
+                                       value="${pos.ambiente || ''}"
+                                       onchange="updatePosition('${project.id}', '${pos.id}', 'ambiente', this.value)"
+                                       placeholder="Scrivi ambiente..."
+                                       class="flex-1 compact-input border rounded ${!pos.ambiente ? 'border-red-500 bg-red-50' : ''}"
+                                       style="display: none;">
+                                
+                                <!-- BOTTONE TOGGLE -->
+                                <button type="button"
+                                        id="ambiente-toggle-${pos.id}"
+                                        onclick="toggleAmbienteMode('${project.id}', '${pos.id}')"
+                                        title="Passa a scrittura libera"
+                                        class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 whitespace-nowrap">
+                                    ✏️ Scrivi
+                                </button>
+                            </div>
+                            ${!pos.ambiente ? `
+                                <p class="text-xs text-red-600 mt-1">⚠️ Campo obbligatorio</p>
+                            ` : ''}
                         </div>
                         <div class="section-card">
                             <label class="text-xs font-medium">Quantità</label>
@@ -9202,22 +8995,37 @@
                         <div class="grid md:grid-cols-2 gap-4">
                             <!-- 1. MATERIALE -->
                             <div>
-                                <label class="block text-sm font-semibold flex items-center gap-2 mb-2">
-                                    🔧 Materiale
-                                    ${!r.materiale || r.materiale.trim() === '' ? '<span class="text-red-600">●</span>' : '<span class="text-green-600">✓</span>'}
-                                </label>
-                                ${renderSelectWithCustom({
-                                    fieldId: `materiale_prodotto_${uniqueId}`,
-                                    fieldName: 'materiale',
-                                    currentValue: r.materiale || '',
-                                    options: ['Legno', 'PVC', 'Alluminio', 'Ferro'],
-                                    placeholder: 'Seleziona...',
-                                    customPlaceholder: 'Inserisci materiale...',
-                                    onChangeFn: `updateRilievoProdotto('${project.id}', '${pos.id}', '${productType}', 'materiale', value)`,
-                                    context: 'rilievo-prodotto',
-                                    isRequired: true,
-                                    showValidation: !r.materiale || r.materiale.trim() === ''
-                                })}
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="block text-sm font-semibold flex items-center gap-2">
+                                        🔧 Materiale
+                                        ${!r.materiale || r.materiale.trim() === '' ? '<span class="text-red-600">●</span>' : '<span class="text-green-600">✓</span>'}
+                                    </label>
+                                    <button onclick="toggleMaterialeProdottoMode('${uniqueId}')" 
+                                            id="materiale-toggle-${uniqueId}"
+                                            class="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-full font-medium transition">
+                                        ✏️ Scrivi
+                                    </button>
+                                </div>
+                                
+                                <!-- SELECT MODE (default) -->
+                                <select id="materiale-select-${uniqueId}"
+                                        onchange="updateRilievoProdotto('${project.id}', '${pos.id}', '${productType}', 'materiale', this.value)"
+                                        class="w-full px-3 py-2 border-2 ${!r.materiale || r.materiale.trim() === '' ? 'border-red-300 bg-red-50' : 'border-green-300 bg-white'} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                    <option value="">Seleziona...</option>
+                                    <option value="Legno" ${r.materiale === 'Legno' ? 'selected' : ''}>Legno</option>
+                                    <option value="PVC" ${r.materiale === 'PVC' ? 'selected' : ''}>PVC</option>
+                                    <option value="Alluminio" ${r.materiale === 'Alluminio' ? 'selected' : ''}>Alluminio</option>
+                                    <option value="Ferro" ${r.materiale === 'Ferro' ? 'selected' : ''}>Ferro</option>
+                                </select>
+                                
+                                <!-- INPUT MODE (hidden by default) -->
+                                <input type="text" 
+                                       id="materiale-input-${uniqueId}"
+                                       value="${r.materiale || ''}"
+                                       onchange="updateRilievoProdotto('${project.id}', '${pos.id}', '${productType}', 'materiale', this.value)"
+                                       placeholder="Inserisci materiale..."
+                                       style="display: none;"
+                                       class="w-full px-3 py-2 border-2 ${!r.materiale || r.materiale.trim() === '' ? 'border-red-300 bg-red-50' : 'border-green-300 bg-white'} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
                             </div>
                             
                             <!-- 2. NOTE AGGIUNTIVE -->
@@ -10562,17 +10370,18 @@
                                             <option value="grigio">
                                         </datalist>
                                     </div>
-                                    ${renderSelectWithCustom({
-                                        fieldId: `manualeMot_${project.id}_${pos.id}`,
-                                        fieldName: 'manualeMot',
-                                        currentValue: tap.manualeMot || '',
-                                        options: ['Manuale', 'Motorizzata'],
-                                        placeholder: 'Seleziona...',
-                                        customPlaceholder: 'Scrivi...',
-                                        onChangeFn: `updateProduct('${project.id}', '${pos.id}', 'tapparella', 'manualeMot', value)`,
-                                        context: 'pos-tapparella',
-                                        label: 'Manuale/Motorizzato'
-                                    })}
+                                    <div>
+                                        <label class="text-xs font-medium">Manuale/Motorizzato</label>
+                                        <input type="text" value="${tap.manualeMot || ''}"
+                                               placeholder="Motorizzata"
+                                               list="manualeMot-list-${pos.id}"
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'manualeMot', this.value)"
+                                               class="w-full compact-input border rounded mt-1">
+                                        <datalist id="manualeMot-list-${pos.id}">
+                                            <option value="Manuale">
+                                            <option value="Motorizzata">
+                                        </datalist>
+                                    </div>
                                 </div>
 
                                 <!-- FASE 11a: TIPO SOSTITUZIONE -->
@@ -10612,28 +10421,31 @@
                                 <!-- CAMPI CONDIZIONALI -->
                                 ${tap.tipoSostituzione !== 'Solo Motore' ? `
                                 <div class="grid md:grid-cols-2 gap-3 mt-3">
-                                    ${renderSelectWithCustom({
-                                        fieldId: `guida_tap_${project.id}_${pos.id}`,
-                                        fieldName: 'guida',
-                                        currentValue: tap.guida || '',
-                                        options: ['Standard', 'Rinforzata', 'Slim', 'Doppia'],
-                                        placeholder: 'Seleziona guida...',
-                                        customPlaceholder: 'Scrivi guida...',
-                                        onChangeFn: `updateProduct('${project.id}', '${pos.id}', 'tapparella', 'guida', value)`,
-                                        context: 'pos-tapparella',
-                                        label: 'Guida'
-                                    })}
-                                    ${renderSelectWithCustom({
-                                        fieldId: `coloreGuida_tap_${project.id}_${pos.id}`,
-                                        fieldName: 'coloreGuida',
-                                        currentValue: tap.coloreGuida || '',
-                                        options: ['Bianco', 'Marrone', 'Grigio', 'Nero', 'Avorio'],
-                                        placeholder: 'Seleziona colore...',
-                                        customPlaceholder: 'Scrivi colore...',
-                                        onChangeFn: `updateProduct('${project.id}', '${pos.id}', 'tapparella', 'coloreGuida', value)`,
-                                        context: 'pos-tapparella',
-                                        label: 'Colore Guida'
-                                    })}
+                                    <div>
+                                        <label class="text-xs font-medium">Guida</label>
+                                        <input type="text" value="${tap.guida || ''}"
+                                               placeholder="--"
+                                               list="guida-tap-list-${pos.id}"
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'guida', this.value)"
+                                               class="w-full compact-input border rounded mt-1">
+                                        <datalist id="guida-tap-list-${pos.id}">
+                                            <option value="Standard">
+                                            <option value="Rinforzata">
+                                        </datalist>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Colore Guida</label>
+                                        <input type="text" value="${tap.coloreGuida || ''}"
+                                               placeholder="--"
+                                               list="coloreGuida-list-${pos.id}"
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'coloreGuida', this.value)"
+                                               class="w-full compact-input border rounded mt-1">
+                                        <datalist id="coloreGuida-list-${pos.id}">
+                                            <option value="bianco">
+                                            <option value="marrone">
+                                            <option value="grigio">
+                                        </datalist>
+                                    </div>
                                 </div>
                                 ` : ''}
                             </div>
@@ -11965,6 +11777,18 @@
             state.currentPosition = id;
             render();
         };
+        
+        /**
+         * ⚡ FASE 024: Wrapper per switchPosition con delay
+         * Permette al dropdown di chiudersi prima del cambio posizione
+         */
+        window.deferredSwitchPosition = (selectElement) => {
+            const id = selectElement.value;
+            // Ritarda di 100ms per dare tempo al dropdown di chiudersi
+            setTimeout(() => {
+                switchPosition(id);
+            }, 100);
+        };
 
         window.printChecklistRilievi = (projectId) => {
             const project = state.projects.find(p => p.id === projectId);
@@ -12186,7 +12010,6 @@
         };
 
         window.updateClientData = (projectId, field, value) => {
-            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 if (!project.clientData) project.clientData = {};
@@ -12558,7 +12381,6 @@
         }
 
         window.updateBRMConfig = (projectId, configKey, field, value) => {
-            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 if (!project[configKey]) project[configKey] = {};
@@ -12576,9 +12398,8 @@
                 ricalcolaTuttiiBRMGlobali(project, configKey);
                 
                 saveState();
-                // ⚡ FASE 024B: NO render - approccio cloud
-                // I dati sono già salvati, i BRM ricalcolati
-                // L'utente vedrà i cambiamenti al prossimo cambio naturale di vista
+                // ⚡ FASE 024: Usa render differito per evitare chiusura dropdown
+                deferredRender();
             }
         };
 
@@ -12587,7 +12408,6 @@
         };
 
         window.updateCaratteristicheMuro = (projectId, field, value) => {
-            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 if (!project.caratteristicheMuro) project.caratteristicheMuro = {};
@@ -12606,8 +12426,8 @@
                     });
                     
                     if (cassUpdated > 0) {
-                        // ⚡ FASE 024B: NO render - dati già salvati
-                        // showNotification mostrerà il risultato senza bisogno di render
+                        // ⚡ FASE 024: Usa render differito per evitare chiusura dropdown
+                        deferredRender();
                         showNotification(`✅ Aggiornati ${cassUpdated} cassonetti con nuovo BSuperiore: ${value}mm`, 'success');
                     }
                 }
@@ -12618,7 +12438,6 @@
 
         // 🗿 NUOVA FUNZIONE: Aggiorna caratteristiche muro OVERRIDE per una specifica posizione
         window.updateCaratteristicheMuroOverride = (projectId, posId, field, value) => {
-            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 const pos = project.positions.find(p => p.id === posId);
@@ -12630,9 +12449,7 @@
                     // aggiorna automaticamente BSuperiore nel cassonetto di questa posizione
                     if (field === 'battutaSuperioreTapparella' && pos.cassonetto) {
                         pos.cassonetto.BSuperiore = value || '0';
-                        // ⚡ FASE 024B: Aggiorna DOM diretto invece di render
-                        const bSupEl = document.getElementById(`bsup-${posId}`);
-                        if (bSupEl) bSupEl.value = value || '0';
+                        deferredRender();  // ⚡ FASE 024: Usa render differito
                         showNotification(`✅ Aggiornato BSuperiore cassonetto: ${value}mm`, 'success');
                     }
                     
@@ -12664,12 +12481,7 @@
                     if (!pos.caratteristicheMuroOverride) pos.caratteristicheMuroOverride = {};
                     pos.caratteristicheMuroOverride.guidaEsistente = value;
                     saveState();
-                    
-                    // ⚡ FASE 024B: Manipolazione DOM diretta per mostrare/nascondere campi
-                    const guidaFields = document.querySelector(`[id*="guida-fields-override-${posId}"]`);
-                    if (guidaFields) {
-                        guidaFields.style.display = value === 'si' ? 'block' : 'none';
-                    }
+                    deferredRender();  // ⚡ FASE 024: Usa render differito per mostrare/nascondere i campi guida
                 }
             }
         };
@@ -12699,14 +12511,7 @@
                     if (!pos.caratteristicheMuroOverride) pos.caratteristicheMuroOverride = {};
                     pos.caratteristicheMuroOverride.falsoEsistente = value;
                     saveState();
-                    
-                    // ⚡ FASE 024B: Manipolazione DOM diretta per mostrare/nascondere campi
-                    const falsoSiFields = document.querySelector(`[id*="falso-si-fields-override-${posId}"]`);
-                    const falsoNoFields = document.querySelector(`[id*="falso-no-fields-override-${posId}"]`);
-                    if (falsoSiFields && falsoNoFields) {
-                        falsoSiFields.style.display = value === 'si' ? 'block' : 'none';
-                        falsoNoFields.style.display = value === 'no' ? 'block' : 'none';
-                    }
+                    deferredRender();  // ⚡ FASE 024: Usa render differito per mostrare/nascondere i campi falso
                 }
             }
         };
@@ -12729,7 +12534,6 @@
         };
 
         window.updatePosition = (projectId, posId, field, value) => {
-            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 const pos = project.positions.find(p => p.id === posId);
@@ -12741,7 +12545,6 @@
         };
 
         window.updateMisura = (projectId, posId, field, value) => {
-            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 const pos = project.positions.find(p => p.id === posId);
@@ -12754,7 +12557,6 @@
         };
 
         window.updateMisuraWithValidation = (projectId, posId, field, value) => {
-            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 const pos = project.positions.find(p => p.id === posId);
@@ -13011,69 +12813,6 @@
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                showNotification(`✅ Esportati ${state.projects.length} progetti`, 'success');
-            } catch (error) {
-                console.error('Errore export:', error);
-                showNotification('❌ Errore durante export', 'error');
-            }
-        };
-
-        // 🆕 FASE 027D: Export singolo progetto corrente
-        window.exportCurrentProjectJSON = () => {
-            try {
-                const currentProject = state.projects.find(p => p.id === state.currentProject);
-                if (!currentProject) {
-                    showNotification('⚠️ Nessun progetto aperto', 'error');
-                    return;
-                }
-                
-                const data = {
-                    ...currentProject,
-                    exportDate: new Date().toISOString(),
-                    version: '3.5-FASE027D'
-                };
-                
-                const jsonString = JSON.stringify(data, null, 2);
-                const blob = new Blob([jsonString], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                const fileName = `${currentProject.name || 'progetto'}-${new Date().toISOString().split('T')[0]}.json`;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                showNotification(`✅ Progetto "${currentProject.name}" esportato`, 'success');
-            } catch (error) {
-                console.error('Errore export progetto:', error);
-                showNotification('❌ Errore durante export', 'error');
-            }
-        };
-
-        // 🆕 FASE 027D: Salvataggio forzato (localStorage + OneDrive)
-        window.forceSave = async () => {
-            try {
-                showNotification('💾 Salvataggio forzato...', 'info');
-                
-                // 1. Salva localStorage
-                saveState();
-                
-                // 2. Se OneDrive connesso, upload immediato
-                if (state.onedrive?.connected) {
-                    await uploadToOneDrive();
-                    showNotification('✅ Salvato su localStorage + OneDrive', 'success');
-                } else {
-                    showNotification('✅ Salvato su localStorage (OneDrive non connesso)', 'success');
-                }
-            } catch (error) {
-                console.error('Errore salvataggio forzato:', error);
-                showNotification('❌ Errore salvataggio', 'error');
-            }
-        };
                 URL.revokeObjectURL(url);
                 
                 showNotification(`Export completato! ${data.totalProjects} progetti`, 'success');
