@@ -7280,11 +7280,11 @@
                                     <!-- Input custom -->
                                     <input type="text" 
                                            class="w-full px-3 py-2 border-2 border-blue-400 rounded-lg mt-2 bg-blue-50 focus:ring-2 focus:ring-blue-500" 
-                                           id="materiale_custom_${project.id}__${productType}"
+                                           id="materiale_custom_${project.id}_config_${productType}"
                                            placeholder="✏️ Scrivi valore personalizzato..."
                                            value="${isCustom ? rilievo.materiale : ''}"
                                            style="display: ${isCustom ? 'block' : 'none'};"
-                                           onchange="updateRilievoGlobale('${project.id}', '${productType}', 'materiale', this.value)">
+                                           oninput="updateRilievoGlobale('${project.id}', '${productType}', 'materiale', this.value)">
                                 `;
                             })()}
                         </div>
