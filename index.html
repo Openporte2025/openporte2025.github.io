@@ -4003,8 +4003,11 @@
                     
                     <!-- Azioni Rapide -->
                     <div class="menu-actions">
+                        <button class="menu-action-btn" style="background: #10b981; color: white; font-weight: bold;" onclick="forceSave(); closeProjectMenu();">
+                            💾 SALVA FORZATO
+                        </button>
                         <button class="menu-action-btn" onclick="exportCurrentProjectJSON(); closeProjectMenu();">
-                            💾 Esporta JSON
+                            📤 Esporta JSON Progetto
                         </button>
                         <button class="menu-action-btn" onclick="printCurrentProjectPDF(); closeProjectMenu();">
                             🖨️ Esporta PDF
@@ -13008,6 +13011,69 @@
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showNotification(`✅ Esportati ${state.projects.length} progetti`, 'success');
+            } catch (error) {
+                console.error('Errore export:', error);
+                showNotification('❌ Errore durante export', 'error');
+            }
+        };
+
+        // 🆕 FASE 027D: Export singolo progetto corrente
+        window.exportCurrentProjectJSON = () => {
+            try {
+                const currentProject = state.projects.find(p => p.id === state.currentProject);
+                if (!currentProject) {
+                    showNotification('⚠️ Nessun progetto aperto', 'error');
+                    return;
+                }
+                
+                const data = {
+                    ...currentProject,
+                    exportDate: new Date().toISOString(),
+                    version: '3.5-FASE027D'
+                };
+                
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const fileName = `${currentProject.name || 'progetto'}-${new Date().toISOString().split('T')[0]}.json`;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showNotification(`✅ Progetto "${currentProject.name}" esportato`, 'success');
+            } catch (error) {
+                console.error('Errore export progetto:', error);
+                showNotification('❌ Errore durante export', 'error');
+            }
+        };
+
+        // 🆕 FASE 027D: Salvataggio forzato (localStorage + OneDrive)
+        window.forceSave = async () => {
+            try {
+                showNotification('💾 Salvataggio forzato...', 'info');
+                
+                // 1. Salva localStorage
+                saveState();
+                
+                // 2. Se OneDrive connesso, upload immediato
+                if (state.onedrive?.connected) {
+                    await uploadToOneDrive();
+                    showNotification('✅ Salvato su localStorage + OneDrive', 'success');
+                } else {
+                    showNotification('✅ Salvato su localStorage (OneDrive non connesso)', 'success');
+                }
+            } catch (error) {
+                console.error('Errore salvataggio forzato:', error);
+                showNotification('❌ Errore salvataggio', 'error');
+            }
+        };
                 URL.revokeObjectURL(url);
                 
                 showNotification(`Export completato! ${data.totalProjects} progetti`, 'success');
