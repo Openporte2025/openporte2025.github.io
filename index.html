@@ -11358,17 +11358,6 @@
                                         </select>
                                     </div>
 
-                                    <!-- 🆕 FASE 027E: Tipo Cassonetto con select+custom -->
-                                    ${renderSelectWithCustom(
-                                        'tipoCassonetto',
-                                        cas.tipoCassonetto || '',
-                                        ['LARGH_CASS', 'LS', 'LVT', 'TMV', 'LP', 'MIS_FIN_INF_L', 'LS+SRDX+SRSX'],
-                                        project.id,
-                                        pos.id,
-                                        'cassonetto',
-                                        '📏 Tipo Cassonetto'
-                                    )}
-
                                     <div>
                                         <label class="text-xs font-medium">Tipo</label>
                                         <input type="text" value="${cas.tipo || ''}"
@@ -11384,27 +11373,43 @@
                                     </div>
                                 </div>
                                 
-                                <!-- 🆕 FASE 027E: NUOVI CAMPI ISOLAMENTO E MONOBLOCCO -->
+                                <!-- 🆕 FASE 027E: Tipo Cassonetto con select+custom -->
+                                <div class="mt-3">
+                                    ${renderSelectWithCustom(
+                                        'tipoCassonetto',
+                                        cas.tipoCassonetto || '',
+                                        ['LARGH_CASS', 'LS', 'LVT', 'TMV', 'LP', 'MIS_FIN_INF_L', 'LS+SRDX+SRSX'],
+                                        project.id,
+                                        pos.id,
+                                        'cassonetto',
+                                        '📏 Tipo Cassonetto'
+                                    )}
+                                </div>
+                                
+                                <!-- 🆕 FASE 027E: ISOLAMENTO E MONOBLOCCO -->
                                 <div class="grid md:grid-cols-2 gap-3 mt-3">
-                                    ${renderSelectWithCustom(
-                                        'isolamento',
-                                        cas.isolamento || project.configCassonetti?.isolamento || '',
-                                        ['Sì', 'No', 'Parziale', 'Standard', 'Rinforzato'],
-                                        project.id,
-                                        pos.id,
-                                        'cassonetto',
-                                        '🛡️ Isolamento'
-                                    )}
-                                    
-                                    ${renderSelectWithCustom(
-                                        'monoblocco',
-                                        cas.monoblocco || project.configCassonetti?.monoblocco || '',
-                                        ['Sì', 'No'],
-                                        project.id,
-                                        pos.id,
-                                        'cassonetto',
-                                        '📦 Monoblocco'
-                                    )}
+                                    <div>
+                                        ${renderSelectWithCustom(
+                                            'isolamento',
+                                            cas.isolamento || project.configCassonetti?.isolamento || '',
+                                            ['Sì', 'No', 'Parziale', 'Standard', 'Rinforzato'],
+                                            project.id,
+                                            pos.id,
+                                            'cassonetto',
+                                            '🛡️ Isolamento'
+                                        )}
+                                    </div>
+                                    <div>
+                                        ${renderSelectWithCustom(
+                                            'monoblocco',
+                                            cas.monoblocco || project.configCassonetti?.monoblocco || '',
+                                            ['Sì', 'No'],
+                                            project.id,
+                                            pos.id,
+                                            'cassonetto',
+                                            '📦 Monoblocco'
+                                        )}
+                                    </div>
                                 </div>
                                 
                                 <div class="grid md:grid-cols-3 gap-3 mt-3">
