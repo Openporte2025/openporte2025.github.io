@@ -2071,7 +2071,7 @@
                         // È una posizione
                         updateProduct(projectId, posId, productType, fieldName, value);
                     } else {
-                        // È config globale
+                        // È config globale o rilievo globale
                         if (productType === 'infisso') {
                             updateConfigInfissi(projectId, fieldName, value);
                         } else if (productType === 'persiana') {
@@ -2082,6 +2082,9 @@
                             updateConfigZanzariere(projectId, fieldName, value);
                         } else if (productType === 'cassonetto') {
                             updateConfigCassonetti(projectId, fieldName, value);
+                        } else if (productType === 'infissi' || productType === 'persiane' || productType === 'tapparelle' || productType === 'zanzariere' || productType === 'cassonetti') {
+                            // Rilievo Globale (productType plurale)
+                            updateRilievoGlobale(projectId, productType, fieldName, value);
                         }
                     }
                 }, 50); // 50ms di delay
@@ -7252,49 +7255,36 @@
                     <div class="grid md:grid-cols-2 gap-4">
                         <!-- 1. MATERIALE -->
                         <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <label class="block text-sm font-semibold flex items-center gap-2">
-                                    🔧 Materiale
-                                    ${!rilievo.materiale || rilievo.materiale.trim() === '' ? '<span class="text-red-600">●</span>' : '<span class="text-green-600">✓</span>'}
-                                </label>
-                                <button onclick="toggleMaterialeMode('${productType}', '${project.id}')" 
-                                        id="materiale-toggle-${productType}-${project.id}"
-                                        class="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-full font-medium transition">
-                                    ${(() => {
-                                        // Determina se il valore corrente è custom (non nella lista)
-                                        const opzioniMateriale = ['Legno', 'PVC', 'Alluminio', 'Ferro'];
-                                        const isCustom = rilievo.materiale && !opzioniMateriale.includes(rilievo.materiale);
-                                        return isCustom ? '📋 Tendina' : '✏️ Scrivi';
-                                    })()}
-                                </button>
-                            </div>
+                            <label class="block text-sm font-semibold mb-2 flex items-center gap-2">
+                                🔧 Materiale
+                                ${!rilievo.materiale || rilievo.materiale.trim() === '' ? '<span class="text-red-600">●</span>' : '<span class="text-green-600">✓</span>'}
+                            </label>
                             
                             ${(() => {
-                                // Determina se il valore corrente è custom (non nella lista)
-                                const opzioniMateriale = ['Legno', 'PVC', 'Alluminio', 'Ferro'];
-                                const isCustom = rilievo.materiale && !opzioniMateriale.includes(rilievo.materiale);
+                                const options = ['Legno', 'PVC', 'Alluminio', 'Ferro', 'Acciaio'];
+                                const isCustom = rilievo.materiale && !options.includes(rilievo.materiale);
+                                const isEmpty = !rilievo.materiale || rilievo.materiale.trim() === '';
                                 
                                 return `
-                                    <!-- SELECT MODE (default se valore in lista o vuoto) -->
-                                    <select id="materiale-select-${productType}-${project.id}"
-                                            onchange="updateRilievoGlobale('${project.id}', '${productType}', 'materiale', this.value)"
-                                            style="display: ${isCustom ? 'none' : 'block'};"
-                                            class="w-full px-3 py-2 border-2 ${!rilievo.materiale || rilievo.materiale.trim() === '' ? 'border-red-300 bg-red-50' : 'border-green-300 bg-white'} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                        <option value="">Seleziona...</option>
-                                        <option value="Legno" ${rilievo.materiale === 'Legno' ? 'selected' : ''}>Legno</option>
-                                        <option value="PVC" ${rilievo.materiale === 'PVC' ? 'selected' : ''}>PVC</option>
-                                        <option value="Alluminio" ${rilievo.materiale === 'Alluminio' ? 'selected' : ''}>Alluminio</option>
-                                        <option value="Ferro" ${rilievo.materiale === 'Ferro' ? 'selected' : ''}>Ferro</option>
+                                    <!-- Select principale -->
+                                    <select 
+                                        class="w-full px-3 py-2 border-2 rounded-lg ${isEmpty ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'} focus:ring-2 focus:ring-purple-500" 
+                                        onchange="handleSelectCustomChange('materiale', this, '${project.id}', '', '${productType}')">
+                                        <option value="">▼ Seleziona...</option>
+                                        ${options.map(opt => `
+                                            <option value="${opt}" ${rilievo.materiale === opt ? 'selected' : ''}>${opt}</option>
+                                        `).join('')}
+                                        <option value="__custom__" ${isCustom ? 'selected' : ''} class="text-blue-600 font-semibold">🖊️ Scrivi manualmente</option>
                                     </select>
                                     
-                                    <!-- INPUT MODE (visibile se valore custom) -->
+                                    <!-- Input custom -->
                                     <input type="text" 
-                                           id="materiale-input-${productType}-${project.id}"
-                                           value="${rilievo.materiale || ''}"
-                                           oninput="updateRilievoGlobale('${project.id}', '${productType}', 'materiale', this.value)"
-                                           placeholder="Inserisci materiale..."
+                                           class="w-full px-3 py-2 border-2 border-blue-400 rounded-lg mt-2 bg-blue-50 focus:ring-2 focus:ring-blue-500" 
+                                           id="materiale_custom_${project.id}__${productType}"
+                                           placeholder="✏️ Scrivi valore personalizzato..."
+                                           value="${isCustom ? rilievo.materiale : ''}"
                                            style="display: ${isCustom ? 'block' : 'none'};"
-                                           class="w-full px-3 py-2 border-2 ${!rilievo.materiale || rilievo.materiale.trim() === '' ? 'border-red-300 bg-red-50' : 'border-blue-300 bg-blue-50'} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                           onchange="updateRilievoGlobale('${project.id}', '${productType}', 'materiale', this.value)">
                                 `;
                             })()}
                         </div>
