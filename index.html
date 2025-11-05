@@ -1931,6 +1931,115 @@
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
         }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // ⚡ FASE 024C: SISTEMA UNIVERSALE TOGGLE SELECT/INPUT
+        // ═══════════════════════════════════════════════════════════════
+        
+        /**
+         * Toggle universale tra select e input per qualsiasi campo
+         * @param {string} fieldId - ID base del campo (es. 'azienda', 'coloreInt')
+         * @param {string} context - Contesto univoco (es. 'infisso-proj123', 'pos456')
+         */
+        window.toggleFieldMode = (fieldId, context) => {
+            const selectEl = document.getElementById(`${fieldId}-select-${context}`);
+            const inputEl = document.getElementById(`${fieldId}-input-${context}`);
+            const btnEl = document.getElementById(`${fieldId}-toggle-${context}`);
+            
+            if (!selectEl || !inputEl) return;
+            
+            if (selectEl.style.display === 'none') {
+                // Torna a SELECT
+                selectEl.style.display = 'block';
+                inputEl.style.display = 'none';
+                if (btnEl) btnEl.innerHTML = '✏️ Scrivi manualmente';
+                
+                // Trasferisci valore da input a select se presente
+                if (inputEl.value && inputEl.value.trim() !== '') {
+                    // Se il valore non è nelle opzioni, aggiungilo temporaneamente
+                    const existingOption = Array.from(selectEl.options).find(opt => opt.value === inputEl.value);
+                    if (!existingOption) {
+                        const newOption = document.createElement('option');
+                        newOption.value = inputEl.value;
+                        newOption.text = inputEl.value;
+                        newOption.selected = true;
+                        selectEl.appendChild(newOption);
+                    } else {
+                        selectEl.value = inputEl.value;
+                    }
+                }
+            } else {
+                // Passa a INPUT
+                selectEl.style.display = 'none';
+                inputEl.style.display = 'block';
+                if (btnEl) btnEl.innerHTML = '📋 Torna a selezione';
+                
+                // Trasferisci valore da select a input
+                if (selectEl.value && selectEl.value !== '') {
+                    inputEl.value = selectEl.value;
+                }
+                inputEl.focus();
+            }
+        };
+        
+        /**
+         * Genera HTML per campo con toggle select/input
+         * @param {Object} config - Configurazione campo
+         * @returns {string} HTML completo del campo
+         */
+        function renderFieldWithToggle(config) {
+            const {
+                fieldId,           // 'azienda', 'coloreInt', ecc.
+                context,           // 'infisso-proj123' o 'pos456'
+                label,             // 'Azienda'
+                currentValue,      // Valore corrente
+                options,           // Array opzioni ['Oknoplast', 'Finstral', ...]
+                updateFunction,    // Nome funzione da chiamare (es. 'updateConfigInfissi')
+                updateParams,      // Parametri per la funzione update
+                required = false   // Se il campo è obbligatorio
+            } = config;
+            
+            const isEmpty = !currentValue || currentValue === '';
+            const borderClass = required && isEmpty ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white';
+            const statusIcon = required ? (isEmpty ? '<span class="text-red-600">●</span>' : '<span class="text-green-600">✓</span>') : '';
+            
+            // Costruisci parametri per update function
+            const updateCall = `${updateFunction}(${updateParams.map(p => `'${p}'`).join(', ')}, this.value)`;
+            
+            return `
+                <div class="mb-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-sm font-semibold flex items-center gap-2">
+                            ${label}
+                            ${statusIcon}
+                        </label>
+                        <button onclick="toggleFieldMode('${fieldId}', '${context}')" 
+                                id="${fieldId}-toggle-${context}"
+                                class="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-full font-medium transition">
+                            ✏️ Scrivi manualmente
+                        </button>
+                    </div>
+                    
+                    <!-- SELECT MODE (default) -->
+                    <select id="${fieldId}-select-${context}"
+                            onchange="${updateCall}"
+                            class="w-full px-3 py-2 border-2 ${borderClass} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            style="display: block;">
+                        <option value="">Seleziona...</option>
+                        ${options.map(opt => `<option value="${opt}" ${currentValue === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                    </select>
+                    
+                    <!-- INPUT MODE (hidden) -->
+                    <input type="text" 
+                           id="${fieldId}-input-${context}"
+                           value="${currentValue || ''}"
+                           oninput="${updateCall}"
+                           placeholder="Scrivi ${label.toLowerCase()}..."
+                           class="w-full px-3 py-2 border-2 ${borderClass} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                           style="display: none;">
+                </div>
+            `;
+        }
 
         // ═══════════════════════════════════════════════════════════════
         // 🎯 SELECT CON CUSTOM INPUT - FASE 020
@@ -4769,6 +4878,7 @@
         // 🆕 FASE 13 - Gestione Rilievo Globale per Prodotti
         // 🆕 FASE 014 - Sincronizzazione Intelligente Globale → Posizioni
         function updateRilievoGlobale(projectId, productType, field, value) {
+            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 const rilievoKey = `rilievo${productType.charAt(0).toUpperCase() + productType.slice(1)}`;
@@ -4979,6 +5089,7 @@
         }
 
         function updateRilievoProdotto(projectId, posId, productType, field, value) {
+            markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             const pos = project?.positions.find(p => p.id === posId);
             
@@ -7168,7 +7279,7 @@
                             <input type="text" 
                                    id="materiale-input-${productType}-${project.id}"
                                    value="${rilievo.materiale || ''}"
-                                   onchange="updateRilievoGlobale('${project.id}', '${productType}', 'materiale', this.value)"
+                                   oninput="updateRilievoGlobale('${project.id}', '${productType}', 'materiale', this.value)"
                                    placeholder="Inserisci materiale..."
                                    style="display: none;"
                                    class="w-full px-3 py-2 border-2 ${!rilievo.materiale || rilievo.materiale.trim() === '' ? 'border-red-300 bg-red-50' : 'border-green-300 bg-white'} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
@@ -9090,7 +9201,7 @@
                                 <input type="text" 
                                        id="materiale-input-${uniqueId}"
                                        value="${r.materiale || ''}"
-                                       onchange="updateRilievoProdotto('${project.id}', '${pos.id}', '${productType}', 'materiale', this.value)"
+                                       oninput="updateRilievoProdotto('${project.id}', '${pos.id}', '${productType}', 'materiale', this.value)"
                                        placeholder="Inserisci materiale..."
                                        style="display: none;"
                                        class="w-full px-3 py-2 border-2 ${!r.materiale || r.materiale.trim() === '' ? 'border-red-300 bg-red-50' : 'border-green-300 bg-white'} rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
