@@ -14653,7 +14653,7 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                     github: {
                         repository: `${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`,
                         branch: GITHUB_CONFIG.branch,
-                        path: `rilievi/${new Date().getFullYear()}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${idRilievo}.json`,
+                        path: `progetto-${idRilievo}.json`,
                         commit_hash: null,
                         ultimo_push: null
                     },
@@ -14733,18 +14733,24 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                     body: JSON.stringify(body)
                 });
                 
-                if (!response.ok) throw new Error(`GitHub error ${response.status}`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('GitHub API error:', response.status, errorText);
+                    throw new Error(`GitHub error ${response.status}: ${errorText.substring(0, 100)}`);
+                }
                 
                 const result = await response.json();
-                rilievoJSON.sync.github.commit_hash = result.content.sha;
+                rilievoJSON.sync.github.commit_hash = result.content?.sha;
                 rilievoJSON.sync.github.ultimo_push = new Date().toISOString();
                 rilievoJSON.sync.stato_sync = 'sincronizzato';
                 
-                console.log('✅ GitHub sync OK:', idRilievo);
-                return { success: true, sha: result.content.sha };
+                console.log('✅ GitHub sync OK:', rilievoJSON.rilievo.meta.id_rilievo);
+                showNotification('✅ Progetto sincronizzato su GitHub!', 'success');
+                return { success: true, sha: result.content?.sha };
                 
             } catch(error) {
                 console.error('❌ GitHub sync error:', error);
+                showNotification('❌ Errore sync GitHub: ' + error.message, 'error');
                 return { success: false, message: error.message };
             }
         }
