@@ -1608,6 +1608,316 @@
         .sync-info li {
             margin: 6px 0;
         }
+
+        /* ============================================
+           🎨 MENU DYNAMIC STYLES - Stili Menu Dinamico
+           ============================================
+           Versione: 1.0
+           Data: 06 NOV 2025
+           Descrizione: Stili per il menu dinamico con layout a due righe
+        */
+
+        /* Container principale menu */
+        .menu-dynamic-container {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8px 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Righe del menu */
+        .menu-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0;
+        }
+
+        .menu-row-top {
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 8px;
+        }
+
+        .menu-row-bottom {
+            justify-content: center;
+            padding-top: 8px;
+        }
+
+        /* Informazioni progetto */
+        .menu-project-info {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            flex-grow: 1;
+            text-align: center;
+            max-width: 500px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Pulsanti base */
+        .menu-btn {
+            position: relative;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #333;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-btn:hover {
+            background: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .menu-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Pulsante attivo */
+        .menu-btn.active {
+            background: #4CAF50;
+            color: white;
+            box-shadow: 0 3px 6px rgba(76, 175, 80, 0.3);
+        }
+
+        .menu-btn.active:hover {
+            background: #45a049;
+        }
+
+        /* Varianti pulsanti */
+        .menu-btn-lista {
+            background: rgba(255, 255, 255, 0.95);
+            font-weight: 700;
+        }
+
+        .menu-btn-section {
+            min-width: 100px;
+        }
+
+        .menu-btn-action {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .menu-btn-action:hover {
+            background: #45a049;
+        }
+
+        .menu-btn-special {
+            background: #FF9800;
+            color: white;
+        }
+
+        .menu-btn-special:hover {
+            background: #F57C00;
+        }
+
+        /* Icone e label */
+        .menu-icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .menu-label {
+            font-size: 13px;
+            line-height: 1;
+        }
+
+        /* Indicatori di completamento */
+        .menu-indicator {
+            font-size: 10px;
+            margin-left: 4px;
+            line-height: 1;
+            position: absolute;
+            top: 4px;
+            right: 4px;
+        }
+
+        .menu-percentage {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-left: 4px;
+        }
+
+        /* Container dropdown */
+        .menu-dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .menu-dropdown-arrow {
+            font-size: 10px;
+            margin-left: 4px;
+            transition: transform 0.2s ease;
+        }
+
+        .menu-dropdown-container:hover .menu-dropdown-arrow {
+            transform: translateY(1px);
+        }
+
+        /* Contenuto dropdown */
+        .menu-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 4px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
+            z-index: 1000;
+            overflow: hidden;
+            animation: dropdownSlide 0.2s ease;
+        }
+
+        .menu-dropdown-content.open {
+            display: block;
+        }
+
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Item dropdown */
+        .menu-dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .menu-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-dropdown-item:hover {
+            background: #f8f8f8;
+        }
+
+        .menu-dropdown-item-label {
+            flex-grow: 1;
+            font-size: 13px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 768px) {
+            .menu-dynamic-container {
+                padding: 6px 8px;
+            }
+            
+            .menu-row {
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+            
+            .menu-row-top {
+                flex-direction: column;
+                padding-bottom: 6px;
+            }
+            
+            .menu-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            
+            .menu-label {
+                display: none;
+            }
+            
+            .menu-icon {
+                font-size: 18px;
+            }
+            
+            .menu-project-info {
+                font-size: 12px;
+                padding: 6px 10px;
+                width: 100%;
+                max-width: none;
+            }
+            
+            .menu-dropdown-content {
+                min-width: 180px;
+            }
+        }
+
+        /* Responsive - Tablet */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .menu-btn {
+                padding: 9px 14px;
+                font-size: 12px;
+            }
+            
+            .menu-project-info {
+                font-size: 13px;
+            }
+        }
+
+        /* Animazioni opzionali */
+        .menu-btn {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Stati speciali */
+        .menu-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .menu-btn:disabled:hover {
+            transform: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Focus accessibilità */
+        .menu-btn:focus {
+            outline: 2px solid #4CAF50;
+            outline-offset: 2px;
+        }
+
+        .menu-dropdown-item:focus {
+            outline: 2px solid #4CAF50;
+            outline-offset: -2px;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -1759,6 +2069,10 @@
                 } catch (e) {
                     console.error('Error loading state:', e);
                 }
+            }
+            // 🎨 FASE 027D: Inizializza menu dinamico dopo caricamento state
+            if (typeof MenuRenderer !== 'undefined') {
+                MenuRenderer.init();
             }
         }
 
@@ -1925,6 +2239,11 @@
                 window.onedriveSyncDebounce = setTimeout(() => {
                     uploadToOneDrive();
                 }, 2000);
+            }
+            
+            // 🎨 FASE 027D: Aggiorna indicatori menu dopo salvataggio
+            if (typeof MenuRenderer !== 'undefined' && MenuRenderer.updateIndicators) {
+                MenuRenderer.updateIndicators();
             }
         }
 
@@ -3840,216 +4159,22 @@
             const project = state.projects.find(p => p.id === state.currentProject);
             if (!project) return '';
             
-            // Determina quali prodotti sono selezionati
-            const hasInfissi = project.prodotti?.infissi || false;
-            const hasPersiane = project.prodotti?.persiane || false;
-            const hasTapparelle = project.prodotti?.tapparelle || false;
-            const hasZanzariere = project.prodotti?.zanzariere || false;
-            const hasCassonetti = project.prodotti?.cassonetti || false;
+            // 🎨 FASE 027D: Rendering del nuovo menu dinamico a due righe
+            // Aggiorna lo state globale per MenuRenderer
+            window.state = state;
             
-            // Verifica prerequisiti per navigazione
-            const canGoToPositions = hasInfissi || hasPersiane || hasTapparelle || 
-                                     hasZanzariere || hasCassonetti;
-            
-            // Determina se sezione è attiva
-            const isStep1Active = state.setupStep === 1;
-            const isStep2Active = state.setupStep === 2;
-            const isStep3Active = state.setupStep === 3 && hasInfissi;
-            const isStep4Active = state.setupStep === 4 && hasPersiane;
-            const isStep5Active = state.setupStep === 5 && hasTapparelle;
-            const isStep6Active = state.setupStep === 6 && hasZanzariere;
-            const isStep7Active = state.setupStep === 7 && hasCassonetti;
-            const isStep9Active = state.setupStep === 9;
-            
-            // Calcola completamento per ogni sezione
-            const completamentoCliente = calcolaCompletamentoCliente(project);
-            const completamentoSetup = calcolaCompletamentoSetup(project);
-            const completamentoConfig = calcolaCompletamentoConfig(project);
-            const completamentoPosizioni = calcolaCompletamentoPosizioni(project);
-            
-            // Stato menu Config (espanso o collassato)
-            const configExpanded = state.configMenuExpanded || false;
+            // Trigger refresh menu dopo render (senza script inline)
+            setTimeout(() => {
+                if (typeof MenuRenderer !== 'undefined') {
+                    MenuRenderer.refresh();
+                }
+            }, 10);
             
             return `
-                <!-- Header compatto fisso -->
-                <header class="app-header">
-                    <button class="menu-toggle" onclick="toggleProjectMenu()">☰</button>
-                    <h1 class="app-title">
-                        ${project.clientName || 'Nuovo Progetto'}
-                        ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                    </h1>
-                    <div class="header-actions">
-                        <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
-                        <button class="btn-icon" onclick="printCurrentProjectPDF()" title="Export PDF">🖨️</button>
-                    </div>
-                </header>
-                
-                <!-- Menu laterale progetto -->
-                <aside class="side-menu-project ${state.projectMenuOpen ? 'open' : ''}" id="projectSideMenu">
-                    <!-- Header menu -->
-                    <div class="project-menu-header">
-                        <button class="project-menu-close" onclick="toggleProjectMenu()">✕</button>
-                        <span>MENU PROGETTO</span>
-                    </div>
-                    
-                    <!-- Info Progetto -->
-                    <div class="project-info-box">
-                        <div class="project-name">${project.clientName || 'Nuovo Progetto'}</div>
-                        ${project.ambiente ? `<div class="project-ambiente">${project.ambiente}</div>` : ''}
-                    </div>
-                    
-                    <!-- Navigazione Principale -->
-                    <div class="nav-section">
-                        <div class="nav-title">Navigazione</div>
-                        
-                        <!-- Cliente -->
-                        <div class="nav-item ${isStep1Active ? 'active' : ''}" 
-                             onclick="navigateToStep(1); closeProjectMenu();">
-                            <div class="nav-label">
-                                <span class="nav-icon">👤</span>
-                                <span>Cliente</span>
-                            </div>
-                            ${renderCompletionBadge(completamentoCliente)}
-                        </div>
-                        
-                        <!-- Setup -->
-                        <div class="nav-item ${isStep2Active ? 'active' : ''}" 
-                             onclick="navigateToStep(2); closeProjectMenu();">
-                            <div class="nav-label">
-                                <span class="nav-icon">🛠️</span>
-                                <span>Setup</span>
-                            </div>
-                            ${renderCompletionBadge(completamentoSetup)}
-                        </div>
-                        
-                        <!-- Config (con submenu) -->
-                        <div class="nav-item ${(isStep3Active || isStep4Active || isStep5Active || isStep6Active || isStep7Active) ? 'active' : ''}" 
-                             onclick="toggleConfigMenu(event)">
-                            <div class="nav-label">
-                                <span class="nav-icon">⚙️</span>
-                                <span>Config</span>
-                                <span style="margin-left: auto; font-size: 12px;">${configExpanded ? '▼' : '▶'}</span>
-                            </div>
-                            ${renderCompletionBadge(completamentoConfig)}
-                        </div>
-                        
-                        <!-- Submenu Config -->
-                        <div class="nav-submenu ${configExpanded ? 'open' : ''}" id="configSubmenu">
-                            ${hasInfissi ? `
-                                <div class="nav-submenu-item ${isStep3Active ? 'active' : ''}" 
-                                     onclick="navigateToStep(3); closeProjectMenu();">
-                                    <span>🪟 Infissi</span>
-                                    ${renderCompletionBadge(calcolaCompletamentoInfissi(project), true)}
-                                </div>
-                            ` : ''}
-                            
-                            ${hasPersiane ? `
-                                <div class="nav-submenu-item ${isStep4Active ? 'active' : ''}" 
-                                     onclick="navigateToStep(4); closeProjectMenu();">
-                                    <span>🚪 Persiane</span>
-                                    ${renderCompletionBadge(calcolaCompletamentoPersiane(project), true)}
-                                </div>
-                            ` : ''}
-                            
-                            ${hasTapparelle ? `
-                                <div class="nav-submenu-item ${isStep5Active ? 'active' : ''}" 
-                                     onclick="navigateToStep(5); closeProjectMenu();">
-                                    <span>🎚️ Tapparelle</span>
-                                    ${renderCompletionBadge(calcolaCompletamentoTapparelle(project), true)}
-                                </div>
-                            ` : ''}
-                            
-                            ${hasZanzariere ? `
-                                <div class="nav-submenu-item ${isStep6Active ? 'active' : ''}" 
-                                     onclick="navigateToStep(6); closeProjectMenu();">
-                                    <span>🦟 Zanzariere</span>
-                                    ${renderCompletionBadge(calcolaCompletamentoZanzariere(project), true)}
-                                </div>
-                            ` : ''}
-                            
-                            ${hasCassonetti ? `
-                                <div class="nav-submenu-item ${isStep7Active ? 'active' : ''}" 
-                                     onclick="navigateToStep(7); closeProjectMenu();">
-                                    <span>📦 Cassonetti</span>
-                                    ${renderCompletionBadge(calcolaCompletamentoCassonetti(project), true)}
-                                </div>
-                            ` : ''}
-                            
-                            ${!hasInfissi && !hasPersiane && !hasTapparelle && !hasZanzariere && !hasCassonetti ? `
-                                <div style="padding: 12px 20px 12px 52px; color: #64748b; font-size: 14px; font-style: italic;">
-                                    Nessun prodotto selezionato
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        <!-- Posizioni -->
-                        <div class="nav-item ${!canGoToPositions ? 'disabled' : ''} ${isStep9Active ? 'active' : ''}" 
-                             onclick="${canGoToPositions ? 'navigateToPositions(); closeProjectMenu();' : ''}">
-                            <div class="nav-label">
-                                <span class="nav-icon">📍</span>
-                                <span>Posizioni</span>
-                            </div>
-                            ${canGoToPositions ? renderCompletionBadge(completamentoPosizioni) : ''}
-                        </div>
-                        
-                        <!-- Riepilogo -->
-                        <div class="nav-item ${state.showRiepilogoRilievi ? 'active' : ''}" 
-                             onclick="toggleRiepilogoRilievi(); closeProjectMenu();">
-                            <div class="nav-label">
-                                <span class="nav-icon">📋</span>
-                                <span>Riepilogo</span>
-                            </div>
-                        </div>
-                        
-                        <!-- ☁️ FASE 022a: OneDrive Sync -->
-                        <div style="border-top: 1px solid var(--menu-border); margin: 12px 0;"></div>
-                        
-                        <div class="nav-item" onclick="openSyncSettings(); closeProjectMenu();">
-                            <div class="nav-label">
-                                <span class="nav-icon">☁️</span>
-                                <span>OneDrive</span>
-                            </div>
-                            <span class="sync-badge" id="syncBadge">
-                                ${renderSyncBadge()}
-                            </span>
-                        </div>
-                        
-                        ${state.onedrive.connected ? `
-                            <div style="padding: 8px 20px; font-size: 12px; color: var(--menu-text-sec);">
-                                <div>🟢 ${state.onedrive.userEmail || 'Connesso'}</div>
-                                ${state.onedrive.lastSyncTime ? `
-                                    <div style="margin-top: 4px;">
-                                        🔄 ${getTimeSince(state.onedrive.lastSyncTime)}
-                                    </div>
-                                ` : ''}
-                            </div>
-                        ` : ''}
-                    </div>
-                    
-                    <!-- Azioni Rapide -->
-                    <div class="menu-actions">
-                        <button class="menu-action-btn" style="background: #10b981; color: white; font-weight: bold; border: 2px solid #059669;" onclick="forceSave(); closeProjectMenu();">
-                            💾 SALVA FORZATO
-                        </button>
-                        <button class="menu-action-btn" onclick="exportCurrentProjectJSON(); closeProjectMenu();">
-                            📤 Export JSON
-                        </button>
-                        <button class="menu-action-btn" onclick="printCurrentProjectPDF(); closeProjectMenu();">
-                            🖨️ Export PDF
-                        </button>
-                        <button class="menu-action-btn" onclick="importProjectsJSON(); closeProjectMenu();">
-                            📥 Import JSON
-                        </button>
-                        <button class="menu-action-btn primary" onclick="tornaAllaLista();">
-                            ← Lista Progetti
-                        </button>
-                    </div>
-                </aside>
-                
-                <!-- Overlay -->
-                <div class="menu-overlay ${state.projectMenuOpen ? 'active' : ''}" 
-                     id="projectMenuOverlay" 
-                     onclick="closeProjectMenu()"></div>
+                <!-- 🎨 MENU DINAMICO A DUE RIGHE - FASE 027D -->
+                <div id="main-menu-container">
+                    <!-- Il menu verrà renderizzato qui da MenuRenderer -->
+                </div>
             `;
         }
         
@@ -6395,6 +6520,13 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 ${state.screen === 'list' ? `
+                                    <button onclick="showGitHubConfigModal()" 
+                                            class="px-4 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2"
+                                            title="Configura GitHub Sync"
+                                            id="github-header-btn">
+                                        <span id="github-status-icon">🔄</span>
+                                        <span>GitHub</span>
+                                    </button>
                                     <button onclick="importProjectsJSON()" 
                                             class="px-4 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2">
                                         <span>📥</span>
@@ -6516,6 +6648,17 @@
                             </div>
                             <span class="sync-badge" id="mainSyncBadge">
                                 ${renderSyncBadge()}
+                            </span>
+                        </div>
+                        
+                        <!-- GitHub Sync -->
+                        <div class="main-nav-item" onclick="showGitHubConfigModal(); closeMainMenu();">
+                            <div class="main-nav-label">
+                                <span class="main-nav-icon">🔄</span>
+                                <span>GitHub Sync</span>
+                            </div>
+                            <span class="sync-badge" id="github-sync-badge">
+                                ⚪ Off
                             </span>
                         </div>
                         
@@ -6832,6 +6975,45 @@
                                                 <button onclick="openSyncSettings()" 
                                                         class="px-6 py-3 bg-white text-blue-600 border-2 border-blue-300 rounded-lg font-semibold hover:bg-blue-50 transition-all">
                                                     ⚙️ Impostazioni Sync
+                                                </button>
+                                            </div>
+                                        `}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Banner GitHub -->
+                            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-2xl p-6 shadow-lg">
+                                <div class="flex items-start gap-4">
+                                    <div class="text-5xl flex-shrink-0">🔄</div>
+                                    <div class="flex-1">
+                                        ${!GITHUB_CONFIG.enabled ? `
+                                            <h3 class="text-xl font-bold text-purple-900 mb-2">
+                                                Sincronizza con Dashboard Ufficio
+                                            </h3>
+                                            <p class="text-purple-700 mb-4">
+                                                Attiva GitHub Sync per inviare automaticamente i rilievi alla dashboard dell'ufficio. 
+                                                I preventivi verranno generati automaticamente dai dati sincronizzati.
+                                            </p>
+                                            <div class="flex flex-wrap gap-3">
+                                                <button onclick="showGitHubConfigModal()" 
+                                                        class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all flex items-center gap-2">
+                                                    <span>🔗</span>
+                                                    <span>Configura GitHub</span>
+                                                </button>
+                                            </div>
+                                        ` : `
+                                            <h3 class="text-xl font-bold text-purple-900 mb-2">
+                                                🟢 GitHub Sync Attivo
+                                            </h3>
+                                            <p class="text-purple-700 mb-4">
+                                                I tuoi progetti vengono sincronizzati automaticamente su GitHub. 
+                                                La dashboard ufficio può ora generare preventivi dai tuoi rilievi.
+                                            </p>
+                                            <div class="flex flex-wrap gap-3">
+                                                <button onclick="showGitHubConfigModal()" 
+                                                        class="px-6 py-3 bg-white text-purple-600 border-2 border-purple-300 rounded-lg font-semibold hover:bg-purple-50 transition-all">
+                                                    ⚙️ Modifica Config
                                                 </button>
                                             </div>
                                         `}
@@ -13763,6 +13945,25 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                 ${NewProjectModal()}
                 ${FotoModal()}
             `;
+            
+            // Aggiorna icona GitHub dopo render
+            updateGitHubStatusUI();
+        }
+        
+        // Aggiorna UI stato GitHub
+        function updateGitHubStatusUI() {
+            // Aggiorna icona header
+            const headerIcon = document.getElementById('github-status-icon');
+            if (headerIcon && typeof GITHUB_CONFIG !== 'undefined') {
+                headerIcon.textContent = GITHUB_CONFIG.enabled ? '🟢' : '🔄';
+            }
+            
+            // Aggiorna badge menu laterale
+            const menuBadge = document.getElementById('github-sync-badge');
+            if (menuBadge && typeof GITHUB_CONFIG !== 'undefined') {
+                menuBadge.textContent = GITHUB_CONFIG.enabled ? '🟢 Attivo' : '⚪ Off';
+                menuBadge.className = `sync-badge ${GITHUB_CONFIG.enabled ? 'connected' : 'disconnected'}`;
+            }
         }
 
         // Navigation function for setup steps - MANCAVA QUESTA!
@@ -13999,6 +14200,706 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }
         `;
         document.head.appendChild(style);
+
+        // ============================================
+        // 📋 MENU CONFIGURATION - Dynamic Menu System
+        // ============================================
+        // Versione: 1.0
+        // Data: 06 NOV 2025
+
+        const MENU_CONFIG = {
+            voci: [
+                { id: 'lista', type: 'button', label: '← Lista', icon: '📋', action: 'tornaLista', position: 'left', alwaysVisible: true, class: 'menu-btn-lista' },
+                { id: 'cliente', type: 'section', label: 'Cliente', icon: '👤', action: 'showClienteSection', hasIndicator: true, indicatorCalc: 'calcolaCompletamentoCliente', position: 'center', class: 'menu-btn-section' },
+                { id: 'setup', type: 'section', label: 'Setup', icon: '⚙️', action: 'showSetupSection', hasIndicator: true, indicatorCalc: 'calcolaCompletamentoSetup', position: 'center', class: 'menu-btn-section' },
+                { id: 'config', type: 'dropdown', label: 'Config', icon: '🔧', hasIndicator: true, indicatorCalc: 'calcolaCompletamentoConfig', position: 'center', class: 'menu-btn-dropdown',
+                    submenu: [
+                        { id: 'config-infissi', label: 'Infissi Finstral', action: 'showConfigInfissi', hasIndicator: true, indicatorCalc: 'calcolaCompletamentoInfissi' },
+                        { id: 'config-persiane', label: 'Persiane', action: 'showConfigPersiane', hasIndicator: true, indicatorCalc: 'calcolaCompletamentoPersiane' },
+                        { id: 'config-tapparelle', label: 'Tapparelle', action: 'showConfigTapparelle', hasIndicator: true, indicatorCalc: 'calcolaCompletamentoTapparelle' },
+                        { id: 'config-zanzariere', label: 'Zanzariere', action: 'showConfigZanzariere', hasIndicator: true, indicatorCalc: 'calcolaCompletamentoZanzariere' },
+                        { id: 'config-cassonetti', label: 'Cassonetti', action: 'showConfigCassonetti', hasIndicator: true, indicatorCalc: 'calcolaCompletamentoCassonetti' }
+                    ]
+                },
+                { id: 'posizioni', type: 'section', label: 'Posizioni', icon: '📍', action: 'showPosizioniSection', hasIndicator: true, indicatorCalc: 'calcolaCompletamentoPosizioni', position: 'center', class: 'menu-btn-section' },
+                { id: 'riepilogo', type: 'button', label: 'Riepilogo', icon: '📊', action: 'showRiepilogo', position: 'center', class: 'menu-btn-special' },
+                { id: 'salva', type: 'button', label: 'Salva', icon: '💾', action: 'salvaProgetto', position: 'right', class: 'menu-btn-action' },
+                { id: 'export', type: 'button', label: 'Export', icon: '📤', action: 'esportaProgetto', position: 'right', class: 'menu-btn-action' }
+            ],
+            indicators: {
+                colors: { completed: '#4CAF50', partial: '#FFC107', minimal: '#FF5722', none: 'transparent' },
+                thresholds: { completed: 100, partial: 50, minimal: 1 },
+                symbols: { completed: '●', partial: '●', minimal: '●', none: '' }
+            },
+            projectInfo: { showName: true, showEnvironment: true, showDevice: false, format: '{name} - {environment}' },
+            dropdown: { showPercentages: true, percentageFormat: '({value}%)', closeOnSelect: true, animation: true },
+            responsive: {
+                mobile: { breakpoint: 768, showLabels: false, stackLayout: true },
+                tablet: { breakpoint: 1024, showLabels: true, stackLayout: false }
+            },
+            visibility: { hideEmptyConfig: false, showOnlyActiveProducts: false, highlightCurrent: true },
+            animations: { enabled: true, duration: 200, easing: 'ease-in-out' },
+            layout: {
+                type: 'two-row',
+                topRow: ['lista', 'projectInfo', 'salva', 'export'],
+                bottomRow: ['cliente', 'setup', 'config', 'posizioni', 'riepilogo']
+            }
+        };
+
+        // ============================================
+        // 📊 MENU INDICATORS - Calcolo Indicatori
+        // ============================================
+
+        const MenuIndicators = {
+            calcolaCompletamentoCliente() {
+                if (!state || !state.customerName) return 0;
+                let campiCompilati = 0, campiTotali = 4;
+                if (state.customerName && state.customerName.trim()) campiCompilati++;
+                if (state.customerPhone && state.customerPhone.trim()) campiCompilati++;
+                if (state.customerEmail && state.customerEmail.trim()) campiCompilati++;
+                if (state.customerAddress && state.customerAddress.trim()) campiCompilati++;
+                return Math.round((campiCompilati / campiTotali) * 100);
+            },
+            calcolaCompletamentoSetup() {
+                if (!state || !state.project) return 0;
+                const prodotti = ['hasInfissi', 'hasPersiane', 'hasTapparelle', 'hasZanzariere', 'hasCassonetti'];
+                const prodottiSelezionati = prodotti.filter(p => state.project[p]).length;
+                return prodottiSelezionati === 0 ? 0 : 100;
+            },
+            calcolaCompletamentoConfig() {
+                if (!state || !state.project) return 0;
+                const completamenti = [];
+                if (state.project.hasInfissi) completamenti.push(this.calcolaCompletamentoInfissi());
+                if (state.project.hasPersiane) completamenti.push(this.calcolaCompletamentoPersiane());
+                if (state.project.hasTapparelle) completamenti.push(this.calcolaCompletamentoTapparelle());
+                if (state.project.hasZanzariere) completamenti.push(this.calcolaCompletamentoZanzariere());
+                if (state.project.hasCassonetti) completamenti.push(this.calcolaCompletamentoCassonetti());
+                if (completamenti.length === 0) return 0;
+                return Math.round(completamenti.reduce((a, b) => a + b, 0) / completamenti.length);
+            },
+            calcolaCompletamentoInfissi() {
+                if (!state?.project?.configInfissi) return 0;
+                const config = state.project.configInfissi;
+                let campiCompilati = 0, campiTotali = 6;
+                if (config.productLine && config.productLine !== '') campiCompilati++;
+                if (config.frameType && config.frameType !== '') campiCompilati++;
+                if (config.leafCount && config.leafCount > 0) campiCompilati++;
+                if (config.openingType && config.openingType !== '') campiCompilati++;
+                if (config.color && config.color !== '') campiCompilati++;
+                if (config.glassType && config.glassType !== '') campiCompilati++;
+                return Math.round((campiCompilati / campiTotali) * 100);
+            },
+            calcolaCompletamentoPersiane() {
+                if (!state?.project?.configPersiane) return 0;
+                const config = state.project.configPersiane;
+                let campiCompilati = 0, campiTotali = 5;
+                if (config.tipologia && config.tipologia !== '') campiCompilati++;
+                if (config.materiale && config.materiale !== '') campiCompilati++;
+                if (config.numeroAnte && config.numeroAnte > 0) campiCompilati++;
+                if (config.colore && config.colore !== '') campiCompilati++;
+                if (config.finitura && config.finitura !== '') campiCompilati++;
+                return Math.round((campiCompilati / campiTotali) * 100);
+            },
+            calcolaCompletamentoTapparelle() {
+                if (!state?.project?.configTapparelle) return 0;
+                const config = state.project.configTapparelle;
+                let campiCompilati = 0, campiTotali = 4;
+                if (config.tipologia && config.tipologia !== '') campiCompilati++;
+                if (config.materiale && config.materiale !== '') campiCompilati++;
+                if (config.colore && config.colore !== '') campiCompilati++;
+                if (config.comando && config.comando !== '') campiCompilati++;
+                return Math.round((campiCompilati / campiTotali) * 100);
+            },
+            calcolaCompletamentoZanzariere() {
+                if (!state?.project?.configZanzariere) return 0;
+                const config = state.project.configZanzariere;
+                let campiCompilati = 0, campiTotali = 4;
+                if (config.tipologia && config.tipologia !== '') campiCompilati++;
+                if (config.rete && config.rete !== '') campiCompilati++;
+                if (config.colore && config.colore !== '') campiCompilati++;
+                if (config.telaio && config.telaio !== '') campiCompilati++;
+                return Math.round((campiCompilati / campiTotali) * 100);
+            },
+            calcolaCompletamentoCassonetti() {
+                if (!state?.project?.configCassonetti) return 0;
+                const config = state.project.configCassonetti;
+                let campiCompilati = 0, campiTotali = 5;
+                if (config.tipo && config.tipo !== '') campiCompilati++;
+                if (config.materiale && config.materiale !== '') campiCompilati++;
+                if (config.isolamento && config.isolamento !== '') campiCompilati++;
+                if (config.monoblocco !== undefined) campiCompilati++;
+                if (config.colore && config.colore !== '') campiCompilati++;
+                return Math.round((campiCompilati / campiTotali) * 100);
+            },
+            calcolaCompletamentoPosizioni() {
+                if (!state?.project?.rilievoInfissi) return 0;
+                const posizioni = state.project.rilievoInfissi;
+                if (posizioni.length === 0) return 0;
+                let posizioniComplete = 0;
+                posizioni.forEach(pos => {
+                    if (pos.products && pos.products.length > 0) {
+                        const prodottiCompleti = pos.products.filter(p => p.width && p.height && p.width > 0 && p.height > 0).length;
+                        if (prodottiCompleti > 0) posizioniComplete++;
+                    }
+                });
+                return Math.round((posizioniComplete / posizioni.length) * 100);
+            },
+            getIndicatorColor(percentuale) {
+                const colors = MENU_CONFIG.indicators.colors;
+                const thresholds = MENU_CONFIG.indicators.thresholds;
+                if (percentuale >= thresholds.completed) return colors.completed;
+                if (percentuale >= thresholds.partial) return colors.partial;
+                if (percentuale >= thresholds.minimal) return colors.minimal;
+                return colors.none;
+            },
+            getIndicatorSymbol(percentuale) {
+                const symbols = MENU_CONFIG.indicators.symbols;
+                const thresholds = MENU_CONFIG.indicators.thresholds;
+                if (percentuale >= thresholds.completed) return symbols.completed;
+                if (percentuale >= thresholds.partial) return symbols.partial;
+                if (percentuale >= thresholds.minimal) return symbols.minimal;
+                return symbols.none;
+            },
+            renderIndicator(percentuale, showPercentage = false) {
+                const color = this.getIndicatorColor(percentuale);
+                const symbol = this.getIndicatorSymbol(percentuale);
+                if (!symbol) return '';
+                let html = `<span class="menu-indicator" style="color: ${color};">${symbol}</span>`;
+                if (showPercentage && percentuale > 0) {
+                    html += ` <span class="menu-percentage">(${percentuale}%)</span>`;
+                }
+                return html;
+            }
+        };
+
+        // ============================================
+        // 🎨 MENU RENDERER - Rendering Dinamico
+        // ============================================
+
+        const MenuRenderer = {
+            currentSection: 'cliente',
+            dropdownOpen: false,
+            init() {
+                this.currentSection = 'cliente';
+                this.dropdownOpen = false;
+                console.log('🎨 Menu Renderer inizializzato');
+            },
+            render() {
+                const layout = MENU_CONFIG.layout;
+                return layout.type === 'two-row' ? this.renderTwoRowLayout() : this.renderSingleRowLayout();
+            },
+            renderTwoRowLayout() {
+                const topRow = this.renderRow(MENU_CONFIG.layout.topRow, 'top');
+                const bottomRow = this.renderRow(MENU_CONFIG.layout.bottomRow, 'bottom');
+                return `<div class="menu-dynamic-container"><div class="menu-row menu-row-top">${topRow}</div><div class="menu-row menu-row-bottom">${bottomRow}</div></div>`;
+            },
+            renderSingleRowLayout() {
+                const allVoci = MENU_CONFIG.voci.map(v => v.id);
+                const row = this.renderRow(allVoci, 'single');
+                return `<div class="menu-dynamic-container"><div class="menu-row menu-row-single">${row}</div></div>`;
+            },
+            renderRow(vociIds, rowType) {
+                let html = '';
+                vociIds.forEach(id => {
+                    if (id === 'projectInfo') {
+                        html += this.renderProjectInfo();
+                    } else {
+                        const voce = MENU_CONFIG.voci.find(v => v.id === id);
+                        if (voce) html += this.renderVoce(voce);
+                    }
+                });
+                return html;
+            },
+            renderVoce(voce) {
+                switch (voce.type) {
+                    case 'button': return this.renderButton(voce);
+                    case 'section': return this.renderSection(voce);
+                    case 'dropdown': return this.renderDropdown(voce);
+                    default: return '';
+                }
+            },
+            renderButton(voce) {
+                return `<button class="menu-btn ${voce.class || ''}" onclick="${voce.action}()" data-voce-id="${voce.id}"><span class="menu-icon">${voce.icon}</span><span class="menu-label">${voce.label}</span></button>`;
+            },
+            renderSection(voce) {
+                let indicator = '';
+                if (voce.hasIndicator && voce.indicatorCalc) {
+                    const percentuale = MenuIndicators[voce.indicatorCalc]();
+                    indicator = MenuIndicators.renderIndicator(percentuale, false);
+                }
+                const isActive = this.currentSection === voce.id;
+                const activeClass = isActive ? 'active' : '';
+                return `<button class="menu-btn ${voce.class || ''} ${activeClass}" onclick="${voce.action}(); MenuRenderer.setCurrentSection('${voce.id}');" data-voce-id="${voce.id}"><span class="menu-icon">${voce.icon}</span><span class="menu-label">${voce.label}</span>${indicator}</button>`;
+            },
+            renderDropdown(voce) {
+                let indicator = '';
+                if (voce.hasIndicator && voce.indicatorCalc) {
+                    const percentuale = MenuIndicators[voce.indicatorCalc]();
+                    indicator = MenuIndicators.renderIndicator(percentuale, false);
+                }
+                const submenuHTML = this.renderSubmenu(voce.submenu);
+                return `<div class="menu-dropdown-container" data-voce-id="${voce.id}"><button class="menu-btn ${voce.class || ''}" onclick="MenuRenderer.toggleDropdown('${voce.id}')"><span class="menu-icon">${voce.icon}</span><span class="menu-label">${voce.label}</span>${indicator}<span class="menu-dropdown-arrow">▼</span></button><div class="menu-dropdown-content" id="dropdown-${voce.id}">${submenuHTML}</div></div>`;
+            },
+            renderSubmenu(submenu) {
+                let html = '';
+                submenu.forEach(item => {
+                    let indicator = '', percentage = 0;
+                    if (item.hasIndicator && item.indicatorCalc) {
+                        percentage = MenuIndicators[item.indicatorCalc]();
+                        indicator = MenuIndicators.renderIndicator(percentage, false);
+                    }
+                    const showPercentage = MENU_CONFIG.dropdown.showPercentages && percentage > 0;
+                    const percentageText = showPercentage ? ` (${percentage}%)` : '';
+                    html += `<div class="menu-dropdown-item" onclick="${item.action}(); MenuRenderer.closeDropdown();"><span class="menu-dropdown-item-label">${item.label}</span>${indicator}${showPercentage ? `<span class="menu-percentage">${percentageText}</span>` : ''}</div>`;
+                });
+                return html;
+            },
+            renderProjectInfo() {
+                if (!state || !state.projectName) return '<div class="menu-project-info">Nuovo Progetto</div>';
+                const config = MENU_CONFIG.projectInfo;
+                let text = config.format;
+                text = text.replace('{name}', state.projectName || 'Progetto');
+                text = text.replace('{environment}', state.currentEnvironment || 'Ambiente');
+                text = text.replace('{device}', state.deviceName || 'Dispositivo');
+                return `<div class="menu-project-info">${text}</div>`;
+            },
+            setCurrentSection(sectionId) {
+                this.currentSection = sectionId;
+                this.refresh();
+            },
+            toggleDropdown(dropdownId) {
+                const dropdown = document.getElementById(`dropdown-${dropdownId}`);
+                if (!dropdown) return;
+                const isOpen = dropdown.classList.contains('open');
+                document.querySelectorAll('.menu-dropdown-content').forEach(d => d.classList.remove('open'));
+                if (!isOpen) {
+                    dropdown.classList.add('open');
+                    this.dropdownOpen = true;
+                } else {
+                    this.dropdownOpen = false;
+                }
+            },
+            closeDropdown() {
+                document.querySelectorAll('.menu-dropdown-content').forEach(d => d.classList.remove('open'));
+                this.dropdownOpen = false;
+                if (MENU_CONFIG.dropdown.closeOnSelect) this.refresh();
+            },
+            refresh() {
+                const container = document.getElementById('main-menu-container');
+                if (container) container.innerHTML = this.render();
+            },
+            updateIndicators() {
+                MENU_CONFIG.voci.forEach(voce => {
+                    if (voce.hasIndicator && voce.indicatorCalc) {
+                        const percentuale = MenuIndicators[voce.indicatorCalc]();
+                        const element = document.querySelector(`[data-voce-id="${voce.id}"] .menu-indicator`);
+                        if (element) {
+                            const color = MenuIndicators.getIndicatorColor(percentuale);
+                            element.style.color = color;
+                        }
+                    }
+                    if (voce.submenu) {
+                        voce.submenu.forEach(item => {
+                            if (item.hasIndicator && item.indicatorCalc) {
+                                const percentuale = MenuIndicators[item.indicatorCalc]();
+                                const itemElement = document.querySelector(`[onclick*="${item.action}"] .menu-indicator`);
+                                if (itemElement) {
+                                    const color = MenuIndicators.getIndicatorColor(percentuale);
+                                    itemElement.style.color = color;
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        };
+
+        // ============================================
+        // 🔗 WRAPPER FUNCTIONS - Compatibilità Menu Dinamico
+        // ============================================
+        // Funzioni che mappano i nomi del menu alle funzioni esistenti
+        
+        // Navigazione sezioni principali
+        function showClienteSection() {
+            navigateToStep(1);
+        }
+        
+        function showSetupSection() {
+            navigateToStep(2);
+        }
+        
+        function showPosizioniSection() {
+            navigateToStep(9);
+        }
+        
+        // Navigazione config prodotti
+        function showConfigInfissi() {
+            navigateToStep(3);
+        }
+        
+        function showConfigPersiane() {
+            navigateToStep(4);
+        }
+        
+        function showConfigTapparelle() {
+            navigateToStep(5);
+        }
+        
+        function showConfigZanzariere() {
+            navigateToStep(6);
+        }
+        
+        function showConfigCassonetti() {
+            navigateToStep(7);
+        }
+        
+        // Riepilogo
+        function showRiepilogo() {
+            state.showRiepilogoRilievi = true;
+            render();
+        }
+        
+        // Lista progetti
+        function tornaLista() {
+            tornaAllaLista();
+        }
+        
+        // Salvataggio
+        function salvaProgetto() {
+            saveState();
+            showNotification('💾 Progetto salvato!', 'success');
+        }
+        
+        // Export
+        function esportaProgetto() {
+            exportCurrentProjectJSON();
+        }
+
+        // ============================================
+        // 🔧 GITHUB SYNC MODULE - v1.0
+        // ============================================
+        
+        const GITHUB_CONFIG = {
+            enabled: false,
+            owner: 'Openporte2025',
+            repo: 'dati-cantieri',
+            branch: 'main',
+            token: '',
+            baseURL: 'https://api.github.com'
+        };
+
+        function loadGitHubConfig() {
+            const saved = localStorage.getItem('github_sync_config');
+            if (saved) {
+                try {
+                    const config = JSON.parse(saved);
+                    GITHUB_CONFIG.enabled = config.enabled || false;
+                    GITHUB_CONFIG.token = config.token || '';
+                    console.log('📡 GitHub sync config caricata');
+                } catch(e) {}
+            }
+        }
+
+        function saveGitHubConfig() {
+            localStorage.setItem('github_sync_config', JSON.stringify({
+                enabled: GITHUB_CONFIG.enabled,
+                token: GITHUB_CONFIG.token
+            }));
+        }
+
+        function base64EncodeUnicode(str) {
+            return btoa(unescape(encodeURIComponent(str)));
+        }
+
+        function generaIDRilievo() {
+            const now = new Date();
+            return `RIL_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${Math.floor(Math.random()*1000).toString().padStart(3,'0')}`;
+        }
+
+        function convertiStateInRilievo() {
+            const now = new Date().toISOString();
+            const idRilievo = state.metadata?.rilievoId || generaIDRilievo();
+            
+            if (!state.metadata) state.metadata = {};
+            if (!state.metadata.rilievoId) state.metadata.rilievoId = idRilievo;
+            
+            return {
+                rilievo: {
+                    meta: {
+                        id_rilievo: idRilievo,
+                        data_creazione: state.metadata.created || now,
+                        data_modifica: now,
+                        operatore: state.deviceName || 'Operatore',
+                        stato: 'bozza',
+                        versione_app: state.metadata.appVersion || '3.5.022af'
+                    },
+                    cliente: {
+                        nome: state.customerName || 'Cliente',
+                        telefono: state.customerPhone || '',
+                        email: state.customerEmail || '',
+                        indirizzo: { via: state.customerAddress || '', citta: '', cap: '', provincia: '' }
+                    },
+                    cantiere: {
+                        indirizzo: state.projectAddress || '',
+                        note_accesso: '',
+                        foto_cantiere: [],
+                        coordinate_gps: null
+                    },
+                    misure: convertiMisureInSchema(),
+                    preventivo_richiesto: { tipo: 'automatico', elementi_inclusi: [], sconto_richiesto: 0, note_commerciali: '' },
+                    allegati: { planimetria: null, foto_generali: [], documenti: [] }
+                },
+                sync: {
+                    github: {
+                        repository: `${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`,
+                        branch: GITHUB_CONFIG.branch,
+                        path: `rilievi/${new Date().getFullYear()}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${idRilievo}.json`,
+                        commit_hash: null,
+                        ultimo_push: null
+                    },
+                    stato_sync: 'in_attesa',
+                    ultimo_errore: null
+                }
+            };
+        }
+
+        function convertiMisureInSchema() {
+            const misure = [];
+            let indice = 0;
+            
+            if (state.project?.rilievoInfissi) {
+                state.project.rilievoInfissi.forEach((pos, idx) => {
+                    if (pos.products) {
+                        pos.products.forEach((prod) => {
+                            misure.push({
+                                id_elemento: `ELEM_${String(++indice).padStart(3, '0')}`,
+                                tipo_prodotto: 'finstral',
+                                stanza: pos.location || `Posizione ${idx + 1}`,
+                                posizione: prod.position || '',
+                                dimensioni: {
+                                    larghezza_mm: prod.width || 0,
+                                    altezza_mm: prod.height || 0,
+                                    profondita_mm: 0,
+                                    note_misure: prod.note || ''
+                                },
+                                specifiche_finstral: {
+                                    serie: prod.productLine || 'Studio',
+                                    materiale: prod.frameType || 'PVC',
+                                    numero_ante: prod.leafCount || 1,
+                                    apertura: prod.openingType || 'battente',
+                                    vetro: 'doppio',
+                                    colore_interno: '',
+                                    colore_esterno: ''
+                                },
+                                foto_elemento: [],
+                                note: prod.note || '',
+                                priorita: 'media',
+                                urgenza: false
+                            });
+                        });
+                    }
+                });
+            }
+            
+            return misure;
+        }
+
+        async function pushRilievoGitHub(rilievoJSON) {
+            if (!GITHUB_CONFIG.enabled || !GITHUB_CONFIG.token) {
+                return { success: false, message: 'GitHub non configurato' };
+            }
+
+            const path = rilievoJSON.sync.github.path;
+            
+            try {
+                let sha = null;
+                try {
+                    const check = await fetch(`${GITHUB_CONFIG.baseURL}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`, {
+                        headers: { 'Authorization': `Bearer ${GITHUB_CONFIG.token}`, 'Accept': 'application/vnd.github+json' }
+                    });
+                    if (check.ok) sha = (await check.json()).sha;
+                } catch(e) {}
+                
+                const body = {
+                    message: `${sha ? 'Update' : 'New'} rilievo ${rilievoJSON.rilievo.meta.id_rilievo}`,
+                    content: base64EncodeUnicode(JSON.stringify(rilievoJSON, null, 2)),
+                    branch: GITHUB_CONFIG.branch
+                };
+                if (sha) body.sha = sha;
+                
+                const response = await fetch(`${GITHUB_CONFIG.baseURL}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${GITHUB_CONFIG.token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                if (!response.ok) throw new Error(`GitHub error ${response.status}`);
+                
+                const result = await response.json();
+                rilievoJSON.sync.github.commit_hash = result.content.sha;
+                rilievoJSON.sync.github.ultimo_push = new Date().toISOString();
+                rilievoJSON.sync.stato_sync = 'sincronizzato';
+                
+                console.log('✅ GitHub sync OK:', idRilievo);
+                return { success: true, sha: result.content.sha };
+                
+            } catch(error) {
+                console.error('❌ GitHub sync error:', error);
+                return { success: false, message: error.message };
+            }
+        }
+
+        async function autoSyncGitHub() {
+            if (!GITHUB_CONFIG.enabled || !navigator.onLine) return;
+            try {
+                const rilievoJSON = convertiStateInRilievo();
+                await pushRilievoGitHub(rilievoJSON);
+            } catch(e) {}
+        }
+
+        loadGitHubConfig();
+        
+        const originalSaveState = saveState;
+        saveState = function() {
+            originalSaveState();
+            if (GITHUB_CONFIG.enabled) {
+                clearTimeout(window.githubSyncDebounce);
+                window.githubSyncDebounce = setTimeout(autoSyncGitHub, 3000);
+            }
+        };
+
+        // ============================================
+        // 🎨 GITHUB CONFIG UI - Modal Configurazione
+        // ============================================
+        
+        function showGitHubConfigModal() {
+            const modal = document.createElement('div');
+            modal.id = 'github-config-modal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.style.animation = 'fadeIn 0.2s';
+            
+            const isEnabled = GITHUB_CONFIG.enabled;
+            const hasToken = GITHUB_CONFIG.token && GITHUB_CONFIG.token.length > 0;
+            
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" style="animation: slideUp 0.3s;">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">⚙️ Configurazione GitHub Sync</h2>
+                            <p class="text-gray-600 mt-1">Sincronizza automaticamente i progetti con la dashboard ufficio</p>
+                        </div>
+                        <button onclick="closeGitHubConfigModal()" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button>
+                    </div>
+                    
+                    <!-- Status Badge -->
+                    <div class="mb-6 p-4 rounded-xl ${isEnabled ? 'bg-green-50 border-2 border-green-200' : 'bg-gray-50 border-2 border-gray-200'}">
+                        <div class="flex items-center gap-3">
+                            <div class="text-3xl">${isEnabled ? '🟢' : '⚪'}</div>
+                            <div>
+                                <div class="font-bold ${isEnabled ? 'text-green-800' : 'text-gray-600'}">
+                                    ${isEnabled ? 'Sync Attivo' : 'Sync Disattivato'}
+                                </div>
+                                <div class="text-sm ${isEnabled ? 'text-green-600' : 'text-gray-500'}">
+                                    ${isEnabled ? 'I progetti vengono sincronizzati automaticamente' : 'Configura per iniziare la sincronizzazione'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Repository Info -->
+                    <div class="mb-6 p-4 bg-purple-50 rounded-xl border border-purple-200">
+                        <h3 class="font-bold text-purple-900 mb-2">📦 Repository GitHub</h3>
+                        <div class="font-mono text-sm text-purple-700">
+                            github.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}
+                        </div>
+                        <div class="text-xs text-purple-600 mt-1">Branch: ${GITHUB_CONFIG.branch}</div>
+                    </div>
+                    
+                    <!-- Token Input -->
+                    <div class="mb-6">
+                        <label class="block font-bold text-gray-700 mb-2">
+                            🔑 Token GitHub
+                        </label>
+                        <input type="password" 
+                               id="github-token-input-app" 
+                               value="${GITHUB_CONFIG.token || ''}"
+                               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                               class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none font-mono text-sm">
+                        <div class="mt-2 text-sm text-gray-600">
+                            💡 <a href="https://github.com/settings/tokens/new?scopes=repo&description=OpenPorte%20Cantiere" target="_blank" class="text-purple-600 hover:underline">Crea token su GitHub</a> (serve permesso "repo")
+                        </div>
+                    </div>
+                    
+                    <!-- Enable/Disable Toggle -->
+                    <div class="mb-6 p-4 bg-gray-50 rounded-xl">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <div>
+                                <div class="font-bold text-gray-800">Attiva Sincronizzazione Automatica</div>
+                                <div class="text-sm text-gray-600">I progetti verranno caricati su GitHub dopo ogni salvataggio</div>
+                            </div>
+                            <div class="relative">
+                                <input type="checkbox" 
+                                       id="github-enabled-toggle" 
+                                       ${isEnabled ? 'checked' : ''}
+                                       class="sr-only peer">
+                                <div class="w-14 h-8 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-purple-600"></div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex gap-3 justify-end">
+                        <button onclick="closeGitHubConfigModal()" 
+                                class="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-all">
+                            Annulla
+                        </button>
+                        <button onclick="saveGitHubConfigFromModal()" 
+                                class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-xl transition-all">
+                            💾 Salva Configurazione
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeGitHubConfigModal() {
+            const modal = document.getElementById('github-config-modal');
+            if (modal) modal.remove();
+        }
+        
+        function saveGitHubConfigFromModal() {
+            const token = document.getElementById('github-token-input-app')?.value.trim();
+            const enabled = document.getElementById('github-enabled-toggle')?.checked;
+            
+            if (enabled && !token) {
+                alert('⚠️ Inserisci un token GitHub valido per attivare la sincronizzazione');
+                return;
+            }
+            
+            // Aggiorna configurazione
+            GITHUB_CONFIG.token = token;
+            GITHUB_CONFIG.enabled = enabled;
+            
+            // Salva in localStorage
+            saveGitHubConfig();
+            
+            // Chiudi modal
+            closeGitHubConfigModal();
+            
+            // Mostra notifica
+            showNotification(
+                enabled ? '✅ GitHub Sync attivato! I progetti verranno sincronizzati automaticamente.' : '⚪ GitHub Sync disattivato',
+                enabled ? 'success' : 'info'
+            );
+            
+            // Ricarica vista per aggiornare banner
+            render();
+        }
+
+        console.log('🔧 GitHub Sync Module loaded');
+
     </script>
 </body>
 </html>
