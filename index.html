@@ -14586,11 +14586,11 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
         // ============================================
         
         const GITHUB_CONFIG = {
-            enabled: false,
+            enabled: false,  // ✅ L'utente deve attivarlo manualmente
             owner: 'Openporte2025',
             repo: 'dati-cantieri',
             branch: 'main',
-            token: '',
+            token: '',  // ✅ L'utente inserisce il token via UI
             baseURL: 'https://api.github.com'
         };
 
@@ -14601,8 +14601,10 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                     const config = JSON.parse(saved);
                     GITHUB_CONFIG.enabled = config.enabled || false;
                     GITHUB_CONFIG.token = config.token || '';
-                    console.log('📡 GitHub sync config caricata');
-                } catch(e) {}
+                    console.log('📡 GitHub sync config caricata da localStorage');
+                } catch(e) {
+                    console.log('⚠️ Errore caricamento config GitHub');
+                }
             }
         }
 
