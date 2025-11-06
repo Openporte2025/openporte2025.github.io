@@ -14715,10 +14715,15 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                 let sha = null;
                 try {
                     const check = await fetch(`${GITHUB_CONFIG.baseURL}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`, {
-                        headers: { 'Authorization': `Bearer ${GITHUB_CONFIG.token}`, 'Accept': 'application/vnd.github+json' }
+                        headers: { 
+                            'Authorization': `token ${GITHUB_CONFIG.token}`, 
+                            'Accept': 'application/vnd.github.v3+json' 
+                        }
                     });
                     if (check.ok) sha = (await check.json()).sha;
-                } catch(e) {}
+                } catch(e) {
+                    console.log('File non esistente, sarà creato nuovo');
+                }
                 
                 const body = {
                     message: `${sha ? 'Update' : 'New'} rilievo ${rilievoJSON.rilievo.meta.id_rilievo}`,
@@ -14729,7 +14734,11 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                 
                 const response = await fetch(`${GITHUB_CONFIG.baseURL}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`, {
                     method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${GITHUB_CONFIG.token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Authorization': `token ${GITHUB_CONFIG.token}`, 
+                        'Accept': 'application/vnd.github.v3+json', 
+                        'Content-Type': 'application/json' 
+                    },
                     body: JSON.stringify(body)
                 });
                 
