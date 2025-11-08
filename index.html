@@ -1746,10 +1746,51 @@
             if (saved) {
                 try {
                     state = JSON.parse(saved);
+                    console.log('📂 CARICATO DA LOCALSTORAGE');
+                    if (state.currentProject) {
+                        const project = state.projects.find(p => p.id === state.currentProject);
+                        if (project) {
+                            console.log('   rilievoInfissi:', project.rilievoInfissi);
+                            console.log('   rilievoPersiane:', project.rilievoPersiane);
+                            console.log('   rilievoTapparelle:', project.rilievoTapparelle);
+                        }
+                    }
+                    
+                    console.log('🔄 ESEGUENDO migrateOldData...');
                     migrateOldData(); // Migra dati vecchi formato array -> singolo oggetto
+                    if (state.currentProject) {
+                        const project = state.projects.find(p => p.id === state.currentProject);
+                        if (project) {
+                            console.log('   DOPO migrateOldData - rilievoPersiane:', project.rilievoPersiane);
+                        }
+                    }
+                    
+                    console.log('🔄 ESEGUENDO cleanNegativeValues...');
                     cleanNegativeValues(); // ✅ NUOVO: Pulisce valori negativi nei BRM
+                    if (state.currentProject) {
+                        const project = state.projects.find(p => p.id === state.currentProject);
+                        if (project) {
+                            console.log('   DOPO cleanNegativeValues - rilievoPersiane:', project.rilievoPersiane);
+                        }
+                    }
+                    
+                    console.log('🔄 ESEGUENDO migrateOldProjectsMetadata...');
                     migrateOldProjectsMetadata(); // ✅ SOLUZIONE C: Migra progetti senza metadata
+                    if (state.currentProject) {
+                        const project = state.projects.find(p => p.id === state.currentProject);
+                        if (project) {
+                            console.log('   DOPO migrateOldProjectsMetadata - rilievoPersiane:', project.rilievoPersiane);
+                        }
+                    }
+                    
+                    console.log('🔄 ESEGUENDO migrateGitHubStructure...');
                     migrateGitHubStructure(); // 📦 FASE 027K: Migra struttura GitHub se mancante
+                    if (state.currentProject) {
+                        const project = state.projects.find(p => p.id === state.currentProject);
+                        if (project) {
+                            console.log('   DOPO migrateGitHubStructure - rilievoPersiane:', project.rilievoPersiane);
+                        }
+                    }
                 } catch (e) {
                     console.error('Error loading state:', e);
                 }
@@ -1866,6 +1907,26 @@
             if (!state.projects) return;
             
             state.projects.forEach(project => {
+                // 🔧 FIX CRITICO: Migra rilievi globali da ARRAY a OGGETTO se necessario
+                ['rilievoInfissi', 'rilievoPersiane', 'rilievoTapparelle', 'rilievoZanzariere', 'rilievoCassonetti'].forEach(rilievoKey => {
+                    if (Array.isArray(project[rilievoKey])) {
+                        console.warn(`⚠️ MIGRAZIONE: ${rilievoKey} era ARRAY, convertito in OGGETTO`);
+                        // Se è un array vuoto o con elementi, convertilo in oggetto vuoto
+                        project[rilievoKey] = {
+                            materiale: '',
+                            note: '',
+                            togliere: false,
+                            smaltimento: false
+                        };
+                        
+                        // Aggiungi coprifili solo per infissi
+                        if (rilievoKey === 'rilievoInfissi') {
+                            project[rilievoKey].coprifiliInt = false;
+                            project[rilievoKey].coprifiliEst = false;
+                        }
+                    }
+                });
+                
                 if (!project.positions) return;
                 
                 project.positions.forEach(pos => {
@@ -1901,6 +1962,16 @@
                 });
             });
             
+            // 🔍 DEBUG: Verifica stato prima di salvare
+            if (state.currentProject) {
+                const project = state.projects.find(p => p.id === state.currentProject);
+                if (project) {
+                    console.log('🔍 DENTRO migrateOldData PRIMA di saveState:');
+                    console.log('   rilievoPersiane:', project.rilievoPersiane);
+                    console.log('   Tipo:', Array.isArray(project.rilievoPersiane) ? 'ARRAY' : 'OGGETTO');
+                }
+            }
+            
             saveState(); // Salva i dati migrati
         }
 
@@ -1925,7 +1996,19 @@
                 };
             }
             
+            // 🔍 DEBUG: Log rilievo globale prima di salvare
+            if (state.currentProject) {
+                const project = state.projects.find(p => p.id === state.currentProject);
+                if (project) {
+                    console.log('💾 SALVANDO IN LOCALSTORAGE:');
+                    console.log('   rilievoInfissi:', project.rilievoInfissi);
+                    console.log('   rilievoPersiane:', project.rilievoPersiane);
+                    console.log('   rilievoTapparelle:', project.rilievoTapparelle);
+                }
+            }
+            
             localStorage.setItem('openPorteData', JSON.stringify(state));
+            console.log('✅ localStorage AGGIORNATO');
             
             // 📦 FASE 027K: Auto-backup su GitHub (debounced)
             // Solo se connesso, auto-backup abilitato e non già in sync
@@ -1944,6 +2027,33 @@
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
         }
+        
+        /**
+         * Genera un ID leggibile per una posizione basato su ambiente
+         * Es: "cucina-1", "soggiorno-2", ecc.
+         */
+        function generatePositionId(ambiente, projectPositions) {
+            // Normalizza ambiente per usarlo come ID
+            let baseId = (ambiente || 'posizione')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '-')  // Sostituisci caratteri speciali con -
+                .replace(/-+/g, '-')         // Rimuovi - multipli
+                .replace(/^-|-$/g, '');      // Rimuovi - iniziali/finali
+            
+            // Se vuoto, usa "posizione"
+            if (!baseId) baseId = 'posizione';
+            
+            // Conta quante posizioni con questo base ID esistono già
+            const existingWithSameBase = projectPositions.filter(p => 
+                p.id.startsWith(baseId + '-') || p.id === baseId
+            ).length;
+            
+            // Aggiungi numero progressivo
+            const counter = existingWithSameBase + 1;
+            
+            return `${baseId}-${counter}`;
+        }
+
         
         // ═══════════════════════════════════════════════════════════════
         // ⚡ FASE 024C: SISTEMA UNIVERSALE TOGGLE SELECT/INPUT
@@ -2061,6 +2171,7 @@
         // Handler globale per gestire il cambio tra select e custom input
         window.handleSelectCustomChange = (fieldName, selectElement, projectId, posId, productType) => {
             const value = selectElement.value;
+            console.log('🟠 handleSelectCustomChange CHIAMATA:', {fieldName, value, projectId, posId, productType});
             const customInputId = `${fieldName}_custom_${projectId || 'global'}_${posId || 'config'}_${productType || 'infisso'}`;
             const customInput = document.getElementById(customInputId);
             
@@ -2077,30 +2188,38 @@
                     customInput.value = '';
                 }
                 
-                // ⚡ RITARDA il render per permettere al select di chiudersi naturalmente
-                setTimeout(() => {
-                    // Chiama il callback appropriato in base al contesto
-                    if (posId && productType) {
-                        // È una posizione
-                        updateProduct(projectId, posId, productType, fieldName, value);
-                    } else {
-                        // È config globale o rilievo globale
-                        if (productType === 'infisso') {
-                            updateConfigInfissi(projectId, fieldName, value);
-                        } else if (productType === 'persiana') {
-                            updateConfigPersiane(projectId, fieldName, value);
-                        } else if (productType === 'tapparella') {
-                            updateConfigTapparelle(projectId, fieldName, value);
-                        } else if (productType === 'zanzariera') {
-                            updateConfigZanzariere(projectId, fieldName, value);
-                        } else if (productType === 'cassonetto') {
-                            updateConfigCassonetti(projectId, fieldName, value);
-                        } else if (productType === 'infissi' || productType === 'persiane' || productType === 'tapparelle' || productType === 'zanzariere' || productType === 'cassonetti') {
-                            // Rilievo Globale (productType plurale)
-                            updateRilievoGlobale(projectId, productType, fieldName, value);
+                // Determina se è rilievo globale (productType plurale)
+                const isRilievoGlobale = (productType === 'infissi' || productType === 'persiane' || 
+                                         productType === 'tapparelle' || productType === 'zanzariere' || 
+                                         productType === 'cassonetti');
+                
+                // ⚡ Per rilievo globale SALVA IMMEDIATAMENTE senza delay
+                if (isRilievoGlobale) {
+                    console.log('🟢 Chiamando updateRilievoGlobale IMMEDIATAMENTE');
+                    updateRilievoGlobale(projectId, productType, fieldName, value);
+                } else {
+                    // ⚡ RITARDA il render per permettere al select di chiudersi naturalmente (solo per config/prodotti)
+                    setTimeout(() => {
+                        // Chiama il callback appropriato in base al contesto
+                        if (posId && productType) {
+                            // È una posizione
+                            updateProduct(projectId, posId, productType, fieldName, value);
+                        } else {
+                            // È config globale
+                            if (productType === 'infisso') {
+                                updateConfigInfissi(projectId, fieldName, value);
+                            } else if (productType === 'persiana') {
+                                updateConfigPersiane(projectId, fieldName, value);
+                            } else if (productType === 'tapparella') {
+                                updateConfigTapparelle(projectId, fieldName, value);
+                            } else if (productType === 'zanzariera') {
+                                updateConfigZanzariere(projectId, fieldName, value);
+                            } else if (productType === 'cassonetto') {
+                                updateConfigCassonetti(projectId, fieldName, value);
+                            }
                         }
-                    }
-                }, 50); // 50ms di delay
+                    }, 50); // 50ms di delay
+                }
             }
         };
         
@@ -3245,12 +3364,137 @@
             }
         }
         
+        // 📦 FASE 027M: Normalizza positions → formato nuovo misure
+        function normalizePositionsToMisure(positions) {
+            return positions.map(pos => {
+                const normalized = {
+                    id: pos.id,
+                    name: pos.name,
+                    piano: pos.piano,
+                    ambiente: pos.ambiente,
+                    quantita: parseInt(pos.quantita) || 1,
+                    misure: pos.misure || {},
+                    rilievo: pos.rilievo || {},
+                    note: pos.note || '',
+                    foto: pos.foto || []
+                };
+                
+                // Normalizza infisso
+                if (pos.infisso && parseInt(pos.infisso.qta) > 0) {
+                    normalized.infisso = {
+                        id: pos.infisso.id,
+                        quantita: parseInt(pos.infisso.qta) || 0,
+                        azienda: pos.infisso.azienda || 'Non specificata',
+                        brm: {
+                            L: pos.infisso.BRM_L || 0,
+                            H: pos.infisso.BRM_H || 0
+                        },
+                        finitura_int: pos.infisso.finituraInt,
+                        finitura_est: pos.infisso.finituraEst,
+                        colore_int: pos.infisso.coloreInt,
+                        colore_est: pos.infisso.coloreEst,
+                        tipo_anta: pos.infisso.tipoAnta,
+                        telaio: pos.infisso.telaio,
+                        allarme: pos.infisso.allarme,
+                        vetro: pos.infisso.vetro,
+                        tipo: pos.infisso.tipo,
+                        apertura: pos.infisso.apertura,
+                        note: pos.infisso.note || '',
+                        foto: pos.infisso.foto || []
+                    };
+                }
+                
+                // Normalizza persiana
+                if (pos.persiana && parseInt(pos.persiana.qta) > 0) {
+                    normalized.persiana = {
+                        id: pos.persiana.id,
+                        quantita: parseInt(pos.persiana.qta) || 0,
+                        azienda: pos.persiana.azienda || 'Non specificata',
+                        brm: {
+                            L: pos.persiana.BRM_L || 0,
+                            H: pos.persiana.BRM_H || 0
+                        },
+                        modello: pos.persiana.modello,
+                        fissaggio: pos.persiana.fissaggio,
+                        battuta: pos.persiana.battuta,
+                        colore: pos.persiana.colorePersiana || pos.persiana.colore,
+                        materiale: pos.persiana.materiale,
+                        tipo: pos.persiana.tipo,
+                        apertura: pos.persiana.apertura,
+                        note: pos.persiana.note || '',
+                        foto: pos.persiana.foto || []
+                    };
+                }
+                
+                // Normalizza zanzariera
+                if (pos.zanzariera && parseInt(pos.zanzariera.qta) > 0) {
+                    normalized.zanzariera = {
+                        id: pos.zanzariera.id,
+                        quantita: parseInt(pos.zanzariera.qta) || 0,
+                        azienda: pos.zanzariera.azienda || 'Non specificata',
+                        brm: {
+                            L: pos.zanzariera.BRM_L || 0,
+                            H: pos.zanzariera.BRM_H || 0
+                        },
+                        azienda: pos.zanzariera.azienda,
+                        tipo: pos.zanzariera.tipo,
+                        colore: pos.zanzariera.coloreTelaio,
+                        tipo_rete: pos.zanzariera.tipoRete,
+                        note: pos.zanzariera.note || '',
+                        foto: pos.zanzariera.foto || []
+                    };
+                }
+                
+                // Normalizza tapparella
+                if (pos.tapparella && parseInt(pos.tapparella.qta) > 0) {
+                    normalized.tapparella = {
+                        id: pos.tapparella.id,
+                        quantita: parseInt(pos.tapparella.qta) || 0,
+                        azienda: pos.tapparella.azienda || 'Non specificata',
+                        brm: {
+                            L: pos.tapparella.BRM_L || 0,
+                            H: pos.tapparella.BRM_H || 0
+                        },
+                        tipo: pos.tapparella.tipo,
+                        materiale: pos.tapparella.materiale,
+                        colore: pos.tapparella.colore,
+                        motorizzazione: pos.tapparella.motorizzazione,
+                        note: pos.tapparella.note || '',
+                        foto: pos.tapparella.foto || []
+                    };
+                }
+                
+                // Normalizza cassonetto
+                if (pos.cassonetto && parseInt(pos.cassonetto.qta) > 0) {
+                    normalized.cassonetto = {
+                        id: pos.cassonetto.id,
+                        quantita: parseInt(pos.cassonetto.qta) || 0,
+                        azienda: pos.cassonetto.azienda || 'Non specificata',
+                        brm: {
+                            L: pos.cassonetto.BRM_L || 0,
+                            H: pos.cassonetto.BRM_H || 0
+                        },
+                        tipo: pos.cassonetto.tipo,
+                        materiale: pos.cassonetto.materiale,
+                        isolamento: pos.cassonetto.isolamento,
+                        note: pos.cassonetto.note || '',
+                        foto: pos.cassonetto.foto || []
+                    };
+                }
+                
+                return normalized;
+            });
+        }
+        
         // 📦 FASE 027K: Upload singolo progetto (helper function)
         async function uploadSingleProjectToGitHub(project) {
             try {
                 
-                // Prepara dati progetto (formato compatibile con dashboard)
+                // Prepara dati progetto (DOPPIO FORMATO: vecchio + nuovo)
                 const projectData = {
+                    // ═════════════════════════════════════════════════════════
+                    // FORMATO VECCHIO (compatibilità con dashboard esistenti)
+                    // ═════════════════════════════════════════════════════════
                     id: project.id,
                     projectName: project.cliente?.nome || 'Progetto',
                     customerName: project.cliente?.nome || '',
@@ -3265,8 +3509,55 @@
                         hasZanzariere: project.setup?.hasZanzariere || false,
                         rilievoInfissi: project.positions || []
                     },
+                    
+                    // ═════════════════════════════════════════════════════════
+                    // FORMATO NUOVO (standard con campi normalizzati)
+                    // ═════════════════════════════════════════════════════════
+                    rilievo: {
+                        meta: {
+                            id_rilievo: project.id,
+                            data_creazione: project.dataCreazione || new Date().toISOString(),
+                            data_modifica: new Date().toISOString(),
+                            operatore: "Operatore",
+                            stato: "completato",
+                            versione_app: "3.5.027m"
+                        },
+                        cliente: {
+                            nome: project.cliente?.nome || '',
+                            telefono: project.cliente?.telefono || '',
+                            email: project.cliente?.email || '',
+                            indirizzo: {
+                                via: project.cliente?.indirizzo || '',
+                                citta: '',
+                                cap: '',
+                                provincia: ''
+                            }
+                        },
+                        cantiere: {
+                            indirizzo: project.cliente?.indirizzo || '',
+                            note_accesso: '',
+                            foto_cantiere: [],
+                            coordinate_gps: null
+                        },
+                        misure: normalizePositionsToMisure(project.positions || []),
+                        preventivo_richiesto: {
+                            tipo: "automatico",
+                            elementi_inclusi: [],
+                            sconto_richiesto: 0,
+                            note_commerciali: ""
+                        },
+                        allegati: {
+                            planimetria: null,
+                            foto_generali: [],
+                            documenti: []
+                        }
+                    },
+                    
+                    // ═════════════════════════════════════════════════════════
+                    // METADATA
+                    // ═════════════════════════════════════════════════════════
                     metadata: {
-                        version: '3.5.027k',
+                        version: '3.5.027m',
                         createdAt: project.dataCreazione,
                         lastModified: new Date().toISOString(),
                         device: {
@@ -5038,10 +5329,13 @@
         // 🆕 FASE 13 - Gestione Rilievo Globale per Prodotti
         // 🆕 FASE 014 - Sincronizzazione Intelligente Globale → Posizioni
         function updateRilievoGlobale(projectId, productType, field, value) {
+            console.log('🔵 updateRilievoGlobale CHIAMATA:', {projectId, productType, field, value});
             markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
                 const rilievoKey = `rilievo${productType.charAt(0).toUpperCase() + productType.slice(1)}`;
+                console.log('🔵 rilievoKey:', rilievoKey);
+                console.log('🔵 project[rilievoKey] ESISTE?:', !!project[rilievoKey], 'VALORE:', project[rilievoKey]);
                 
                 if (!project[rilievoKey]) {
                     project[rilievoKey] = {
@@ -5056,6 +5350,7 @@
                         project[rilievoKey].coprifiliInt = false;
                         project[rilievoKey].coprifiliEst = false;
                     }
+                    console.log('🆕 Creato nuovo rilievoKey:', project[rilievoKey]);
                 }
                 
                 // 🔍 FASE 014 - Salva valore precedente per sync intelligente
@@ -5067,6 +5362,10 @@
                 } else {
                     project[rilievoKey][field] = value;
                 }
+                
+                console.log(`✏️ APPENA ASSEGNATO ${field} = ${value}`);
+                console.log(`   project[${rilievoKey}]:`, project[rilievoKey]);
+                console.log(`   Tipo:`, Array.isArray(project[rilievoKey]) ? 'ARRAY ❌' : 'OGGETTO ✅');
                 
                 // 🔄 FASE 014 - Sincronizzazione Intelligente alle posizioni
                 // Aggiorna SOLO posizioni che hanno ancora il valore precedente del globale
@@ -5115,8 +5414,13 @@
                     }
                 }
                 
+                console.log('💾 PRIMA DI SALVARE - project[rilievoKey]:', project[rilievoKey]);
                 saveState();
-                render();
+                console.log('✅ saveState() CHIAMATO per updateRilievoGlobale');
+                // ❌ NON chiamare render() qui perché potrebbe sovrascrivere i dati!
+                // Il render viene già chiamato dagli eventi onchange/onclick
+            } else {
+                console.error('❌ PROJECT NON TROVATO in updateRilievoGlobale:', projectId);
             }
         }
 
@@ -5507,6 +5811,39 @@
                     modelloF: '',
                     colore: ''
                 },
+                // 🆕 FIX: Inizializza esplicitamente TUTTI i rilievi globali come OGGETTI
+                rilievoInfissi: {
+                    materiale: '',
+                    note: '',
+                    togliere: false,
+                    smaltimento: false,
+                    coprifiliInt: false,
+                    coprifiliEst: false
+                },
+                rilievoPersiane: {
+                    materiale: '',
+                    note: '',
+                    togliere: false,
+                    smaltimento: false
+                },
+                rilievoTapparelle: {
+                    materiale: '',
+                    note: '',
+                    togliere: false,
+                    smaltimento: false
+                },
+                rilievoZanzariere: {
+                    materiale: '',
+                    note: '',
+                    togliere: false,
+                    smaltimento: false
+                },
+                rilievoCassonetti: {
+                    materiale: '',
+                    note: '',
+                    togliere: false,
+                    smaltimento: false
+                },
                 brmConfigInfissi: { 
                     misuraBaseL: '', operazioneL: '-', valoreL: '0',
                     misuraBaseH: '', operazioneH: '-', valoreH: '0',
@@ -5728,6 +6065,8 @@
                     // UNA SOLA TAPPARELLA per posizione
                     pos.tapparella = {
                         id: generateId(),
+                        qta: '1',
+                        azienda: 'azienda-tapparelle-1',
                         tipo: project.configTapparelle?.tipo || '',
                         materiale: project.configTapparelle?.materiale || '',
                         colore: project.configTapparelle?.colore || '',
@@ -5756,10 +6095,11 @@
                     // UNA SOLA ZANZARIERA per posizione
                     pos.zanzariera = {
                         id: generateId(),
+                        qta: '1',
+                        azienda: 'palagina',
                         tipo: project.configZanzariere?.tipo || '',
                         coloreTelaio: project.configZanzariere?.coloreTelaio || '',
                         tipoRete: project.configZanzariere?.tipoRete || '',
-                        coloreRete: project.configZanzariere?.coloreRete || '',
                         BRM_L: brm.L,
                         BRM_H: brm.H,
                         note: '',
@@ -5787,6 +6127,8 @@
                     // UN SOLO CASSONETTO per posizione
                     pos.cassonetto = {
                         id: generateId(),
+                        qta: '1',
+                        azienda: 'azienda-cassonetti-1',
                         tipo: project.configCassonetti?.tipo || '',
                         materiale: project.configCassonetti?.materiale || '',
                         finitura: project.configCassonetti?.finitura || '',
@@ -7395,6 +7737,7 @@
         // 🆕 FASE 13 - Render Rilievo Globale per Prodotto
         function renderRilievoGlobale(project, productType, productLabel, icon) {
             const rilievo = getRilievoGlobale(project, productType);
+            console.log(`🎨 renderRilievoGlobale - ${productType}:`, rilievo);
             const completeness = calculateRilievoGlobaleCompleteness(project, productType);
             const hasInfissi = productType === 'infissi';
             
@@ -8209,36 +8552,6 @@
                                                value="${isCustom ? current : ''}"
                                                onchange="updateConfigZanzariere('${project.id}', 'tipoRete', this.value)"
                                                placeholder="Inserisci tipo rete personalizzato..."
-                                               style="display: ${isCustom ? 'block' : 'none'};"
-                                               class="w-full px-3 py-2 border rounded-lg mt-2">
-                                    `;
-                                })()}
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium mb-1">4. Colore Rete</label>
-                                ${(() => {
-                                    const options = ['Nero', 'Grigio', 'Bianco'];
-                                    const current = project.configZanzariere?.coloreRete || '';
-                                    const isCustom = current && !options.includes(current);
-                                    const selectId = `zanz-colore-${project.id}`;
-                                    const inputId = `zanz-colore-input-${project.id}`;
-                                    
-                                    return `
-                                        <select id="${selectId}" 
-                                                onchange="handleConfigSelectWithCustom('${project.id}', 'zanzariere', 'coloreRete', '${selectId}', '${inputId}', this.value)"
-                                                class="w-full px-3 py-2 border rounded-lg">
-                                            <option value="">Seleziona...</option>
-                                            ${options.map(opt => `
-                                                <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
-                                            `).join('')}
-                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altro e scrivo...</option>
-                                        </select>
-                                        <input type="text" 
-                                               id="${inputId}"
-                                               value="${isCustom ? current : ''}"
-                                               onchange="updateConfigZanzariere('${project.id}', 'coloreRete', this.value)"
-                                               placeholder="Inserisci colore personalizzato..."
                                                style="display: ${isCustom ? 'block' : 'none'};"
                                                class="w-full px-3 py-2 border rounded-lg mt-2">
                                     `;
@@ -10711,17 +11024,12 @@
                                 <div class="grid md:grid-cols-3 gap-3">
                                     <div>
                                         <label class="text-xs font-medium">Azienda</label>
-                                        <input type="text" value="${tap.azienda || ''}"
-                                               placeholder="plasticino"
-                                               list="azienda-tap-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'azienda', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="azienda-tap-list-${pos.id}">
-                                            <option value="plasticino">
-                                            <option value="cherubini">
-                                            <option value="nice">
-                                            <option value="somfy">
-                                        </datalist>
+                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'azienda', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="azienda-tapparelle-1" ${(tap.azienda || 'azienda-tapparelle-1') === 'azienda-tapparelle-1' ? 'selected' : ''}>Azienda Tapparelle 1</option>
+                                            <option value="azienda-tapparelle-2" ${tap.azienda === 'azienda-tapparelle-2' ? 'selected' : ''}>Azienda Tapparelle 2</option>
+                                            <option value="altro" ${tap.azienda === 'altro' ? 'selected' : ''}>Altro</option>
+                                        </select>
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium">Modello</label>
@@ -11188,6 +11496,14 @@
                                         </select>
                                     </div>
                                     <div>
+                                        <label class="text-xs font-medium">Azienda</label>
+                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'zanzariera', 'azienda', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="palagina" ${(zan.azienda || 'palagina') === 'palagina' ? 'selected' : ''}>Palagina</option>
+                                            <option value="altro" ${zan.azienda === 'altro' ? 'selected' : ''}>Altro</option>
+                                        </select>
+                                    </div>
+                                    <div>
                                         <label class="text-xs font-medium">Tipo</label>
                                         <select onchange="updateProduct('${project.id}', '${pos.id}', 'zanzariera', 'tipo', this.value)"
                                                 class="w-full compact-input border rounded mt-1">
@@ -11245,19 +11561,6 @@
                                             <option value="Anti-polline">
                                             <option value="Pet-resistant">
                                             <option value="Micro-forata">
-                                        </datalist>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Colore Rete</label>
-                                        <input type="text" value="${zan.coloreRete || ''}"
-                                               placeholder="Es: Nero, Grigio"
-                                               list="coloreRete-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'zanzariera', 'coloreRete', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="coloreRete-list-${pos.id}">
-                                            <option value="Nero">
-                                            <option value="Grigio">
-                                            <option value="Bianco">
                                         </datalist>
                                     </div>
                                 </div>
@@ -11518,17 +11821,12 @@
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium">Azienda</label>
-                                        <input type="text" value="${cas.azienda || ''}"
-                                               placeholder="finstral"
-                                               list="azienda-cas-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'azienda', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="azienda-cas-list-${pos.id}">
-                                            <option value="finstral">
-                                            <option value="essepi">
-                                            <option value="schuco">
-                                            <option value="internorm">
-                                        </datalist>
+                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'azienda', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="azienda-cassonetti-1" ${(cas.azienda || 'azienda-cassonetti-1') === 'azienda-cassonetti-1' ? 'selected' : ''}>Azienda Cassonetti 1</option>
+                                            <option value="azienda-cassonetti-2" ${cas.azienda === 'azienda-cassonetti-2' ? 'selected' : ''}>Azienda Cassonetti 2</option>
+                                            <option value="altro" ${cas.azienda === 'altro' ? 'selected' : ''}>Altro</option>
+                                        </select>
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium">Colore</label>
@@ -12955,6 +13253,13 @@
                 const pos = project.positions.find(p => p.id === posId);
                 if (pos) {
                     pos[field] = value;
+                    
+                    // ✅ AGGIORNAMENTO ID quando cambia l'ambiente
+                    if (field === 'ambiente' && value && value.trim() !== '') {
+                        const newId = generatePositionId(value, project.positions);
+                        pos.id = newId;
+                    }
+                    
                     saveState();
                 }
             }
@@ -13445,12 +13750,12 @@
                         if (pos.zanzariera) {
                             posData.zanzariera = {
                                 quantita: pos.zanzariera.quantita || 1,
+                                azienda: pos.zanzariera.azienda || '',
                                 tipo: pos.zanzariera.tipo || '',
                                 apertura: pos.zanzariera.apertura || '',
                                 tipo_infisso_associato: pos.zanzariera.tipoInfissoAssociato || '',
                                 colore_telaio: pos.zanzariera.coloreTelaio || '',
                                 tipo_rete: pos.zanzariera.tipoRete || '',
-                                colore_rete: pos.zanzariera.coloreRete || '',
                                 brm: {  // 📊 Template completo BRM
                                     L: pos.zanzariera.brm?.L ?? null,
                                     H: pos.zanzariera.brm?.H ?? null,
