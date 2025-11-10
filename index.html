@@ -3323,6 +3323,104 @@
         // ─── SYNC OPERATIONS ───
         
         // 📦 FASE 027K: Upload progetti su GitHub
+        // 📥 Download Manuale da GitHub
+        async function manualDownloadFromGitHub() {
+            if (!GITHUB_CONFIG.token && (!state.github || !state.github.token)) {
+                showNotification('⚠️ Configura prima il token GitHub', 'error');
+                return false;
+            }
+            
+            const token = GITHUB_CONFIG.token || state.github.token;
+            
+            try {
+                showNotification('⬇️ Download da GitHub in corso...', 'info', 3000);
+                
+                // Lista tutti i file nel repository
+                const listUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents?ref=${GITHUB_CONFIG.branch}`;
+                
+                console.log('📂 Listing files from:', listUrl);
+                
+                const listResponse = await fetch(listUrl, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!listResponse.ok) {
+                    throw new Error(`GitHub API error: ${listResponse.status}`);
+                }
+                
+                const files = await listResponse.json();
+                console.log('📄 Files found:', files.length);
+                
+                // Filtra solo file JSON dei progetti
+                const projectFiles = files.filter(f => f.name.endsWith('.json') && f.type === 'file');
+                
+                if (projectFiles.length === 0) {
+                    showNotification('ℹ️ Nessun progetto trovato su GitHub', 'info');
+                    return false;
+                }
+                
+                console.log('📦 Project files:', projectFiles.map(f => f.name));
+                
+                // Scarica e importa tutti i progetti
+                let importedCount = 0;
+                const existingIds = new Set(state.projects.map(p => p.id));
+                
+                for (const file of projectFiles) {
+                    try {
+                        console.log('⬇️ Downloading:', file.name);
+                        
+                        // Usa l'API GitHub per ottenere il contenuto
+                        const contentResponse = await fetch(file.url, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Accept': 'application/vnd.github.v3+json'
+                            }
+                        });
+                        
+                        if (!contentResponse.ok) continue;
+                        
+                        const contentData = await contentResponse.json();
+                        
+                        // Decodifica da base64
+                        const content = atob(contentData.content.replace(/\s/g, ''));
+                        const projectData = JSON.parse(content);
+                        
+                        console.log('✅ Downloaded project:', projectData.name);
+                        
+                        // Importa solo se non esiste già
+                        if (!existingIds.has(projectData.id)) {
+                            state.projects.push(projectData);
+                            importedCount++;
+                        } else {
+                            console.log('⏭️ Skipped (already exists):', projectData.name);
+                        }
+                        
+                    } catch (error) {
+                        console.error('❌ Error downloading', file.name, error);
+                    }
+                }
+                
+                if (importedCount > 0) {
+                    saveState();
+                    render();
+                    showNotification(`✅ ${importedCount} progetti scaricati da GitHub!`, 'success');
+                } else {
+                    showNotification('ℹ️ Nessun nuovo progetto da importare', 'info');
+                }
+                
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Error in manualDownloadFromGitHub:', error);
+                showNotification('❌ Errore download: ' + error.message, 'error');
+                return false;
+            }
+        }
+        
+        // 📦 FASE 027K: Upload progetti su GitHub
         async function uploadToGitHub(projectId = null) {
             if (!GITHUB_CONFIG.token) {
                 showNotification('⚠️ Configura GitHub', 'error');
@@ -4054,8 +4152,11 @@
                         </div>
                         
                         <div class="sync-actions">
+                            <button onclick="manualDownloadFromGitHub(); this.closest('.sync-settings-modal').remove();" class="btn-sync" style="background: #3b82f6;">
+                                ⬇️ Scarica da GitHub
+                            </button>
                             <button onclick="uploadToGitHub(); this.closest('.sync-settings-modal').remove();" class="btn-sync">
-                                ⬆️ Salva Progetto su GitHub
+                                ⬆️ Carica su GitHub
                             </button>
                         </div>
                     ` : ''}
