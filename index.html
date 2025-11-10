@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenPorte v3.5 - Menu Sistema Integrato</title>
+    <title>OpenPorte v4.0 - Sistema Completo</title>
     
-    <!-- TUTTI GLI STILI IN UN UNICO POSTO -->
     <style>
-        /* Reset base */
+        /* ===== RESET BASE ===== */
         * {
             margin: 0;
             padding: 0;
@@ -18,16 +17,14 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding-top: 0;
         }
         
-        /* Container principale */
         #app {
             transition: margin-left 0.3s ease;
             min-height: 100vh;
         }
         
-        /* ===== MENU SISTEMA STYLES ===== */
+        /* ===== MENU SISTEMA ===== */
         .menu-sistema {
             position: fixed;
             top: 0;
@@ -55,7 +52,6 @@
             color: white;
             font-size: 24px;
             font-weight: bold;
-            margin: 0;
         }
         
         .menu-subtitle {
@@ -69,7 +65,6 @@
         }
         
         .menu-item {
-            position: relative;
             color: white;
             padding: 15px 20px;
             cursor: pointer;
@@ -84,9 +79,8 @@
             padding-left: 30px;
         }
         
-        .menu-item.active {
+        .menu-item.expanded {
             background: rgba(52, 152, 219, 0.3);
-            border-left: 4px solid #3498db;
         }
         
         .menu-icon {
@@ -117,7 +111,7 @@
         }
         
         .submenu.active {
-            max-height: 500px;
+            max-height: 800px;
         }
         
         .submenu-item {
@@ -212,12 +206,31 @@
             padding: 20px;
         }
         
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
         .header {
             background: white;
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         
         .projects-grid {
@@ -281,6 +294,7 @@
             transition: all 0.3s;
             text-decoration: none;
             margin: 5px;
+            font-weight: 500;
         }
         
         .btn-primary {
@@ -301,6 +315,75 @@
             background: #27ae60;
         }
         
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.7);
+            z-index: 10001;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h2 {
+            color: #333;
+        }
+        
         .notification {
             position: fixed;
             top: 20px;
@@ -308,8 +391,9 @@
             padding: 15px 20px;
             border-radius: 5px;
             color: white;
-            z-index: 10001;
+            z-index: 10002;
             animation: slideIn 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
         
         @keyframes slideIn {
@@ -347,29 +431,246 @@
             owner: 'Openporte2025',
             repo: 'dati-cantieri',
             projectsPath: 'progetti',
-            token: null
+            branch: 'main',
+            apiBase: 'https://api.github.com'
         };
         
         // ===== STATO APPLICAZIONE =====
         let state = {
-            screen: 'list',
+            screen: 'project-list',
             projects: [],
             currentProject: null,
             currentPosition: null,
             github: {
                 connected: false,
                 token: null,
-                lastSyncTime: null,
-                syncStatus: 'disconnected'
+                lastSyncTime: null
             }
         };
         
+        // ===== SCHEMA DATI =====
+        function generateProjectId() {
+            const timestamp = Date.now().toString(36);
+            const random = Math.random().toString(36).substring(2, 15);
+            return 'mh' + (timestamp + random).substring(0, 17);
+        }
+        
+        function createEmptyProject() {
+            return {
+                id: generateProjectId(),
+                name: '',
+                client: '',
+                clientData: {
+                    nome: '',
+                    cognome: '',
+                    indirizzo: '',
+                    citta: '',
+                    cap: '',
+                    telefono: '',
+                    email: ''
+                },
+                positions: [],
+                rilievoInfissi: {},
+                rilievoPersiane: {},
+                rilievoTapparelle: {},
+                rilievoZanzariere: {},
+                rilievoCassonetti: {},
+                metadata: {
+                    createdAt: new Date().toISOString(),
+                    lastModified: new Date().toISOString(),
+                    syncStatus: 'local',
+                    version: '4.0'
+                }
+            };
+        }
+        
+        function migrateOldData(oldProject) {
+            const migratedProject = { ...oldProject };
+            
+            const rilievoFields = [
+                'rilievoInfissi',
+                'rilievoPersiane',
+                'rilievoTapparelle',
+                'rilievoZanzariere',
+                'rilievoCassonetti'
+            ];
+            
+            rilievoFields.forEach(field => {
+                if (Array.isArray(migratedProject[field])) {
+                    console.warn(`⚠️ Migrazione: ${field} era un array, convertito in oggetto`);
+                    migratedProject[field] = {};
+                }
+                
+                if (!migratedProject[field]) {
+                    migratedProject[field] = {};
+                }
+            });
+            
+            if (!migratedProject.metadata) {
+                migratedProject.metadata = {
+                    createdAt: new Date().toISOString(),
+                    lastModified: new Date().toISOString(),
+                    syncStatus: 'local',
+                    version: '4.0'
+                };
+            }
+            
+            if (!migratedProject.id || migratedProject.id === 'undefined') {
+                migratedProject.id = generateProjectId();
+                console.warn(`⚠️ Migrazione: ID mancante, generato nuovo ID: ${migratedProject.id}`);
+            }
+            
+            return migratedProject;
+        }
+        
+        // ===== GITHUB API =====
+        class GitHubAPI {
+            constructor(token) {
+                this.token = token;
+            }
+            
+            static getToken() {
+                return localStorage.getItem('github_token') || '';
+            }
+            
+            static setToken(token) {
+                localStorage.setItem('github_token', token);
+                state.github.token = token;
+                state.github.connected = !!token;
+                MenuSistema.updateSyncStatus();
+            }
+            
+            static hasToken() {
+                return !!this.getToken();
+            }
+            
+            getHeaders() {
+                return {
+                    'Authorization': `token ${this.token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                };
+            }
+            
+            async listProjects() {
+                const url = `${GITHUB_CONFIG.apiBase}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.projectsPath}`;
+                
+                const response = await fetch(url, {
+                    headers: this.getHeaders()
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status}`);
+                }
+                
+                const files = await response.json();
+                
+                const validProjects = files.filter(file => {
+                    return file.name.startsWith('progetto-') && 
+                           file.name.endsWith('.json') &&
+                           !file.name.includes('undefined');
+                });
+                
+                console.log(`✅ Trovati ${validProjects.length} progetti su GitHub`);
+                return validProjects;
+            }
+            
+            async downloadProject(filename) {
+                const url = `${GITHUB_CONFIG.apiBase}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.projectsPath}/${filename}`;
+                
+                const response = await fetch(url, {
+                    headers: this.getHeaders()
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const content = atob(data.content);
+                const project = JSON.parse(content);
+                
+                console.log(`✅ Progetto scaricato: ${filename}`);
+                return {
+                    project: migrateOldData(project),
+                    sha: data.sha
+                };
+            }
+            
+            async downloadAllProjects() {
+                const files = await this.listProjects();
+                const projects = [];
+                
+                for (const file of files) {
+                    try {
+                        const { project } = await this.downloadProject(file.name);
+                        projects.push(project);
+                    } catch (error) {
+                        console.warn(`⚠️ Skip ${file.name}:`, error.message);
+                    }
+                }
+                
+                console.log(`✅ Scaricati ${projects.length} progetti`);
+                return projects;
+            }
+            
+            async uploadProject(project) {
+                if (!project.id || project.id === 'undefined') {
+                    throw new Error('ID progetto mancante o undefined');
+                }
+                
+                const filename = `progetto-${project.id}.json`;
+                const url = `${GITHUB_CONFIG.apiBase}/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.projectsPath}/${filename}`;
+                
+                let sha = null;
+                try {
+                    const existing = await fetch(url, {
+                        headers: this.getHeaders()
+                    });
+                    if (existing.ok) {
+                        const data = await existing.json();
+                        sha = data.sha;
+                    }
+                } catch (e) {
+                    // File non esiste
+                }
+                
+                const content = btoa(JSON.stringify(project, null, 2));
+                
+                const payload = {
+                    message: sha ? `Update ${filename}` : `Create ${filename}`,
+                    content: content,
+                    branch: GITHUB_CONFIG.branch
+                };
+                
+                if (sha) {
+                    payload.sha = sha;
+                }
+                
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: this.getHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(`GitHub API error: ${error.message}`);
+                }
+                
+                const result = await response.json();
+                console.log(`✅ Progetto salvato su GitHub: ${filename}`);
+                
+                return {
+                    success: true,
+                    filename: filename,
+                    sha: result.content.sha
+                };
+            }
+        }
+        
         // ===== MENU SISTEMA =====
         const MenuSistema = {
-            config: {
-                menuItems: []
-            },
-            
             init() {
                 console.log('🚀 Inizializzazione Menu Sistema...');
                 this.createMenuStructure();
@@ -379,149 +680,77 @@
             },
             
             createMenuStructure() {
-                // Rimuovi elementi esistenti
                 document.querySelectorAll('.menu-sistema, .menu-toggle, .menu-overlay').forEach(el => el.remove());
                 
-                // Crea menu
                 const menuContainer = document.createElement('div');
                 menuContainer.className = 'menu-sistema';
                 menuContainer.innerHTML = `
                     <div class="menu-header">
                         <div class="menu-title">OpenPorte</div>
-                        <div class="menu-subtitle">Sistema Gestione Cantieri</div>
+                        <div class="menu-subtitle">v4.0 - Sistema Completo</div>
                     </div>
-                    <div class="menu-items" id="menu-items-container"></div>
+                    <div class="menu-items" id="menu-items-container">
+                        <div class="menu-item" data-action="list">
+                            <span class="menu-icon">📁</span>
+                            <span class="menu-label">Lista Progetti</span>
+                        </div>
+                        <div class="menu-item" data-action="new">
+                            <span class="menu-icon">➕</span>
+                            <span class="menu-label">Nuovo Progetto</span>
+                        </div>
+                        <div class="menu-item" data-section="sync">
+                            <span class="menu-icon">☁️</span>
+                            <span class="menu-label">Sincronizzazione</span>
+                            <span class="menu-arrow">›</span>
+                        </div>
+                        <div class="submenu" id="submenu-sync">
+                            <div class="submenu-item" data-action="github-settings">
+                                <span class="menu-icon">⚙️</span>
+                                <span>Config GitHub</span>
+                            </div>
+                            <div class="submenu-item" data-action="download">
+                                <span class="menu-icon">⬇️</span>
+                                <span>Scarica da GitHub</span>
+                            </div>
+                            <div class="submenu-item" data-action="upload-all">
+                                <span class="menu-icon">⬆️</span>
+                                <span>Carica tutti su GitHub</span>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-section="import-export">
+                            <span class="menu-icon">💾</span>
+                            <span class="menu-label">Import/Export</span>
+                            <span class="menu-arrow">›</span>
+                        </div>
+                        <div class="submenu" id="submenu-import-export">
+                            <div class="submenu-item" data-action="import">
+                                <span class="menu-icon">📥</span>
+                                <span>Importa JSON</span>
+                            </div>
+                            <div class="submenu-item" data-action="export">
+                                <span class="menu-icon">📤</span>
+                                <span>Esporta JSON</span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="menu-footer">
                         <div class="sync-status" id="menu-sync-status">
-                            <span class="sync-icon">🔄</span>
-                            <span class="sync-text">Non connesso</span>
+                            <span>🔄</span>
+                            <span>Non connesso</span>
                         </div>
                     </div>
                 `;
                 
-                // Toggle button
                 const toggleButton = document.createElement('div');
                 toggleButton.className = 'menu-toggle';
                 toggleButton.innerHTML = '<span class="menu-toggle-icon">☰</span>';
                 
-                // Overlay
                 const overlay = document.createElement('div');
                 overlay.className = 'menu-overlay';
                 
-                // Aggiungi al DOM
                 document.body.appendChild(menuContainer);
                 document.body.appendChild(toggleButton);
                 document.body.appendChild(overlay);
-                
-                // Aggiorna menu items
-                this.updateMenuItems();
-            },
-            
-            updateMenuItems() {
-                const container = document.getElementById('menu-items-container');
-                if (!container) return;
-                
-                // Definisci menu items
-                this.config.menuItems = [
-                    {
-                        id: 'progetti',
-                        label: 'Lista Progetti',
-                        icon: '📁',
-                        action: () => {
-                            showScreen('list');
-                            this.closeMenu();
-                        }
-                    },
-                    {
-                        id: 'nuovo-progetto',
-                        label: 'Nuovo Progetto',
-                        icon: '➕',
-                        action: () => {
-                            createNewProject();
-                            this.closeMenu();
-                        }
-                    },
-                    {
-                        id: 'sincronizzazione',
-                        label: 'Sincronizzazione',
-                        icon: '🔄',
-                        submenu: [
-                            {
-                                id: 'github-settings',
-                                label: 'Impostazioni GitHub',
-                                icon: '⚙️',
-                                action: () => {
-                                    showGitHubSettings();
-                                    this.closeMenu();
-                                }
-                            },
-                            {
-                                id: 'download-github',
-                                label: 'Scarica da GitHub',
-                                icon: '⬇️',
-                                action: () => {
-                                    downloadFromGitHub();
-                                    this.closeMenu();
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        id: 'import-export',
-                        label: 'Import/Export',
-                        icon: '💾',
-                        submenu: [
-                            {
-                                id: 'import',
-                                label: 'Importa Progetti',
-                                icon: '📥',
-                                action: () => {
-                                    importProjects();
-                                    this.closeMenu();
-                                }
-                            },
-                            {
-                                id: 'export',
-                                label: 'Esporta Progetti',
-                                icon: '📤',
-                                action: () => {
-                                    exportProjects();
-                                    this.closeMenu();
-                                }
-                            }
-                        ]
-                    }
-                ];
-                
-                container.innerHTML = this.renderMenuItems(this.config.menuItems);
-            },
-            
-            renderMenuItems(items) {
-                return items.map(item => {
-                    const hasSubmenu = item.submenu && item.submenu.length > 0;
-                    let html = `
-                        <div class="menu-item" data-menu-id="${item.id}">
-                            <span class="menu-icon">${item.icon}</span>
-                            <span class="menu-label">${item.label}</span>
-                            ${hasSubmenu ? '<span class="menu-arrow">▶</span>' : ''}
-                        </div>
-                    `;
-                    
-                    if (hasSubmenu) {
-                        html += `
-                            <div class="submenu" data-parent-id="${item.id}">
-                                ${item.submenu.map(subitem => `
-                                    <div class="submenu-item" data-menu-id="${subitem.id}">
-                                        <span class="menu-icon">${subitem.icon}</span>
-                                        <span class="menu-label">${subitem.label}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
-                    }
-                    
-                    return html;
-                }).join('');
             },
             
             attachEventListeners() {
@@ -531,38 +760,77 @@
                 toggle?.addEventListener('click', () => this.toggleMenu());
                 overlay?.addEventListener('click', () => this.closeMenu());
                 
-                // Event delegation per menu items
                 document.addEventListener('click', (e) => {
                     const menuItem = e.target.closest('.menu-item');
                     if (menuItem) {
-                        const menuId = menuItem.dataset.menuId;
-                        const config = this.config.menuItems.find(m => m.id === menuId);
+                        const action = menuItem.dataset.action;
+                        const section = menuItem.dataset.section;
                         
-                        if (config?.submenu) {
-                            menuItem.classList.toggle('expanded');
-                            const submenu = document.querySelector(`.submenu[data-parent-id="${menuId}"]`);
-                            submenu?.classList.toggle('active');
-                        } else if (config?.action) {
-                            config.action();
+                        if (action) {
+                            this.handleAction(action);
+                            this.closeMenu();
+                        } else if (section) {
+                            this.toggleSubmenu(section);
                         }
                     }
                     
                     const submenuItem = e.target.closest('.submenu-item');
                     if (submenuItem) {
                         e.stopPropagation();
-                        const menuId = submenuItem.dataset.menuId;
-                        
-                        for (const menuItem of this.config.menuItems) {
-                            if (menuItem.submenu) {
-                                const subItem = menuItem.submenu.find(s => s.id === menuId);
-                                if (subItem?.action) {
-                                    subItem.action();
-                                    break;
-                                }
-                            }
+                        const action = submenuItem.dataset.action;
+                        if (action) {
+                            this.handleAction(action);
+                            this.closeMenu();
                         }
                     }
                 });
+            },
+            
+            handleAction(action) {
+                console.log('Menu action:', action);
+                
+                switch(action) {
+                    case 'list':
+                        showScreen('project-list');
+                        break;
+                    case 'new':
+                        createNewProject();
+                        break;
+                    case 'github-settings':
+                        showGitHubSettings();
+                        break;
+                    case 'download':
+                        downloadFromGitHub();
+                        break;
+                    case 'upload-all':
+                        uploadAllToGitHub();
+                        break;
+                    case 'import':
+                        importProjects();
+                        break;
+                    case 'export':
+                        exportProjects();
+                        break;
+                }
+            },
+            
+            toggleSubmenu(section) {
+                const submenu = document.getElementById(`submenu-${section}`);
+                const menuItem = document.querySelector(`[data-section="${section}"]`);
+                
+                document.querySelectorAll('.submenu').forEach(sm => {
+                    if (sm.id !== `submenu-${section}`) {
+                        sm.classList.remove('active');
+                    }
+                });
+                document.querySelectorAll('.menu-item').forEach(mi => {
+                    if (mi.dataset.section !== section) {
+                        mi.classList.remove('expanded');
+                    }
+                });
+                
+                submenu?.classList.toggle('active');
+                menuItem?.classList.toggle('expanded');
             },
             
             toggleMenu() {
@@ -593,217 +861,16 @@
                 
                 if (isConnected) {
                     syncStatus.classList.add('connected');
-                    syncStatus.innerHTML = `
-                        <span class="sync-icon">✅</span>
-                        <span class="sync-text">GitHub connesso</span>
-                    `;
+                    syncStatus.innerHTML = `<span>✅</span><span>GitHub connesso</span>`;
                 } else {
                     syncStatus.classList.remove('connected');
-                    syncStatus.innerHTML = `
-                        <span class="sync-icon">🔄</span>
-                        <span class="sync-text">Non connesso</span>
-                    `;
+                    syncStatus.innerHTML = `<span>🔄</span><span>Non connesso</span>`;
                 }
             }
         };
         
-        // ===== FUNZIONI PRINCIPALI =====
-        
-        function loadState() {
-            const saved = localStorage.getItem('openPorteData');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    state = { ...state, ...parsed };
-                    
-                    // Assicura che arrays e oggetti esistano
-                    if (!Array.isArray(state.projects)) {
-                        state.projects = [];
-                    }
-                    
-                    if (!state.github) {
-                        state.github = {
-                            connected: false,
-                            token: null,
-                            lastSyncTime: null,
-                            syncStatus: 'disconnected'
-                        };
-                    }
-                    
-                    // Carica token GitHub se presente
-                    if (state.github.token) {
-                        GITHUB_CONFIG.token = state.github.token;
-                    }
-                    
-                    console.log(`📂 Caricati ${state.projects.length} progetti da localStorage`);
-                } catch (e) {
-                    console.error('Errore caricamento stato:', e);
-                    initializeEmptyState();
-                }
-            } else {
-                console.log('📭 Primo avvio - stato inizializzato');
-                initializeEmptyState();
-            }
-        }
-        
-        function initializeEmptyState() {
-            state = {
-                screen: 'list',
-                projects: [],
-                currentProject: null,
-                currentPosition: null,
-                github: {
-                    connected: false,
-                    token: null,
-                    lastSyncTime: null,
-                    syncStatus: 'disconnected'
-                }
-            };
-            
-            // Crea progetto demo se in localhost
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                const demoProject = {
-                    id: 'demo_' + Date.now(),
-                    name: 'Progetto Demo',
-                    client: 'Cliente Esempio',
-                    positions: [],
-                    createdAt: new Date().toISOString()
-                };
-                state.projects.push(demoProject);
-                console.log('✅ Creato progetto demo per test');
-            }
-            
-            saveState();
-        }
-        
-        function saveState() {
-            try {
-                localStorage.setItem('openPorteData', JSON.stringify(state));
-                console.log('💾 Stato salvato');
-            } catch (e) {
-                console.error('Errore salvataggio stato:', e);
-            }
-        }
-        
-        function showScreen(screen) {
-            state.screen = screen;
-            render();
-        }
-        
-        function render() {
-            const app = document.getElementById('app');
-            
-            switch(state.screen) {
-                case 'list':
-                    renderProjectsList();
-                    break;
-                case 'project':
-                    renderProject();
-                    break;
-                default:
-                    renderProjectsList();
-            }
-        }
-        
-        function renderProjectsList() {
-            const app = document.getElementById('app');
-            
-            let html = `
-                <div class="container">
-                    <div class="header">
-                        <h1>I Miei Progetti</h1>
-                        <div style="margin-top: 10px;">
-                            <button class="btn btn-primary" onclick="createNewProject()">➕ Nuovo Progetto</button>
-                            <button class="btn btn-success" onclick="importProjects()">📥 Importa</button>
-                            <button class="btn btn-success" onclick="exportProjects()">📤 Esporta</button>
-                        </div>
-                    </div>
-            `;
-            
-            if (state.projects && state.projects.length > 0) {
-                html += '<div class="projects-grid">';
-                
-                state.projects.forEach(project => {
-                    // Gestisci valori undefined
-                    const projectName = project.name || 'Progetto senza nome';
-                    const clientName = project.client || 'Cliente non specificato';
-                    const positionsCount = (project.positions && Array.isArray(project.positions)) ? project.positions.length : 0;
-                    
-                    html += `
-                        <div class="project-card" onclick="openProject('${project.id}')">
-                            <div class="project-title">${projectName}</div>
-                            <div class="project-client">Cliente: ${clientName}</div>
-                            <div class="project-positions">${positionsCount} posizioni</div>
-                        </div>
-                    `;
-                });
-                
-                html += '</div>';
-            } else {
-                html += `
-                    <div class="empty-state">
-                        <h2>Nessun progetto presente</h2>
-                        <p>Crea un nuovo progetto o scarica da GitHub</p>
-                        <button class="btn btn-primary" onclick="createNewProject()">➕ Crea Nuovo Progetto</button>
-                        <button class="btn btn-success" onclick="downloadFromGitHub()">⬇️ Scarica da GitHub</button>
-                    </div>
-                `;
-            }
-            
-            html += '</div>';
-            app.innerHTML = html;
-        }
-        
-        function renderProject() {
-            const app = document.getElementById('app');
-            const project = state.projects.find(p => p.id === state.currentProject);
-            
-            if (!project) {
-                showScreen('list');
-                return;
-            }
-            
-            app.innerHTML = `
-                <div class="container">
-                    <div class="header">
-                        <button class="btn" onclick="showScreen('list')">← Torna ai progetti</button>
-                        <h1>${project.name || 'Progetto'}</h1>
-                        <p>Cliente: ${project.client || 'Non specificato'}</p>
-                    </div>
-                    <div style="padding: 20px; background: white; border-radius: 10px;">
-                        <p>Dettagli progetto in sviluppo...</p>
-                        <p>Posizioni: ${project.positions ? project.positions.length : 0}</p>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function createNewProject() {
-            const name = prompt('Nome del progetto:');
-            if (!name) return;
-            
-            const client = prompt('Nome del cliente:');
-            
-            const project = {
-                id: 'project_' + Date.now(),
-                name: name,
-                client: client || 'Non specificato',
-                positions: [],
-                createdAt: new Date().toISOString()
-            };
-            
-            state.projects.push(project);
-            saveState();
-            showNotification('Progetto creato', 'success');
-            render();
-        }
-        
-        function openProject(projectId) {
-            state.currentProject = projectId;
-            showScreen('project');
-        }
-        
-        function showNotification(message, type = 'info', duration = 3000) {
+        // ===== NOTIFICHE =====
+        function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
             notification.textContent = message;
@@ -811,9 +878,359 @@
             
             setTimeout(() => {
                 notification.remove();
-            }, duration);
+            }, 3000);
         }
         
+        // ===== STORAGE =====
+        function saveState() {
+            try {
+                localStorage.setItem('projects', JSON.stringify(state.projects));
+                console.log('✅ Stato salvato');
+            } catch (error) {
+                console.error('❌ Errore salvataggio:', error);
+                showNotification('Errore salvataggio dati', 'error');
+            }
+        }
+        
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('projects');
+                if (saved) {
+                    state.projects = JSON.parse(saved).map(migrateOldData);
+                    console.log(`✅ Caricati ${state.projects.length} progetti`);
+                }
+                
+                const token = GitHubAPI.getToken();
+                if (token) {
+                    state.github.token = token;
+                    state.github.connected = true;
+                }
+            } catch (error) {
+                console.error('❌ Errore caricamento:', error);
+            }
+        }
+        
+        // ===== SCHERMATE =====
+        function showScreen(screenName) {
+            state.screen = screenName;
+            render();
+        }
+        
+        function render() {
+            const app = document.getElementById('app');
+            
+            switch(state.screen) {
+                case 'project-list':
+                    app.innerHTML = renderProjectList();
+                    break;
+                case 'project-setup':
+                    app.innerHTML = renderProjectSetup();
+                    break;
+                case 'project-detail':
+                    app.innerHTML = renderProjectDetail();
+                    break;
+                default:
+                    app.innerHTML = renderProjectList();
+            }
+        }
+        
+        function renderProjectList() {
+            const projects = state.projects || [];
+            
+            if (projects.length === 0) {
+                return `
+                    <div class="container">
+                        <div class="empty-state">
+                            <h2>Nessun progetto</h2>
+                            <p>Crea un nuovo progetto o scarica da GitHub</p>
+                            <button class="btn btn-primary" onclick="createNewProject()">➕ Nuovo Progetto</button>
+                            <button class="btn btn-success" onclick="showGitHubSettings()">⚙️ Config GitHub</button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const projectCards = projects.map(project => `
+                <div class="project-card" onclick="openProject('${project.id}')">
+                    <div class="project-title">${project.name || 'Senza nome'}</div>
+                    <div class="project-client">👤 ${project.client || 'Nessun cliente'}</div>
+                    <div class="project-positions">📍 ${project.positions?.length || 0} posizioni</div>
+                </div>
+            `).join('');
+            
+            return `
+                <div class="container">
+                    <div class="header">
+                        <h1>Lista Progetti</h1>
+                        <div class="header-actions">
+                            <button class="btn btn-primary" onclick="createNewProject()">➕ Nuovo Progetto</button>
+                            <button class="btn btn-success" onclick="downloadFromGitHub()">⬇️ Scarica da GitHub</button>
+                            <button class="btn btn-primary" onclick="exportProjects()">📤 Esporta</button>
+                        </div>
+                    </div>
+                    <div class="projects-grid">
+                        ${projectCards}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderProjectSetup() {
+            const project = state.currentProject ? 
+                state.projects.find(p => p.id === state.currentProject) : 
+                null;
+            
+            return `
+                <div class="container">
+                    <div class="header">
+                        <h1>${project ? 'Modifica Progetto' : 'Nuovo Progetto'}</h1>
+                        <div class="header-actions">
+                            <button class="btn btn-primary" onclick="saveCurrentProject()">💾 Salva</button>
+                            <button class="btn btn-danger" onclick="cancelProjectEdit()">❌ Annulla</button>
+                        </div>
+                    </div>
+                    <div style="background: white; padding: 30px; border-radius: 10px;">
+                        <div class="form-group">
+                            <label>Nome Progetto</label>
+                            <input type="text" id="project-name" value="${project?.name || ''}" placeholder="Es: Ristrutturazione Via Roma">
+                        </div>
+                        <div class="form-group">
+                            <label>Cliente</label>
+                            <input type="text" id="project-client" value="${project?.client || ''}" placeholder="Es: Mario Rossi">
+                        </div>
+                        <div class="form-group">
+                            <label>Telefono</label>
+                            <input type="text" id="project-phone" value="${project?.clientData?.telefono || ''}" placeholder="Es: 333 1234567">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="project-email" value="${project?.clientData?.email || ''}" placeholder="Es: cliente@email.it">
+                        </div>
+                        <div class="form-group">
+                            <label>Note</label>
+                            <textarea id="project-notes">${project?.clientData?.note || ''}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderProjectDetail() {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            if (!project) {
+                return '<div class="container"><p>Progetto non trovato</p></div>';
+            }
+            
+            return `
+                <div class="container">
+                    <div class="header">
+                        <h1>${project.name}</h1>
+                        <div class="header-actions">
+                            <button class="btn btn-primary" onclick="editProject('${project.id}')">✏️ Modifica</button>
+                            <button class="btn btn-success" onclick="uploadProjectToGitHub('${project.id}')">⬆️ Carica su GitHub</button>
+                            <button class="btn btn-primary" onclick="showScreen('project-list')">← Lista Progetti</button>
+                        </div>
+                    </div>
+                    <div style="background: white; padding: 30px; border-radius: 10px;">
+                        <h3>Informazioni Cliente</h3>
+                        <p><strong>Nome:</strong> ${project.client || 'N/D'}</p>
+                        <p><strong>Telefono:</strong> ${project.clientData?.telefono || 'N/D'}</p>
+                        <p><strong>Email:</strong> ${project.clientData?.email || 'N/D'}</p>
+                        <hr style="margin: 20px 0;">
+                        <h3>Posizioni</h3>
+                        <p>Totale posizioni: ${project.positions?.length || 0}</p>
+                        <button class="btn btn-primary" onclick="alert('Funzionalità posizioni in sviluppo')">➕ Aggiungi Posizione</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ===== AZIONI PROGETTI =====
+        function createNewProject() {
+            const newProject = createEmptyProject();
+            state.projects.push(newProject);
+            state.currentProject = newProject.id;
+            showScreen('project-setup');
+            showNotification('Nuovo progetto creato', 'success');
+        }
+        
+        function openProject(projectId) {
+            state.currentProject = projectId;
+            showScreen('project-detail');
+        }
+        
+        function editProject(projectId) {
+            state.currentProject = projectId;
+            showScreen('project-setup');
+        }
+        
+        function saveCurrentProject() {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            if (!project) return;
+            
+            project.name = document.getElementById('project-name').value;
+            project.client = document.getElementById('project-client').value;
+            project.clientData = project.clientData || {};
+            project.clientData.telefono = document.getElementById('project-phone').value;
+            project.clientData.email = document.getElementById('project-email').value;
+            project.clientData.note = document.getElementById('project-notes').value;
+            project.metadata.lastModified = new Date().toISOString();
+            
+            saveState();
+            showNotification('Progetto salvato', 'success');
+            showScreen('project-detail');
+        }
+        
+        function cancelProjectEdit() {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            if (project && !project.name && !project.client) {
+                state.projects = state.projects.filter(p => p.id !== state.currentProject);
+            }
+            showScreen('project-list');
+        }
+        
+        // ===== GITHUB ACTIONS =====
+        function showGitHubSettings() {
+            const currentToken = GitHubAPI.getToken();
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Impostazioni GitHub</h2>
+                    </div>
+                    <div class="form-group">
+                        <label>Personal Access Token</label>
+                        <input type="password" id="github-token" value="${currentToken}" placeholder="ghp_xxxxx">
+                        <p style="font-size: 12px; color: #666; margin-top: 5px;">
+                            Token necessario per sincronizzare con repository Openporte2025/dati-cantieri
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn btn-success" onclick="saveGitHubToken()">💾 Salva</button>
+                        <button class="btn btn-danger" onclick="closeModal()">❌ Annulla</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function saveGitHubToken() {
+            const token = document.getElementById('github-token').value;
+            if (token) {
+                GitHubAPI.setToken(token);
+                showNotification('Token GitHub salvato', 'success');
+                closeModal();
+            } else {
+                showNotification('Inserisci un token valido', 'error');
+            }
+        }
+        
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(modal => modal.remove());
+        }
+        
+        async function downloadFromGitHub() {
+            if (!GitHubAPI.hasToken()) {
+                showNotification('Configura prima il token GitHub', 'warning');
+                showGitHubSettings();
+                return;
+            }
+            
+            try {
+                showNotification('Download in corso...', 'info');
+                
+                const github = new GitHubAPI(GitHubAPI.getToken());
+                const projects = await github.downloadAllProjects();
+                
+                // Merge con progetti locali
+                projects.forEach(remoteProject => {
+                    const localIndex = state.projects.findIndex(p => p.id === remoteProject.id);
+                    if (localIndex === -1) {
+                        state.projects.push(remoteProject);
+                    } else {
+                        // Usa il più recente
+                        const localDate = new Date(state.projects[localIndex].metadata?.lastModified || 0);
+                        const remoteDate = new Date(remoteProject.metadata?.lastModified || 0);
+                        if (remoteDate > localDate) {
+                            state.projects[localIndex] = remoteProject;
+                        }
+                    }
+                });
+                
+                saveState();
+                render();
+                showNotification(`✅ Scaricati ${projects.length} progetti`, 'success');
+                
+            } catch (error) {
+                console.error('Errore download:', error);
+                showNotification(`Errore: ${error.message}`, 'error');
+            }
+        }
+        
+        async function uploadProjectToGitHub(projectId) {
+            if (!GitHubAPI.hasToken()) {
+                showNotification('Configura prima il token GitHub', 'warning');
+                showGitHubSettings();
+                return;
+            }
+            
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            try {
+                showNotification('Upload in corso...', 'info');
+                
+                const github = new GitHubAPI(GitHubAPI.getToken());
+                await github.uploadProject(project);
+                
+                project.metadata.syncStatus = 'synced';
+                project.metadata.lastModified = new Date().toISOString();
+                saveState();
+                
+                showNotification('✅ Progetto caricato su GitHub', 'success');
+                
+            } catch (error) {
+                console.error('Errore upload:', error);
+                showNotification(`Errore: ${error.message}`, 'error');
+            }
+        }
+        
+        async function uploadAllToGitHub() {
+            if (!GitHubAPI.hasToken()) {
+                showNotification('Configura prima il token GitHub', 'warning');
+                showGitHubSettings();
+                return;
+            }
+            
+            try {
+                showNotification('Upload di tutti i progetti...', 'info');
+                
+                const github = new GitHubAPI(GitHubAPI.getToken());
+                let uploaded = 0;
+                
+                for (const project of state.projects) {
+                    try {
+                        await github.uploadProject(project);
+                        project.metadata.syncStatus = 'synced';
+                        uploaded++;
+                    } catch (error) {
+                        console.error(`Errore upload ${project.id}:`, error);
+                    }
+                }
+                
+                saveState();
+                showNotification(`✅ Caricati ${uploaded}/${state.projects.length} progetti`, 'success');
+                
+            } catch (error) {
+                console.error('Errore upload multiplo:', error);
+                showNotification(`Errore: ${error.message}`, 'error');
+            }
+        }
+        
+        // ===== IMPORT/EXPORT =====
         function importProjects() {
             const input = document.createElement('input');
             input.type = 'file';
@@ -827,20 +1244,25 @@
                 reader.onload = (event) => {
                     try {
                         const data = JSON.parse(event.target.result);
+                        const imported = Array.isArray(data) ? data : [data];
                         
-                        if (Array.isArray(data)) {
-                            state.projects = [...state.projects, ...data];
-                        } else if (data.projects && Array.isArray(data.projects)) {
-                            state.projects = [...state.projects, ...data.projects];
-                        } else if (data.id) {
-                            state.projects.push(data);
-                        }
+                        imported.forEach(project => {
+                            const migrated = migrateOldData(project);
+                            const existing = state.projects.findIndex(p => p.id === migrated.id);
+                            if (existing === -1) {
+                                state.projects.push(migrated);
+                            } else {
+                                state.projects[existing] = migrated;
+                            }
+                        });
                         
                         saveState();
-                        showNotification('Progetti importati', 'success');
                         render();
-                    } catch (err) {
-                        showNotification('Errore importazione', 'error');
+                        showNotification(`✅ Importati ${imported.length} progetti`, 'success');
+                        
+                    } catch (error) {
+                        console.error('Errore import:', error);
+                        showNotification('Errore durante l\'importazione', 'error');
                     }
                 };
                 reader.readAsText(file);
@@ -850,119 +1272,29 @@
         }
         
         function exportProjects() {
-            const data = {
-                version: '1.0',
-                date: new Date().toISOString(),
-                projects: state.projects
-            };
-            
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const data = JSON.stringify(state.projects, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
+            
             const a = document.createElement('a');
             a.href = url;
-            a.download = `openporte-export-${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `openporte-backup-${new Date().toISOString().split('T')[0]}.json`;
             a.click();
             
-            showNotification('Progetti esportati', 'success');
-        }
-        
-        function showGitHubSettings() {
-            const token = prompt('Inserisci il token GitHub:');
-            if (token) {
-                GITHUB_CONFIG.token = token;
-                state.github.token = token;
-                state.github.connected = true;
-                saveState();
-                MenuSistema.updateSyncStatus();
-                showNotification('GitHub configurato', 'success');
-            }
-        }
-        
-        async function downloadFromGitHub() {
-            if (!GITHUB_CONFIG.token) {
-                showNotification('Configura prima GitHub', 'warning');
-                showGitHubSettings();
-                return;
-            }
-            
-            showNotification('Download in corso...', 'info');
-            
-            try {
-                const response = await fetch(
-                    `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.projectsPath}`,
-                    {
-                        headers: {
-                            'Authorization': `token ${GITHUB_CONFIG.token}`,
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    }
-                );
-                
-                if (!response.ok) {
-                    throw new Error(`Errore GitHub: ${response.status}`);
-                }
-                
-                const files = await response.json();
-                const jsonFiles = files.filter(f => f.name.endsWith('.json'));
-                
-                let imported = 0;
-                for (const file of jsonFiles) {
-                    try {
-                        const contentResponse = await fetch(file.url, {
-                            headers: {
-                                'Authorization': `token ${GITHUB_CONFIG.token}`,
-                                'Accept': 'application/vnd.github.v3+json'
-                            }
-                        });
-                        
-                        const contentData = await contentResponse.json();
-                        const content = atob(contentData.content.replace(/\n/g, ''));
-                        const projectData = JSON.parse(content);
-                        
-                        // Aggiungi progetto se non esiste già
-                        if (projectData.id && !state.projects.find(p => p.id === projectData.id)) {
-                            state.projects.push(projectData);
-                            imported++;
-                        }
-                    } catch (e) {
-                        console.error(`Errore file ${file.name}:`, e);
-                    }
-                }
-                
-                saveState();
-                render();
-                showNotification(`Importati ${imported} progetti da GitHub`, 'success');
-                
-            } catch (error) {
-                console.error('Errore download:', error);
-                showNotification('Errore download da GitHub', 'error');
-            }
+            URL.revokeObjectURL(url);
+            showNotification('✅ Progetti esportati', 'success');
         }
         
         // ===== INIZIALIZZAZIONE =====
         window.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Avvio OpenPorte...');
+            console.log('🚀 OpenPorte v4.0 - Inizializzazione...');
             
-            // Carica stato
             loadState();
-            
-            // Inizializza menu
             MenuSistema.init();
-            
-            // Render iniziale
             render();
             
-            console.log('✅ App pronta!');
+            console.log('✅ Applicazione pronta!');
         });
-        
-        // Esponi funzioni globali necessarie
-        window.showScreen = showScreen;
-        window.createNewProject = createNewProject;
-        window.openProject = openProject;
-        window.importProjects = importProjects;
-        window.exportProjects = exportProjects;
-        window.showGitHubSettings = showGitHubSettings;
-        window.downloadFromGitHub = downloadFromGitHub;
     </script>
 </body>
 </html>
