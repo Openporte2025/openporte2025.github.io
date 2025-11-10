@@ -1609,7 +1609,33 @@
             margin: 6px 0;
         }
     </style>
+    
+    <!-- Menu Sistema Module -->
+    <style>
+        /* Aggiustamenti per compatibilità con menu sistema */
+        body {
+            padding-top: 0;
+        }
+        
+        #app {
+            transition: margin-left 0.3s ease;
+        }
+        
+        /* Nascondi vecchi menu se presenti */
+        .old-navigation,
+        .main-menu {
+            display: none !important;
+        }
+        
+        @media (max-width: 768px) {
+            .menu-sistema.active ~ #app {
+                margin-left: 0;
+            }
+        }
+    </style>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="menu-sistema-module.js"></script>
 </head>
 <body>
     <!-- 🎯 FASE 021b: App container - tutto renderizzato dinamicamente -->
@@ -3536,6 +3562,145 @@
                 state.github.syncStatus = 'error';
                 updateSyncStatusDisplay('error');
                 showNotification('❌ Errore GitHub: ' + error.message, 'error');
+                return false;
+            }
+        }
+        
+        // 📦 FASE NUOVA: Download progetti da GitHub
+        async function downloadFromGitHub() {
+            if (!GITHUB_CONFIG.token) {
+                showNotification('⚠️ Configura GitHub prima', 'error');
+                return false;
+            }
+            
+            try {
+                showNotification('📥 Scaricando progetti da GitHub...', 'info');
+                
+                // Lista tutti i file nella cartella progetti
+                const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.projectsPath}`, {
+                    headers: {
+                        'Authorization': `token ${GITHUB_CONFIG.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        showNotification('📁 Cartella progetti non trovata su GitHub', 'warning');
+                        return false;
+                    }
+                    throw new Error(`Errore GitHub: ${response.status}`);
+                }
+                
+                const files = await response.json();
+                
+                // Filtra solo file JSON
+                const projectFiles = files.filter(f => f.name.endsWith('.json'));
+                
+                if (projectFiles.length === 0) {
+                    showNotification('📭 Nessun progetto trovato su GitHub', 'info');
+                    return false;
+                }
+                
+                console.log(`📥 Trovati ${projectFiles.length} progetti su GitHub`);
+                
+                // Scarica ogni progetto
+                let downloadedCount = 0;
+                let updatedCount = 0;
+                let newCount = 0;
+                
+                for (const file of projectFiles) {
+                    try {
+                        // Scarica contenuto del file
+                        const contentResponse = await fetch(file.url, {
+                            headers: {
+                                'Authorization': `token ${GITHUB_CONFIG.token}`,
+                                'Accept': 'application/vnd.github.v3+json'
+                            }
+                        });
+                        
+                        if (!contentResponse.ok) continue;
+                        
+                        const contentData = await contentResponse.json();
+                        const content = atob(contentData.content.replace(/\n/g, ''));
+                        const projectData = JSON.parse(content);
+                        
+                        // Gestisci diversi formati di file
+                        let project = null;
+                        
+                        if (projectData.id) {
+                            // Formato singolo progetto
+                            project = projectData;
+                        } else if (projectData.projects && Array.isArray(projectData.projects)) {
+                            // Formato con array di progetti
+                            project = projectData.projects[0];
+                        } else if (Array.isArray(projectData)) {
+                            // Formato array diretto
+                            project = projectData[0];
+                        }
+                        
+                        if (project && project.id) {
+                            // Migra dati se necessario
+                            if (typeof migrateOldData === 'function') {
+                                migrateOldData();
+                            }
+                            
+                            // Verifica se il progetto esiste già
+                            const existingIndex = state.projects.findIndex(p => p.id === project.id);
+                            
+                            if (existingIndex >= 0) {
+                                // Aggiorna progetto esistente solo se più recente
+                                const existing = state.projects[existingIndex];
+                                const remoteDate = new Date(project.lastModified || project.updatedAt || 0);
+                                const localDate = new Date(existing.lastModified || existing.updatedAt || 0);
+                                
+                                if (remoteDate > localDate) {
+                                    state.projects[existingIndex] = project;
+                                    updatedCount++;
+                                    console.log(`🔄 Aggiornato: ${project.name}`);
+                                }
+                            } else {
+                                // Aggiungi nuovo progetto
+                                state.projects.push(project);
+                                newCount++;
+                                console.log(`➕ Nuovo: ${project.name}`);
+                            }
+                            
+                            downloadedCount++;
+                        }
+                        
+                    } catch (err) {
+                        console.error(`Errore scaricando ${file.name}:`, err);
+                    }
+                }
+                
+                // Salva stato aggiornato
+                saveState();
+                
+                // Aggiorna timestamp sync
+                if (state.github) {
+                    state.github.lastSyncTime = Date.now();
+                    state.github.syncStatus = 'synced';
+                }
+                
+                // Mostra risultato
+                const message = `✅ Download completato!\n` +
+                    `📥 Scaricati: ${downloadedCount}/${projectFiles.length}\n` +
+                    `➕ Nuovi: ${newCount}\n` +
+                    `🔄 Aggiornati: ${updatedCount}`;
+                
+                showNotification(message, 'success', 5000);
+                
+                // Re-render se necessario
+                if (newCount > 0 || updatedCount > 0) {
+                    render();
+                }
+                
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Errore download GitHub:', error);
+                showNotification('❌ Errore download: ' + error.message, 'error');
                 return false;
             }
         }
@@ -14405,7 +14570,313 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
         console.log('✅ FASE 021: Menu laterale hamburger attivato!');
 
         // ============================================
-        // 🍔 MENU SISTEMA - FASE 020
+        // INTEGRAZIONE MENU SISTEMA OPENPORTE
+        // ============================================
+        
+        // Inizializza il menu dopo che l'app è pronta
+        const initMenuSistemaIntegrato = () => {
+            // Verifica che il menu sia disponibile
+            if (typeof MenuSistema === 'undefined') {
+                console.error('MenuSistema non trovato! Assicurati che menu-sistema-module.js sia caricato');
+                return;
+            }
+            
+            // Configura le azioni del menu per integrarsi con l'app esistente
+            MenuSistema.config.menuItems = [
+                {
+                    id: 'progetti',
+                    label: 'Lista Progetti',
+                    icon: '📁',
+                    action: () => {
+                        showScreen('list');
+                        MenuSistema.setActiveMenuItem('list');
+                    }
+                },
+                {
+                    id: 'nuovo-progetto',
+                    label: 'Nuovo Progetto',
+                    icon: '➕',
+                    action: () => {
+                        const projectId = 'project_' + Date.now();
+                        const newProject = createProject(projectId, 'Nuovo Progetto');
+                        state.projects.push(newProject);
+                        saveState();
+                        editProject(projectId);
+                        MenuSistema.closeMenu();
+                    }
+                },
+                {
+                    id: 'progetto-corrente',
+                    label: 'Progetto Corrente',
+                    icon: '🏗️',
+                    submenu: state.currentProject ? [
+                        {
+                            id: 'dati-cliente',
+                            label: 'Dati Cliente',
+                            icon: '👤',
+                            action: () => {
+                                showScreen('client');
+                                MenuSistema.closeMenu();
+                            }
+                        },
+                        {
+                            id: 'posizioni',
+                            label: 'Posizioni',
+                            icon: '📍',
+                            action: () => {
+                                showScreen('positions');
+                                MenuSistema.closeMenu();
+                            }
+                        },
+                        {
+                            id: 'rilievi-globali',
+                            label: 'Rilievi Globali',
+                            icon: '📐',
+                            action: () => {
+                                showScreen('rilievoGlobale');
+                                MenuSistema.closeMenu();
+                            }
+                        }
+                    ] : []
+                },
+                {
+                    id: 'sincronizzazione',
+                    label: 'Sincronizzazione',
+                    icon: '🔄',
+                    submenu: [
+                        {
+                            id: 'github-settings',
+                            label: 'Impostazioni GitHub',
+                            icon: '⚙️',
+                            action: () => {
+                                showGitHubSettings();
+                                MenuSistema.closeMenu();
+                            }
+                        },
+                        {
+                            id: 'sync-now',
+                            label: 'Sincronizza Ora',
+                            icon: '⬆️',
+                            action: () => {
+                                if (state.github?.connected) {
+                                    quickSync();
+                                    MenuSistema.closeMenu();
+                                } else {
+                                    showNotification('GitHub non connesso', 'error');
+                                }
+                            }
+                        },
+                        {
+                            id: 'download-github',
+                            label: 'Scarica da GitHub',
+                            icon: '⬇️',
+                            action: () => {
+                                if (state.github?.connected) {
+                                    downloadFromGitHub();
+                                    MenuSistema.closeMenu();
+                                } else {
+                                    showNotification('GitHub non connesso', 'error');
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    id: 'import-export',
+                    label: 'Import/Export',
+                    icon: '💾',
+                    submenu: [
+                        {
+                            id: 'export-json',
+                            label: 'Esporta Progetti',
+                            icon: '📤',
+                            action: () => {
+                                exportProjects();
+                                MenuSistema.closeMenu();
+                            }
+                        },
+                        {
+                            id: 'import-json',
+                            label: 'Importa Progetti',
+                            icon: '📥',
+                            action: () => {
+                                importProjects();
+                                MenuSistema.closeMenu();
+                            }
+                        },
+                        {
+                            id: 'backup-locale',
+                            label: 'Backup Locale',
+                            icon: '💾',
+                            action: () => {
+                                const backup = {
+                                    version: '1.0',
+                                    date: new Date().toISOString(),
+                                    state: state
+                                };
+                                const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `backup-openporte-${new Date().toISOString().split('T')[0]}.json`;
+                                a.click();
+                                showNotification('Backup creato', 'success');
+                                MenuSistema.closeMenu();
+                            }
+                        }
+                    ]
+                },
+                {
+                    id: 'statistiche',
+                    label: 'Statistiche',
+                    icon: '📊',
+                    action: () => {
+                        openStatistics();
+                        MenuSistema.closeMenu();
+                    }
+                },
+                {
+                    id: 'strumenti',
+                    label: 'Strumenti',
+                    icon: '🔧',
+                    submenu: [
+                        {
+                            id: 'verifica-sync',
+                            label: 'Verifica Sincronizzazione',
+                            icon: '🔍',
+                            action: () => {
+                                if (state.currentProject) {
+                                    const project = state.projects.find(p => p.id === state.currentProject);
+                                    if (project) {
+                                        verificaSincronizzazioneNecessaria(project);
+                                    }
+                                }
+                                MenuSistema.closeMenu();
+                            }
+                        },
+                        {
+                            id: 'clear-cache',
+                            label: 'Pulisci Cache',
+                            icon: '🧹',
+                            action: () => {
+                                if ('caches' in window) {
+                                    caches.keys().then(names => {
+                                        names.forEach(name => caches.delete(name));
+                                    });
+                                }
+                                showNotification('Cache pulita', 'success');
+                                MenuSistema.closeMenu();
+                            }
+                        },
+                        {
+                            id: 'debug-console',
+                            label: 'Console Debug',
+                            icon: '🐛',
+                            action: () => {
+                                console.log('=== STATO APPLICAZIONE ===');
+                                console.log('Progetti:', state.projects.length);
+                                console.log('Progetto corrente:', state.currentProject);
+                                console.log('GitHub connesso:', state.github?.connected || false);
+                                console.log('Ultimo sync:', state.github?.lastSyncTime || 'Mai');
+                                console.log('State completo:', state);
+                                showNotification('Debug stampato in console', 'info');
+                                MenuSistema.closeMenu();
+                            }
+                        }
+                    ]
+                },
+                {
+                    id: 'info',
+                    label: 'Informazioni',
+                    icon: 'ℹ️',
+                    submenu: [
+                        {
+                            id: 'version',
+                            label: 'Versione',
+                            icon: '📱',
+                            action: () => {
+                                alert(`OpenPorte v3.5-ULTIMATE-FIX\nMenu Sistema v1.0\nBuild: 10/11/2025\n\nFix applicati:\n✅ rilievoPersiane array→oggetto\n✅ state.github undefined\n✅ project.positions crash\n✅ Menu sistema integrato`);
+                            }
+                        },
+                        {
+                            id: 'help',
+                            label: 'Aiuto',
+                            icon: '❓',
+                            action: () => {
+                                alert('Per assistenza:\n\n📧 supporto@openporte.it\n📱 +39 XXX XXX XXXX\n🌐 www.openporte.it/help');
+                            }
+                        }
+                    ]
+                }
+            ];
+            
+            // Inizializza il menu
+            MenuSistema.init();
+            
+            // Aggiorna stato sync periodicamente
+            setInterval(() => {
+                MenuSistema.updateSyncStatus();
+            }, 5000);
+            
+            // Hook per aggiornare menu quando cambia schermata
+            const originalShowScreen = window.showScreen;
+            window.showScreen = function(screen) {
+                const result = originalShowScreen(screen);
+                MenuSistema.setActiveMenuItem(screen);
+                
+                // Aggiorna menu progetto corrente quando necessario
+                if (state.currentProject) {
+                    // Ricostruisci submenu progetto corrente
+                    const progettoMenu = MenuSistema.config.menuItems.find(m => m.id === 'progetto-corrente');
+                    if (progettoMenu) {
+                        progettoMenu.submenu = [
+                            {
+                                id: 'dati-cliente',
+                                label: 'Dati Cliente',
+                                icon: '👤',
+                                action: () => {
+                                    showScreen('client');
+                                    MenuSistema.closeMenu();
+                                }
+                            },
+                            {
+                                id: 'posizioni',
+                                label: 'Posizioni',
+                                icon: '📍',
+                                action: () => {
+                                    showScreen('positions');
+                                    MenuSistema.closeMenu();
+                                }
+                            },
+                            {
+                                id: 'rilievi-globali',
+                                label: 'Rilievi Globali',
+                                icon: '📐',
+                                action: () => {
+                                    showScreen('rilievoGlobale');
+                                    MenuSistema.closeMenu();
+                                }
+                            }
+                        ];
+                    }
+                }
+                
+                return result;
+            };
+            
+            console.log('✅ Menu Sistema OpenPorte integrato con successo!');
+        };
+        
+        // Inizializza quando DOM è pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initMenuSistemaIntegrato);
+        } else {
+            // DOM già pronto, inizializza subito
+            setTimeout(initMenuSistemaIntegrato, 100);
+        }
+
+        // ============================================
+        // 🍔 MENU SISTEMA - FASE 020 (VECCHIO - DISABILITATO)
         // ============================================
 
         window.toggleMenu = function() {
