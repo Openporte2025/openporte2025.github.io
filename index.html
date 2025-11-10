@@ -1608,6 +1608,12 @@
         .sync-info li {
             margin: 6px 0;
         }
+        
+        /* 🆕 Select con larghezza fissa uniforme */
+        select {
+            min-width: 200px;
+            width: 100%;
+        }
     </style>
     
     <!-- Menu Sistema Module INTEGRATO -->
@@ -2275,6 +2281,19 @@
 
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+        
+        // 🆕 Genera ID sequenziale per posizione: projectId-01, projectId-02, ecc
+        function generateSequentialPositionId(projectId, positions) {
+            const existingNumbers = positions
+                .map(p => {
+                    const match = p.id.match(new RegExp(`^${projectId}-(\\d+)$`));
+                    return match ? parseInt(match[1]) : 0;
+                })
+                .filter(n => n > 0);
+            
+            const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+            return `${projectId}-${String(nextNumber).padStart(2, '0')}`;
         }
         
         /**
@@ -6522,7 +6541,7 @@
                 const rilievoGlobaleInfissi = getRilievoGlobale(project, 'infissi');
                 
                 const pos = {
-                    id: generateId(),
+                    id: generateSequentialPositionId(projectId, project.positions),
                     name: `Pos. ${project.positions.length + 1}`,
                     piano: project.clientData?.piano || '',
                     ambiente: '',
@@ -7271,10 +7290,15 @@
                 // Se cambia tagliTelaio, RESET immediato dei codTagli per forzare aggiornamento
                 if (field === 'tagliTelaio') {
                     const tagliMap = {
-                        '1-lato': ['SOPRA'],
-                        '2-lati': ['SOPRA', 'SOTTO'],
-                        '3-lati': ['SOPRA', 'SX', 'DX'],
-                        '4-lati': ['SOPRA', 'SOTTO', 'SX', 'DX']
+                        'sopra': ['SOPRA'],
+                        'sotto': ['SOTTO'],
+                        'dx': ['DX'],
+                        'sx': ['SX'],
+                        'sopra-sotto': ['SOPRA', 'SOTTO'],
+                        'dx-sx': ['SX', 'DX'],
+                        '4-lati': ['SOPRA', 'SOTTO', 'SX', 'DX'],
+                        'sopra-laterali': ['SOPRA', 'SX', 'DX'],
+                        'sotto-laterali': ['SOTTO', 'SX', 'DX']
                     };
                     // RESET esplicito per forzare il render a mostrare i nuovi campi
                     project.configInfissi.codTagli = [...(tagliMap[value] || [])];
@@ -7288,6 +7312,9 @@
                     // Sincronizza codTagli con le posizioni
                     syncConfigToPositions(project, 'infisso', 'codTagli', project.configInfissi.codTagli, null);
                     syncConfigToPositions(project, 'infisso', 'codTagliValues', project.configInfissi.codTagliValues, null);
+                    
+                    // 🆕 RENDER IMMEDIATO per aggiornare i campi codice
+                    render();
                 }
                 
                 // AUTO-SYNC: Aggiorna automaticamente le posizioni dove non è stato modificato manualmente
@@ -8838,7 +8865,7 @@
                             ${renderSelectWithCustom(
                                 'tagliTelaio',
                                 project.configInfissi?.tagliTelaio || '',
-                                ['1-lato', '2-lati', '3-lati', '4-lati'],
+                                ['sopra', 'sotto', 'sopra-sotto', 'dx', 'sx', 'dx-sx', '4-lati', 'sopra-laterali', 'sotto-laterali'],
                                 project.id,
                                 null,
                                 'infisso',
