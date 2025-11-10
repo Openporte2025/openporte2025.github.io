@@ -6570,6 +6570,7 @@
                 updateProjectTimestamp(projectId, 'addPosition', `Aggiunta posizione: ${pos.name}`);
                 saveState();
                 state.currentPosition = pos.id;
+                state.screen = 'position'; // 🆕 Apri subito la posizione
                 showNotification('Posizione aggiunta', 'success');
                 render();
             }
@@ -7471,7 +7472,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v3.0 - Fase 023
+                                    Open Porte v3.0
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -14919,10 +14920,6 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                 
                 // Header
                 menuContainer.innerHTML = `
-                    <div class="menu-header">
-                        <div class="menu-title">OpenPorte</div>
-                        <div class="menu-subtitle">Sistema Gestione Cantieri</div>
-                    </div>
                     <div class="menu-items">
                         ${this.renderMenuItems(this.config.menuItems)}
                     </div>
