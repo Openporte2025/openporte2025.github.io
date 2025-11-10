@@ -3388,14 +3388,41 @@
                         const content = atob(contentData.content.replace(/\s/g, ''));
                         const projectData = JSON.parse(content);
                         
-                        console.log('✅ Downloaded project:', projectData.name);
+                        console.log('✅ Downloaded project:', projectData.name || projectData.id || 'unnamed');
+                        console.log('📦 Project structure:', Object.keys(projectData));
                         
-                        // Importa solo se non esiste già
-                        if (!existingIds.has(projectData.id)) {
-                            state.projects.push(projectData);
-                            importedCount++;
+                        // Gestisci diverse strutture possibili
+                        let projectsToImport = [];
+                        
+                        if (Array.isArray(projectData)) {
+                            // Array di progetti
+                            projectsToImport = projectData;
+                        } else if (projectData.projects && Array.isArray(projectData.projects)) {
+                            // Oggetto con array projects
+                            projectsToImport = projectData.projects;
+                        } else if (projectData.id && projectData.name) {
+                            // Singolo progetto
+                            projectsToImport = [projectData];
                         } else {
-                            console.log('⏭️ Skipped (already exists):', projectData.name);
+                            console.warn('⚠️ Unknown structure:', projectData);
+                            continue;
+                        }
+                        
+                        // Importa progetti
+                        for (const proj of projectsToImport) {
+                            if (!proj.id || !proj.name) {
+                                console.warn('⚠️ Invalid project (missing id or name):', proj);
+                                continue;
+                            }
+                            
+                            if (!existingIds.has(proj.id)) {
+                                state.projects.push(proj);
+                                existingIds.add(proj.id);
+                                importedCount++;
+                                console.log('✅ Imported:', proj.name);
+                            } else {
+                                console.log('⏭️ Skipped (already exists):', proj.name);
+                            }
                         }
                         
                     } catch (error) {
