@@ -470,17 +470,68 @@
                     email: ''
                 },
                 positions: [],
+                // Rilievi globali
                 rilievoInfissi: {},
                 rilievoPersiane: {},
                 rilievoTapparelle: {},
                 rilievoZanzariere: {},
                 rilievoCassonetti: {},
+                // Configurazioni globali
+                configInfissi: {},
+                configPersiane: {},
+                configTapparelle: {},
+                configZanzariere: {},
+                configCassonetti: {},
+                // BRM Config
+                brmConfigInfissi: {},
+                brmConfigPersiane: {},
+                brmConfigTapparelle: {},
                 metadata: {
                     createdAt: new Date().toISOString(),
                     lastModified: new Date().toISOString(),
                     syncStatus: 'local',
                     version: '4.0'
                 }
+            };
+        }
+        
+        function generateId() {
+            return 'pos_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 9);
+        }
+        
+        function createEmptyPosition(project) {
+            return {
+                id: generateId(),
+                name: `Pos. ${(project.positions?.length || 0) + 1}`,
+                piano: '',
+                ambiente: '',
+                quantita: '1',
+                // Prodotti presenti
+                infisso: false,
+                persiana: false,
+                tapparella: false,
+                zanzariera: false,
+                cassonetto: false,
+                // Misure
+                misure: {},
+                // Rilievo posizione
+                rilievo: {
+                    togliere: false,
+                    smaltimento: false,
+                    materiale: '',
+                    coprifiliInt: false,
+                    coprifiliEst: false,
+                    note: ''
+                },
+                // Dati prodotti
+                infissi: [],
+                persiane: [],
+                tapparelle: [],
+                zanzariere: [],
+                cassonetti: [],
+                foto: [],
+                note: '',
+                noteVisibilita: []
             };
         }
         
@@ -698,6 +749,44 @@
                             <span class="menu-icon">➕</span>
                             <span class="menu-label">Nuovo Progetto</span>
                         </div>
+                        <div class="menu-item" data-section="config">
+                            <span class="menu-icon">⚙️</span>
+                            <span class="menu-label">Config Globali</span>
+                            <span class="menu-arrow">›</span>
+                        </div>
+                        <div class="submenu" id="submenu-config">
+                            <div class="submenu-item" data-action="config-infissi">
+                                <span class="menu-icon">🪟</span>
+                                <span>Config Infissi</span>
+                            </div>
+                            <div class="submenu-item" data-action="config-persiane">
+                                <span class="menu-icon">🚪</span>
+                                <span>Config Persiane</span>
+                            </div>
+                            <div class="submenu-item" data-action="config-tapparelle">
+                                <span class="menu-icon">🎚️</span>
+                                <span>Config Tapparelle</span>
+                            </div>
+                        </div>
+                        <div class="menu-item" data-section="rilievi">
+                            <span class="menu-icon">📏</span>
+                            <span class="menu-label">Rilievi Globali</span>
+                            <span class="menu-arrow">›</span>
+                        </div>
+                        <div class="submenu" id="submenu-rilievi">
+                            <div class="submenu-item" data-action="rilievo-infissi">
+                                <span class="menu-icon">🪟</span>
+                                <span>Rilievo Infissi</span>
+                            </div>
+                            <div class="submenu-item" data-action="rilievo-persiane">
+                                <span class="menu-icon">🚪</span>
+                                <span>Rilievo Persiane</span>
+                            </div>
+                            <div class="submenu-item" data-action="rilievo-tapparelle">
+                                <span class="menu-icon">🎚️</span>
+                                <span>Rilievo Tapparelle</span>
+                            </div>
+                        </div>
                         <div class="menu-item" data-section="sync">
                             <span class="menu-icon">☁️</span>
                             <span class="menu-label">Sincronizzazione</span>
@@ -795,6 +884,18 @@
                         break;
                     case 'new':
                         createNewProject();
+                        break;
+                    case 'config-infissi':
+                    case 'config-persiane':
+                    case 'config-tapparelle':
+                    case 'rilievo-infissi':
+                    case 'rilievo-persiane':
+                    case 'rilievo-tapparelle':
+                        if (state.currentProject) {
+                            showConfigGlobal(state.currentProject);
+                        } else {
+                            showNotification('Apri prima un progetto', 'warning');
+                        }
                         break;
                     case 'github-settings':
                         showGitHubSettings();
@@ -929,9 +1030,76 @@
                 case 'project-detail':
                     app.innerHTML = renderProjectDetail();
                     break;
+                case 'position-detail':
+                    app.innerHTML = renderPositionDetail();
+                    break;
+                case 'config-global':
+                    app.innerHTML = renderConfigGlobal();
+                    break;
                 default:
                     app.innerHTML = renderProjectList();
             }
+        }
+        
+        // ===== GESTIONE POSIZIONI =====
+        function addPosition(projectId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const newPos = createEmptyPosition(project);
+            project.positions.push(newPos);
+            project.metadata.lastModified = new Date().toISOString();
+            
+            saveState();
+            showNotification('Posizione aggiunta', 'success');
+            
+            // Apri direttamente la posizione
+            state.currentPosition = newPos.id;
+            showScreen('position-detail');
+        }
+        
+        function openPosition(positionId) {
+            state.currentPosition = positionId;
+            showScreen('position-detail');
+        }
+        
+        function deletePosition(projectId, positionId) {
+            if (!confirm('Eliminare questa posizione?')) return;
+            
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            project.positions = project.positions.filter(p => p.id !== positionId);
+            project.metadata.lastModified = new Date().toISOString();
+            
+            saveState();
+            showNotification('Posizione eliminata', 'success');
+            showScreen('project-detail');
+        }
+        
+        function savePosition() {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            if (!project) return;
+            
+            const pos = project.positions.find(p => p.id === state.currentPosition);
+            if (!pos) return;
+            
+            // Salva dati form
+            pos.name = document.getElementById('pos-name')?.value || pos.name;
+            pos.piano = document.getElementById('pos-piano')?.value || '';
+            pos.ambiente = document.getElementById('pos-ambiente')?.value || '';
+            pos.note = document.getElementById('pos-note')?.value || '';
+            
+            // Salva selezione prodotti
+            pos.infisso = document.getElementById('prod-infisso')?.checked || false;
+            pos.persiana = document.getElementById('prod-persiana')?.checked || false;
+            pos.tapparella = document.getElementById('prod-tapparella')?.checked || false;
+            pos.zanzariera = document.getElementById('prod-zanzariera')?.checked || false;
+            pos.cassonetto = document.getElementById('prod-cassonetto')?.checked || false;
+            
+            project.metadata.lastModified = new Date().toISOString();
+            saveState();
+            showNotification('Posizione salvata', 'success');
         }
         
         function renderProjectList() {
@@ -1021,28 +1189,253 @@
                 return '<div class="container"><p>Progetto non trovato</p></div>';
             }
             
+            const positionsHTML = project.positions.map(pos => `
+                <div class="project-card" onclick="openPosition('${pos.id}')">
+                    <div class="project-title">${pos.name}</div>
+                    <div class="project-client">
+                        📍 ${pos.piano || 'Piano'} • ${pos.ambiente || 'Ambiente'}
+                    </div>
+                    <div class="project-positions">
+                        ${pos.infisso ? '🪟 Infisso ' : ''}
+                        ${pos.persiana ? '🚪 Persiana ' : ''}
+                        ${pos.tapparella ? '🎚️ Tapparella ' : ''}
+                        ${pos.zanzariera ? '🦟 Zanzariera ' : ''}
+                        ${pos.cassonetto ? '📦 Cassonetto' : ''}
+                    </div>
+                </div>
+            `).join('');
+            
             return `
                 <div class="container">
                     <div class="header">
                         <h1>${project.name}</h1>
                         <div class="header-actions">
                             <button class="btn btn-primary" onclick="editProject('${project.id}')">✏️ Modifica</button>
+                            <button class="btn btn-success" onclick="showConfigGlobal('${project.id}')">⚙️ Config Globali</button>
                             <button class="btn btn-success" onclick="uploadProjectToGitHub('${project.id}')">⬆️ Carica su GitHub</button>
                             <button class="btn btn-primary" onclick="showScreen('project-list')">← Lista Progetti</button>
                         </div>
                     </div>
-                    <div style="background: white; padding: 30px; border-radius: 10px;">
+                    <div style="background: white; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
                         <h3>Informazioni Cliente</h3>
                         <p><strong>Nome:</strong> ${project.client || 'N/D'}</p>
                         <p><strong>Telefono:</strong> ${project.clientData?.telefono || 'N/D'}</p>
                         <p><strong>Email:</strong> ${project.clientData?.email || 'N/D'}</p>
-                        <hr style="margin: 20px 0;">
-                        <h3>Posizioni</h3>
-                        <p>Totale posizioni: ${project.positions?.length || 0}</p>
-                        <button class="btn btn-primary" onclick="alert('Funzionalità posizioni in sviluppo')">➕ Aggiungi Posizione</button>
+                    </div>
+                    
+                    <div style="background: white; padding: 30px; border-radius: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>Posizioni (${project.positions?.length || 0})</h3>
+                            <button class="btn btn-success" onclick="addPosition('${project.id}')">➕ Aggiungi Posizione</button>
+                        </div>
+                        
+                        ${project.positions.length === 0 ? `
+                            <div class="empty-state">
+                                <h3>Nessuna posizione</h3>
+                                <p>Aggiungi la prima posizione al progetto</p>
+                            </div>
+                        ` : `
+                            <div class="projects-grid">
+                                ${positionsHTML}
+                            </div>
+                        `}
                     </div>
                 </div>
             `;
+        }
+        
+        function renderPositionDetail() {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            if (!project) return '<div class="container"><p>Progetto non trovato</p></div>';
+            
+            const pos = project.positions.find(p => p.id === state.currentPosition);
+            if (!pos) return '<div class="container"><p>Posizione non trovata</p></div>';
+            
+            return `
+                <div class="container">
+                    <div class="header">
+                        <h1>📍 ${pos.name}</h1>
+                        <div class="header-actions">
+                            <button class="btn btn-success" onclick="savePosition()">💾 Salva</button>
+                            <button class="btn btn-danger" onclick="deletePosition('${project.id}', '${pos.id}')">🗑️ Elimina</button>
+                            <button class="btn btn-primary" onclick="state.currentProject='${project.id}'; showScreen('project-detail')">← Torna al Progetto</button>
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
+                        <h3>Dati Posizione</h3>
+                        <div class="form-group">
+                            <label>Nome Posizione</label>
+                            <input type="text" id="pos-name" value="${pos.name}" placeholder="Es: Soggiorno 1">
+                        </div>
+                        <div class="form-group">
+                            <label>Piano</label>
+                            <input type="text" id="pos-piano" value="${pos.piano || ''}" placeholder="Es: Piano Terra">
+                        </div>
+                        <div class="form-group">
+                            <label>Ambiente</label>
+                            <input type="text" id="pos-ambiente" value="${pos.ambiente || ''}" placeholder="Es: Soggiorno">
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
+                        <h3>Prodotti da Installare</h3>
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" id="prod-infisso" ${pos.infisso ? 'checked' : ''}>
+                                <span style="font-size: 24px;">🪟</span>
+                                <span style="font-weight: 500;">Infisso</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" id="prod-persiana" ${pos.persiana ? 'checked' : ''}>
+                                <span style="font-size: 24px;">🚪</span>
+                                <span style="font-weight: 500;">Persiana</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" id="prod-tapparella" ${pos.tapparella ? 'checked' : ''}>
+                                <span style="font-size: 24px;">🎚️</span>
+                                <span style="font-weight: 500;">Tapparella</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" id="prod-zanzariera" ${pos.zanzariera ? 'checked' : ''}>
+                                <span style="font-size: 24px;">🦟</span>
+                                <span style="font-weight: 500;">Zanzariera</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" id="prod-cassonetto" ${pos.cassonetto ? 'checked' : ''}>
+                                <span style="font-size: 24px;">📦</span>
+                                <span style="font-weight: 500;">Cassonetto</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 30px; border-radius: 10px;">
+                        <h3>Note</h3>
+                        <div class="form-group">
+                            <textarea id="pos-note" placeholder="Note sulla posizione...">${pos.note || ''}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderConfigGlobal() {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            if (!project) return '<div class="container"><p>Progetto non trovato</p></div>';
+            
+            return `
+                <div class="container">
+                    <div class="header">
+                        <h1>⚙️ Configurazioni Globali</h1>
+                        <div class="header-actions">
+                            <button class="btn btn-success" onclick="saveConfigGlobal()">💾 Salva</button>
+                            <button class="btn btn-primary" onclick="state.currentProject='${project.id}'; showScreen('project-detail')">← Torna al Progetto</button>
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
+                        <h3>🪟 Configurazione Infissi</h3>
+                        <div class="form-group">
+                            <label>Azienda/Fornitore</label>
+                            <input type="text" id="config-infissi-azienda" value="${project.configInfissi?.azienda || ''}" placeholder="Es: Finstral">
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo Telaio</label>
+                            <input type="text" id="config-infissi-telaio" value="${project.configInfissi?.telaio || ''}" placeholder="Es: PVC">
+                        </div>
+                        <div class="form-group">
+                            <label>Colore Interno</label>
+                            <input type="text" id="config-infissi-coloreInt" value="${project.configInfissi?.coloreInt || ''}" placeholder="Es: Bianco">
+                        </div>
+                        <div class="form-group">
+                            <label>Colore Esterno</label>
+                            <input type="text" id="config-infissi-coloreEst" value="${project.configInfissi?.coloreEst || ''}" placeholder="Es: Rovere">
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
+                        <h3>🚪 Configurazione Persiane</h3>
+                        <div class="form-group">
+                            <label>Tipo Persiana</label>
+                            <input type="text" id="config-persiane-tipo" value="${project.configPersiane?.tipo || ''}" placeholder="Es: Scorrevole">
+                        </div>
+                        <div class="form-group">
+                            <label>Materiale</label>
+                            <input type="text" id="config-persiane-materiale" value="${project.configPersiane?.materiale || ''}" placeholder="Es: Alluminio">
+                        </div>
+                        <div class="form-group">
+                            <label>Colore</label>
+                            <input type="text" id="config-persiane-colore" value="${project.configPersiane?.colore || ''}" placeholder="Es: Verde">
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 30px; border-radius: 10px;">
+                        <h3>📏 Rilievo Globale Infissi</h3>
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <label style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="rilievo-togliere" ${project.rilievoInfissi?.togliere ? 'checked' : ''}>
+                                <span>Da togliere infissi esistenti</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="rilievo-smaltimento" ${project.rilievoInfissi?.smaltimento ? 'checked' : ''}>
+                                <span>Smaltimento necessario</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="rilievo-coprifiliInt" ${project.rilievoInfissi?.coprifiliInt ? 'checked' : ''}>
+                                <span>Coprifili interni</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="rilievo-coprifiliEst" ${project.rilievoInfissi?.coprifiliEst ? 'checked' : ''}>
+                                <span>Coprifili esterni</span>
+                            </label>
+                        </div>
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label>Materiale Muro</label>
+                            <input type="text" id="rilievo-materiale" value="${project.rilievoInfissi?.materiale || ''}" placeholder="Es: Mattoni, Cemento">
+                        </div>
+                        <div class="form-group">
+                            <label>Note Rilievo</label>
+                            <textarea id="rilievo-note">${project.rilievoInfissi?.note || ''}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showConfigGlobal(projectId) {
+            state.currentProject = projectId;
+            showScreen('config-global');
+        }
+        
+        function saveConfigGlobal() {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            if (!project) return;
+            
+            // Salva config infissi
+            project.configInfissi = project.configInfissi || {};
+            project.configInfissi.azienda = document.getElementById('config-infissi-azienda')?.value || '';
+            project.configInfissi.telaio = document.getElementById('config-infissi-telaio')?.value || '';
+            project.configInfissi.coloreInt = document.getElementById('config-infissi-coloreInt')?.value || '';
+            project.configInfissi.coloreEst = document.getElementById('config-infissi-coloreEst')?.value || '';
+            
+            // Salva config persiane
+            project.configPersiane = project.configPersiane || {};
+            project.configPersiane.tipo = document.getElementById('config-persiane-tipo')?.value || '';
+            project.configPersiane.materiale = document.getElementById('config-persiane-materiale')?.value || '';
+            project.configPersiane.colore = document.getElementById('config-persiane-colore')?.value || '';
+            
+            // Salva rilievo globale
+            project.rilievoInfissi = project.rilievoInfissi || {};
+            project.rilievoInfissi.togliere = document.getElementById('rilievo-togliere')?.checked || false;
+            project.rilievoInfissi.smaltimento = document.getElementById('rilievo-smaltimento')?.checked || false;
+            project.rilievoInfissi.coprifiliInt = document.getElementById('rilievo-coprifiliInt')?.checked || false;
+            project.rilievoInfissi.coprifiliEst = document.getElementById('rilievo-coprifiliEst')?.checked || false;
+            project.rilievoInfissi.materiale = document.getElementById('rilievo-materiale')?.value || '';
+            project.rilievoInfissi.note = document.getElementById('rilievo-note')?.value || '';
+            
+            project.metadata.lastModified = new Date().toISOString();
+            saveState();
+            showNotification('Configurazioni salvate', 'success');
         }
         
         // ===== AZIONI PROGETTI =====
