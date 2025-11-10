@@ -15291,50 +15291,8 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }, 5000);
             
             // Hook per aggiornare menu quando cambia schermata
-            const originalShowScreen = window.showScreen;
-            window.showScreen = function(screen) {
-                const result = originalShowScreen(screen);
-                MenuSistema.setActiveMenuItem(screen);
-                
-                // Aggiorna menu progetto corrente quando necessario
-                if (state.currentProject) {
-                    // Ricostruisci submenu progetto corrente
-                    const progettoMenu = MenuSistema.config.menuItems.find(m => m.id === 'progetto-corrente');
-                    if (progettoMenu) {
-                        progettoMenu.submenu = [
-                            {
-                                id: 'dati-cliente',
-                                label: 'Dati Cliente',
-                                icon: '👤',
-                                action: () => {
-                                    showScreen('client');
-                                    MenuSistema.closeMenu();
-                                }
-                            },
-                            {
-                                id: 'posizioni',
-                                label: 'Posizioni',
-                                icon: '📍',
-                                action: () => {
-                                    showScreen('positions');
-                                    MenuSistema.closeMenu();
-                                }
-                            },
-                            {
-                                id: 'rilievi-globali',
-                                label: 'Rilievi Globali',
-                                icon: '📐',
-                                action: () => {
-                                    showScreen('rilievoGlobale');
-                                    MenuSistema.closeMenu();
-                                }
-                            }
-                        ];
-                    }
-                }
-                
-                return result;
-            };
+            // NOTA: showScreen verrà definito dopo, quindi non possiamo wrapparlo qui
+            // Il menu si aggiornerà tramite altri eventi
             
             console.log('✅ Menu Sistema OpenPorte integrato con successo!');
         };
