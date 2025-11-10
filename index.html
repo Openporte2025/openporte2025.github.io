@@ -1809,6 +1809,12 @@
                     syncNotifications: true
                 };
             }
+            
+            // 🔧 FIX CRITICO: Assicura che state.projects sia sempre un array
+            if (!state.projects || !Array.isArray(state.projects)) {
+                console.warn('⚠️ state.projects non era un array, lo reimposto');
+                state.projects = [];
+            }
         }
 
         // 📦 FASE 027K: Migrazione struttura GitHub per backward compatibility
@@ -7482,7 +7488,7 @@
             return `
                 ${Header()}
                 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                    ${state.projects.map(p => `
+                    ${(state.projects || []).map(p => `
                         <div class="section-card hover:transform hover:scale-105 transition-all cursor-pointer relative"
                              onclick="openProject('${p.id}')">
                             <div class="flex justify-between items-start mb-3">
