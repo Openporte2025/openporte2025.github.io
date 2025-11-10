@@ -1795,6 +1795,20 @@
                     console.error('Error loading state:', e);
                 }
             }
+            
+            // 🔧 FIX CRITICO: Assicura che state.github esista SEMPRE, anche se loadState fallisce
+            if (!state.github) {
+                console.warn('⚠️ state.github non esisteva, lo creo ora');
+                state.github = {
+                    connected: false,
+                    token: null,
+                    lastSyncTime: null,
+                    syncStatus: 'disconnected',
+                    autoSyncEnabled: true,
+                    autoBackupEnabled: true,
+                    syncNotifications: true
+                };
+            }
         }
 
         // 📦 FASE 027K: Migrazione struttura GitHub per backward compatibility
