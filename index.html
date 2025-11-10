@@ -3029,6 +3029,11 @@
         }
         
         async function handleAuthCallback() {
+            // 🔧 FIX: OneDrive rimosso, ignora callback
+            if (!state.onedrive) {
+                return;
+            }
+            
             // Gestisce il callback dopo l'autenticazione
             const urlParams = new URLSearchParams(window.location.search);
             const code = urlParams.get('code');
@@ -14357,16 +14362,6 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }
         });
 
-        // ☁️ FASE 022a: Inizializzazione OneDrive Sync
-        // Gestisci callback OAuth se presente nell'URL
-        handleAuthCallback();
-        
-        // Avvia auto-sync se connesso
-        if (state.onedrive.connected && state.onedrive.autoSyncEnabled) {
-            startAutoSync();
-            console.log('✅ OneDrive auto-sync attivata');
-        }
-        
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             // Ctrl/Cmd + K per ricerca
