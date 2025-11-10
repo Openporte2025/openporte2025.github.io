@@ -5804,26 +5804,21 @@
             
             misurePosizione.forEach(field => {
                 const val = pos.misure?.[field];
-                if (val !== undefined && val !== null && val !== '') {
+                // Valore valido: NON vuoto E NON zero
+                if (val !== undefined && val !== null && val !== '' && parseFloat(val) !== 0) {
                     misureCompilate++;
                 }
             });
             
-            // Controlla se c'è il flag "misure parziali OK"
-            const misureParzialiOk = pos.misureParziali === true;
-            
-            if (misureCompilate >= 2 && misureParzialiOk) {
-                // Ha dichiarato che per ora bastano queste misure
-                score += 34;
-            } else if (misureCompilate >= 4) {
-                // Ha almeno 4 misure complete (OK anche senza flag)
+            if (misureCompilate >= 4) {
+                // 4 o più misure = OK completo
                 score += 34;
             } else if (misureCompilate >= 2) {
-                // Ha almeno 2 misure ma non ha spuntato il flag
-                score += 17; // Punteggio parziale
-                missing.push(`Misure posizione parziali (${misureCompilate}/8) - Spunta "Per ora queste misure" per confermare`);
+                // 2-3 misure = parziale
+                score += 17;
+                missing.push(`Misure posizione parziali (${misureCompilate}/8) - Inserisci almeno 4 misure per completare`);
             } else {
-                // Meno di 2 misure
+                // Meno di 2 misure = mancanti
                 missing.push(`Misure posizione mancanti (${misureCompilate}/8 compilate, minimo 2)`);
             }
             
@@ -7276,22 +7271,23 @@
                 // Se cambia tagliTelaio, RESET immediato dei codTagli per forzare aggiornamento
                 if (field === 'tagliTelaio') {
                     const tagliMap = {
-                        'sopra': ['SOPRA'],
-                        'sotto': ['SOTTO'],
-                        'dx': ['DX'],
-                        'sx': ['SX'],
-                        'sopra-sotto': ['SOPRA', 'SOTTO'],
-                        'dx-sx': ['SX', 'DX'],
-                        '4-lati': ['SOPRA', 'SOTTO', 'SX', 'DX'],
-                        'sopra-laterali': ['SOPRA', 'SX', 'DX'],
-                        'sotto-laterali': ['SOTTO', 'SX', 'DX']
+                        '1-lato': ['SOPRA'],
+                        '2-lati': ['SOPRA', 'SOTTO'],
+                        '3-lati': ['SOPRA', 'SX', 'DX'],
+                        '4-lati': ['SOPRA', 'SOTTO', 'SX', 'DX']
                     };
                     // RESET esplicito per forzare il render a mostrare i nuovi campi
                     project.configInfissi.codTagli = [...(tagliMap[value] || [])];
+                    
+                    // Inizializza codTagliValues con stringhe vuote
+                    project.configInfissi.codTagliValues = new Array(project.configInfissi.codTagli.length).fill('');
+                    
                     console.log('   codTagli auto-impostati:', project.configInfissi.codTagli);
+                    console.log('   codTagliValues inizializzati:', project.configInfissi.codTagliValues);
                     
                     // Sincronizza codTagli con le posizioni
                     syncConfigToPositions(project, 'infisso', 'codTagli', project.configInfissi.codTagli, null);
+                    syncConfigToPositions(project, 'infisso', 'codTagliValues', project.configInfissi.codTagliValues, null);
                 }
                 
                 // AUTO-SYNC: Aggiorna automaticamente le posizioni dove non è stato modificato manualmente
@@ -7304,24 +7300,23 @@
             }
         };
         
-        // Funzione per aggiornare un singolo COD.TAGLI globale
-        window.updateCodTagliGlobale = (projectId, index, value) => {
+        // Funzione per aggiornare i VALORI dei COD.TAGLI (non le etichette)
+        window.updateCodTagliValue = (projectId, index, value) => {
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
-                if (!project.configInfissi.codTagli) {
-                    project.configInfissi.codTagli = [];
+                if (!project.configInfissi.codTagliValues) {
+                    project.configInfissi.codTagliValues = [];
                 }
                 
-                // 🆕 Salva il vecchio array PRIMA di aggiornare
-                const oldValue = [...project.configInfissi.codTagli];
+                // Salva il vecchio array PRIMA di aggiornare
+                const oldValue = [...(project.configInfissi.codTagliValues || [])];
                 
-                project.configInfissi.codTagli[index] = value;
+                project.configInfissi.codTagliValues[index] = value;
                 
-                // 🆕 AUTO-SYNC: Aggiorna automaticamente le posizioni dove non è stato modificato manualmente
-                syncConfigToPositions(project, 'infisso', 'codTagli', project.configInfissi.codTagli, oldValue);
+                // AUTO-SYNC: Aggiorna automaticamente le posizioni
+                syncConfigToPositions(project, 'infisso', 'codTagliValues', project.configInfissi.codTagliValues, oldValue);
                 
                 saveState();
-                // Non fare render completo per mantenere il focus
             }
         };
         
@@ -8843,36 +8838,59 @@
                             ${renderSelectWithCustom(
                                 'tagliTelaio',
                                 project.configInfissi?.tagliTelaio || '',
-                                ['sopra', 'sotto', 'sopra-sotto', 'dx', 'sx', 'dx-sx', '4-lati', 'sopra-laterali', 'sotto-laterali'],
+                                ['1-lato', '2-lati', '3-lati', '4-lati'],
                                 project.id,
                                 null,
                                 'infisso',
                                 '10. Tagli Telaio'
                             )}
 
-                            <!-- 11. COD.TAGLI (Editabili - si sincronizzano con le posizioni) -->
+                            <!-- 11. COD.TAGLI (Editabili con etichette chiare) -->
                             <div>
                                 <label class="block text-base font-bold mb-1 text-gray-800">11. COD.TAGLI</label>
-                                <div class="grid gap-2" style="grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));">
-                                    ${(() => {
-                                        const tagliTelaio = project.configInfissi?.tagliTelaio || '';
-                                        const codTagli = project.configInfissi?.codTagli || [];
-                                        
-                                        if (codTagli.length === 0) {
-                                            return '<input type="text" readonly placeholder="▼ Seleziona Tagli Telaio prima" class="w-full px-3 py-2.5 border-2 border-orange-400 bg-orange-50 rounded-lg text-gray-700 font-mono text-center font-medium">';
-                                        }
-                                        
-                                        // Mostra direttamente i campi basati su codTagli (già corretto da updateConfigInfissi)
-                                        return codTagli.map((taglio, idx) => `
-                                            <input type="text" 
-                                                   value="${taglio}"
-                                                   onchange="updateCodTagliGlobale('${project.id}', ${idx}, this.value)"
-                                                   placeholder="${taglio}"
-                                                   class="w-full px-2 py-2 border-2 border-purple-400 bg-purple-50 rounded-lg text-gray-800 font-mono text-center font-bold text-base focus:ring-2 focus:ring-purple-500 focus:border-purple-600">
-                                        `).join('');
-                                    })()}
-                                </div>
-                                <p class="text-sm text-gray-600 mt-1.5 font-medium">💡 Questi valori si copiano nelle posizioni (modificabili singolarmente)</p>
+                                ${(() => {
+                                    const tagliTelaio = project.configInfissi?.tagliTelaio || '';
+                                    const codTagli = project.configInfissi?.codTagli || [];
+                                    
+                                    if (!tagliTelaio || codTagli.length === 0) {
+                                        return `
+                                            <div class="p-4 bg-orange-50 border-2 border-orange-400 rounded-lg">
+                                                <p class="text-orange-800 font-medium">⚠️ Seleziona prima "Tagli Telaio"</p>
+                                            </div>
+                                        `;
+                                    }
+                                    
+                                    // Mappa posizioni con etichette italiane
+                                    const labelMap = {
+                                        'SOPRA': '↑ SOPRA',
+                                        'SOTTO': '↓ SOTTO',
+                                        'SX': '← SX',
+                                        'DX': '→ DX'
+                                    };
+                                    
+                                    return `
+                                        <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+                                            ${codTagli.map((etichetta, idx) => {
+                                                const codice = project.configInfissi?.codTagliValues?.[idx] || '';
+                                                const isEmpty = !codice || codice.trim() === '';
+                                                
+                                                return `
+                                                    <div class="flex flex-col">
+                                                        <label class="text-xs font-bold mb-1 text-gray-700">${labelMap[etichetta] || etichetta}</label>
+                                                        <input type="text" 
+                                                               value="${codice}"
+                                                               onchange="updateCodTagliValue('${project.id}', ${idx}, this.value)"
+                                                               placeholder="Inserisci codice"
+                                                               class="w-full px-3 py-2.5 border-2 rounded-lg font-mono text-center font-bold text-base focus:ring-2 focus:ring-purple-500 ${
+                                                                   isEmpty ? 'border-orange-400 bg-orange-50' : 'border-purple-400 bg-purple-50'
+                                                               }">
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                        <p class="text-sm text-gray-600 mt-2 font-medium">💡 Inserisci i codici per ogni posizione. Questi valori si copiano nelle posizioni (modificabili singolarmente)</p>
+                                    `;
+                                })()}
                             </div>
                         </div>
                     </div>
@@ -10530,37 +10548,18 @@
                     `}
                     
                     <div class="bg-gray-50 rounded-lg p-4">
-                        <div class="flex justify-between items-center mb-3">
-                            <p class="text-sm font-bold text-gray-700">Misure Principali (mm)</p>
-                            <span class="text-xs text-gray-500 italic" title="Puoi inserire 0 se una misura è zero o non applicabile">
-                                💡 Anche 0 è valido
-                            </span>
-                        </div>
+                        <p class="text-sm font-bold text-gray-700 mb-3">Misure Principali (mm)</p>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                             ${['LVT', 'HVT', 'LF', 'HF', 'TMV', 'HMT', 'L4', 'H4'].map(field => `
                                 <div>
                                     <label class="text-xs font-semibold">${field}</label>
-                                    <input type="number" placeholder="0"
+                                    <input type="number" placeholder="-"
                                            value="${pos.misure?.[field] || ''}"
                                            onchange="updateMisuraWithValidation('${project.id}', '${pos.id}', '${field}', this.value)"
                                            class="w-full compact-input border rounded mt-1 font-semibold ${getFieldValidationClass(project, pos, field)}">
                                     ${getFieldValidationMessage(project, pos, field)}
                                 </div>
                             `).join('')}
-                        </div>
-                        
-                        <!-- 🆕 Checkbox Misure Parziali -->
-                        <div class="mt-3 pt-3 border-t border-gray-300">
-                            <label class="flex items-start gap-2 cursor-pointer">
-                                <input type="checkbox" 
-                                       ${pos.misureParziali === true ? 'checked' : ''}
-                                       onchange="toggleMisureParziali('${project.id}', '${pos.id}', this.checked)"
-                                       class="mt-0.5 w-4 h-4">
-                                <span class="text-xs text-gray-700">
-                                    <strong>✓ Per ora queste misure bastano</strong>
-                                    <br><span class="text-gray-600">Spunta se hai inserito solo 2, 4 o 6 misure e completerai il resto dopo</span>
-                                </span>
-                            </label>
                         </div>
                     </div>
 
