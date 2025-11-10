@@ -10575,13 +10575,15 @@
                     
                     <div class="bg-gray-50 rounded-lg p-4">
                         <p class="text-sm font-bold text-gray-700 mb-3">Misure Principali (mm)</p>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            ${['LVT', 'HVT', 'LF', 'HF', 'TMV', 'HMT', 'L4', 'H4'].map(field => `
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="misure-grid-${pos.id}">
+                            ${['LVT', 'HVT', 'LF', 'HF', 'TMV', 'HMT', 'L4', 'H4'].map((field, index) => `
                                 <div>
                                     <label class="text-xs font-semibold">${field}</label>
                                     <input type="number" placeholder="-"
                                            value="${pos.misure?.[field] || ''}"
                                            onchange="updateMisuraWithValidation('${project.id}', '${pos.id}', '${field}', this.value)"
+                                           onkeydown="handleMisureTabNavigation(event, '${pos.id}', ${index}, 8)"
+                                           data-field-index="${index}"
                                            class="w-full compact-input border rounded mt-1 font-semibold ${getFieldValidationClass(project, pos, field)}">
                                     ${getFieldValidationMessage(project, pos, field)}
                                 </div>
@@ -13918,6 +13920,34 @@
                     if (!pos.misure) pos.misure = {};
                     pos.misure[field] = value;
                     saveState();
+                }
+            }
+        };
+
+        // 🆕 Gestione navigazione TAB tra campi misure
+        window.handleMisureTabNavigation = (event, posId, currentIndex, totalFields) => {
+            if (event.key === 'Tab') {
+                event.preventDefault();
+                
+                const grid = document.getElementById(`misure-grid-${posId}`);
+                if (!grid) return;
+                
+                const inputs = grid.querySelectorAll('input[type="number"]');
+                
+                if (event.shiftKey) {
+                    // SHIFT+TAB: vai indietro
+                    const prevIndex = currentIndex - 1;
+                    if (prevIndex >= 0 && inputs[prevIndex]) {
+                        inputs[prevIndex].focus();
+                        inputs[prevIndex].select();
+                    }
+                } else {
+                    // TAB: vai avanti
+                    const nextIndex = currentIndex + 1;
+                    if (nextIndex < totalFields && inputs[nextIndex]) {
+                        inputs[nextIndex].focus();
+                        inputs[nextIndex].select();
+                    }
                 }
             }
         };
