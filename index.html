@@ -5713,22 +5713,30 @@
             let score = 0;
             const missing = [];
             
-            // 1. Nome posizione (20 punti)
+            // ========================================
+            // STEP 1: AMBIENTE (33 punti)
+            // ========================================
+            let step1Score = 0;
+            
+            // Nome posizione (16.5 punti)
             if (pos.name && pos.name.trim() !== '') {
-                score += 20;
+                step1Score += 16.5;
             } else {
                 missing.push('Nome posizione');
             }
             
-            // 2. Ambiente (20 punti)
+            // Ambiente (16.5 punti)
             if (pos.ambiente && pos.ambiente.trim() !== '') {
-                score += 20;
+                step1Score += 16.5;
             } else {
                 missing.push('Ambiente');
             }
             
-            // 🔧 FASE 014 FIX: Controlla TUTTI i prodotti abilitati nel PROGETTO
-            // Non solo quelli presenti nella posizione!
+            score += Math.round(step1Score);
+            
+            // ========================================
+            // STEP 2: PRODOTTI (33 punti)
+            // ========================================
             const mapProdotti = {
                 'infissi': 'infisso',
                 'persiane': 'persiana', 
@@ -5758,21 +5766,23 @@
                 };
             }
             
-            // 3. Verifica TUTTI i prodotti del progetto (30 punti)
+            // Verifica TUTTI i prodotti del progetto
             const prodottiPresenti = [];
             const prodottiAssenti = pos.prodottiAssenti || [];
             const prodottiMancanti = [];
             
             prodottiProgetto.forEach(tipo => {
                 const hasProdotto = pos[tipo] && typeof pos[tipo] === 'object';
+                const qta = hasProdotto ? (parseInt(pos[tipo].qta) || 0) : 0;
                 const isDichiaratoAssente = prodottiAssenti.includes(tipo);
                 
-                if (hasProdotto) {
+                if (hasProdotto && qta > 0) {
+                    // Prodotto presente con quantità > 0
                     prodottiPresenti.push(tipo);
-                } else if (isDichiaratoAssente) {
+                } else if (isDichiaratoAssente || qta === 0) {
                     // OK: dichiarato come non presente in questa posizione
                 } else {
-                    // MANCANTE: né presente né dichiarato assente
+                    // MANCANTE: né presente con qta>0 né dichiarato assente
                     prodottiMancanti.push(tipo);
                 }
             });
@@ -5780,49 +5790,51 @@
             // Calcola punteggio prodotti
             const prodottiOk = prodottiPresenti.length + prodottiAssenti.length;
             const percentualeProdotti = prodottiProgetto.length > 0 ? (prodottiOk / prodottiProgetto.length) : 0;
-            score += Math.round(30 * percentualeProdotti);
+            score += Math.round(33 * percentualeProdotti);
             
             if (prodottiMancanti.length > 0) {
                 missing.push(`Prodotti mancanti (${prodottiOk}/${prodottiProgetto.length}): ${prodottiMancanti.join(', ')}`);
             }
             
-            // 4. Misure compilate (30 punti) - solo per prodotti PRESENTI
-            if (prodottiPresenti.length > 0) {
-                let misureOk = 0;
-                let prodottiConMisureMancanti = [];
-                
-                prodottiPresenti.forEach(tipo => {
-                    const prod = pos[tipo];
-                    // Controlla che BRM_L e BRM_H siano compilate (anche "0" va bene)
-                    const hasLarghezza = prod.BRM_L !== undefined && prod.BRM_L !== null && prod.BRM_L !== '';
-                    const hasAltezza = prod.BRM_H !== undefined && prod.BRM_H !== null && prod.BRM_H !== '';
-                    
-                    if (hasLarghezza && hasAltezza) {
-                        misureOk++;
-                    } else {
-                        prodottiConMisureMancanti.push(tipo);
-                    }
-                });
-                
-                if (misureOk === prodottiPresenti.length) {
-                    score += 30;
-                } else {
-                    const parziale = Math.round(30 * (misureOk / prodottiPresenti.length));
-                    score += parziale;
-                    missing.push(`Misure incomplete (${misureOk}/${prodottiPresenti.length}): ${prodottiConMisureMancanti.join(', ')}`);
+            // ========================================
+            // STEP 3: MISURE POSIZIONE (34 punti)
+            // ========================================
+            const misurePosizione = ['LVT', 'HVT', 'LF', 'HF', 'TMV', 'HMT', 'L4', 'H4'];
+            let misureCompilate = 0;
+            
+            misurePosizione.forEach(field => {
+                const val = pos.misure?.[field];
+                if (val !== undefined && val !== null && val !== '') {
+                    misureCompilate++;
                 }
+            });
+            
+            // Controlla se c'è il flag "misure parziali OK"
+            const misureParzialiOk = pos.misureParziali === true;
+            
+            if (misureCompilate >= 2 && misureParzialiOk) {
+                // Ha dichiarato che per ora bastano queste misure
+                score += 34;
+            } else if (misureCompilate >= 4) {
+                // Ha almeno 4 misure complete (OK anche senza flag)
+                score += 34;
+            } else if (misureCompilate >= 2) {
+                // Ha almeno 2 misure ma non ha spuntato il flag
+                score += 17; // Punteggio parziale
+                missing.push(`Misure posizione parziali (${misureCompilate}/8) - Spunta "Per ora queste misure" per confermare`);
             } else {
-                // Nessun prodotto presente: punti misure già assegnati nella sezione prodotti
-                // Non aggiungere punti doppi!
+                // Meno di 2 misure
+                missing.push(`Misure posizione mancanti (${misureCompilate}/8 compilate, minimo 2)`);
             }
             
             return {
-                percentage: score,
-                isComplete: score === 100,
+                percentage: Math.min(score, 100),
+                isComplete: score >= 100,
                 missing: missing,
                 enabledProducts: prodottiProgetto.length,
                 prodottiPresenti: prodottiPresenti.length,
-                prodottiAssenti: prodottiAssenti.length
+                prodottiAssenti: prodottiAssenti.length,
+                misureCompilate: misureCompilate
             };
         }
 
@@ -5861,6 +5873,19 @@
                     delete pos[prodottoSingolare];
                 }
             }
+            
+            saveState();
+            render();
+        }
+
+        // 🆕 Toggle flag misure parziali OK
+        function toggleMisureParziali(projectId, posId, checked) {
+            const project = state.projects.find(p => p.id === projectId);
+            const pos = project?.positions.find(p => p.id === posId);
+            
+            if (!project || !pos) return;
+            
+            pos.misureParziali = checked;
             
             saveState();
             render();
@@ -10522,6 +10547,20 @@
                                     ${getFieldValidationMessage(project, pos, field)}
                                 </div>
                             `).join('')}
+                        </div>
+                        
+                        <!-- 🆕 Checkbox Misure Parziali -->
+                        <div class="mt-3 pt-3 border-t border-gray-300">
+                            <label class="flex items-start gap-2 cursor-pointer">
+                                <input type="checkbox" 
+                                       ${pos.misureParziali === true ? 'checked' : ''}
+                                       onchange="toggleMisureParziali('${project.id}', '${pos.id}', this.checked)"
+                                       class="mt-0.5 w-4 h-4">
+                                <span class="text-xs text-gray-700">
+                                    <strong>✓ Per ora queste misure bastano</strong>
+                                    <br><span class="text-gray-600">Spunta se hai inserito solo 2, 4 o 6 misure e completerai il resto dopo</span>
+                                </span>
+                            </label>
                         </div>
                     </div>
 
