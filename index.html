@@ -7311,7 +7311,7 @@
         
         function openStatistics() {
             const totalProjects = state.projects.length;
-            const totalPositions = state.projects.reduce((sum, p) => sum + p.positions.length, 0);
+            const totalPositions = state.projects.reduce((sum, p) => sum + ((p.positions || []).length), 0);
             showNotification(`📊 Statistiche: ${totalProjects} progetti, ${totalPositions} posizioni`, 'success');
         }
         
@@ -7506,7 +7506,7 @@
                                 </div>
                             </div>
                             <div class="flex justify-between items-center text-sm">
-                                <span class="text-gray-500">${p.positions.length} posizioni</span>
+                                <span class="text-gray-500">${(p.positions || []).length} posizioni</span>
                                 <span class="text-purple-600 font-medium">Apri →</span>
                             </div>
                         </div>
