@@ -3174,6 +3174,19 @@
                 return;
             }
             
+            // 🔧 FIX: Assicura che state.github esista
+            if (!state.github) {
+                state.github = {
+                    connected: false,
+                    token: null,
+                    lastSyncTime: null,
+                    syncStatus: 'disconnected',
+                    autoSyncEnabled: true,
+                    autoBackupEnabled: true,
+                    syncNotifications: true
+                };
+            }
+            
             // Salva token
             GITHUB_CONFIG.token = token;
             state.github.token = token;
@@ -3295,6 +3308,19 @@
             if (!GITHUB_CONFIG.token) {
                 showNotification('⚠️ Configura GitHub', 'error');
                 return false;
+            }
+            
+            // 🔧 FIX: Assicura che state.github esista
+            if (!state.github) {
+                state.github = {
+                    connected: false,
+                    token: null,
+                    lastSyncTime: null,
+                    syncStatus: 'disconnected',
+                    autoSyncEnabled: true,
+                    autoBackupEnabled: true,
+                    syncNotifications: true
+                };
             }
             
             try {
@@ -7089,7 +7115,7 @@
         
         function quickSync() {
             closeMainMenu();
-            if (state.github.connected) {
+            if (state.github && state.github.connected) {
                 uploadToGitHub();
             } else {
                 openGitHubSettings();
