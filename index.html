@@ -7290,6 +7290,7 @@
                 // Se cambia tagliTelaio, RESET immediato dei codTagli per forzare aggiornamento
                 if (field === 'tagliTelaio') {
                     const tagliMap = {
+                        'nessuno': [],
                         'sopra': ['SOPRA'],
                         'sotto': ['SOTTO'],
                         'dx': ['DX'],
@@ -8865,7 +8866,7 @@
                             ${renderSelectWithCustom(
                                 'tagliTelaio',
                                 project.configInfissi?.tagliTelaio || '',
-                                ['sopra', 'sotto', 'sopra-sotto', 'dx', 'sx', 'dx-sx', '4-lati', 'sopra-laterali', 'sotto-laterali'],
+                                ['nessuno', 'sopra', 'sotto', 'sopra-sotto', 'dx', 'sx', 'dx-sx', '4-lati', 'sopra-laterali', 'sotto-laterali'],
                                 project.id,
                                 null,
                                 'infisso',
@@ -15562,4 +15563,3 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
     </script>
 </body>
 </html>
-
