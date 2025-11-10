@@ -14407,171 +14407,128 @@
                     return;
                 }
                 
-                const rows = [];
+                // ========== FOGLIO 1: DATI PROGETTO ==========
+                const progettoData = [{
+                    'Nome Progetto': project.name || '',
+                    'Cliente': project.client || '',
+                    'Piano': project.clientData?.piano || '',
+                    'Città': project.clientData?.citta || '',
+                    'Via/Indirizzo': project.clientData?.indirizzo || '',
+                    'Telefono': project.clientData?.telefono || '',
+                    'Email': project.clientData?.email || '',
+                    'Note Cliente': project.clientData?.note || '',
+                    
+                    'Infissi Abilitati': project.prodotti?.infissi ? 'SI' : 'NO',
+                    'Persiane Abilitate': project.prodotti?.persiane ? 'SI' : 'NO',
+                    'Tapparelle Abilitate': project.prodotti?.tapparelle ? 'SI' : 'NO',
+                    'Zanzariere Abilitate': project.prodotti?.zanzariere ? 'SI' : 'NO',
+                    'Cassonetti Abilitati': project.prodotti?.cassonetti ? 'SI' : 'NO',
+                    
+                    // MURO TEMPLATE
+                    'Prof. Muro Int': project.caratteristicheMuro?.profMuroInt || '',
+                    'Prof. Piana Sopra': project.caratteristicheMuro?.profPianaSopra || '',
+                    'Prof. Piana Sotto': project.caratteristicheMuro?.profPianaSotto || '',
+                    'Telaio Prof': project.caratteristicheMuro?.telaioProfondita || '',
+                    'Telaio Largh': project.caratteristicheMuro?.telaioLarghezza || '',
+                    'Guida Esistente?': project.caratteristicheMuro?.guidaEsistente || '',
+                    'Prof. Guida': project.caratteristicheMuro?.profGuida || '',
+                    'Larghezza Guida': project.caratteristicheMuro?.larghezzaGuida || '',
+                    'Prof. Muro Est.': project.caratteristicheMuro?.profMuroEst || '',
+                    'Battuta Sup. con Tapp.': project.caratteristicheMuro?.battutaSuperioreTapparella || '',
+                    'Falso Esistente?': project.caratteristicheMuro?.falsoEsistente || '',
+                    'Spessore Falso': project.caratteristicheMuro?.spessoreFalso || '',
+                    'Dist. Falso-Infisso': project.caratteristicheMuro?.distanzaFalsoInfisso || '',
+                    
+                    // INFISSI CONFIG + BRM
+                    'Infissi - Azienda': project.configInfissi?.azienda || '',
+                    'Infissi - Telaio': project.configInfissi?.telaio || '',
+                    'Infissi - Colore INT': project.configInfissi?.coloreInt || '',
+                    'Infissi - Colore EST': project.configInfissi?.coloreEst || '',
+                    'Infissi - Tipo Anta': project.configInfissi?.tipoAnta || '',
+                    'Infissi - Vetro': project.configInfissi?.vetro || '',
+                    'Infissi - Tagli Telaio': project.configInfissi?.tagliTelaio || '',
+                    'Infissi BRM - Base L': project.brmConfigInfissi?.misuraBaseL || '',
+                    'Infissi BRM - Op. L': project.brmConfigInfissi?.operazioneL || '',
+                    'Infissi BRM - Valore L': project.brmConfigInfissi?.valoreL || '',
+                    'Infissi BRM - Base H': project.brmConfigInfissi?.misuraBaseH || '',
+                    'Infissi BRM - Op. H': project.brmConfigInfissi?.operazioneH || '',
+                    'Infissi BRM - Valore H': project.brmConfigInfissi?.valoreH || '',
+                    
+                    // PERSIANE CONFIG + BRM
+                    'Persiane - Azienda': project.configPersiane?.azienda || '',
+                    'Persiane - Modello': project.configPersiane?.modello || '',
+                    'Persiane - Fissaggio': project.configPersiane?.fissaggio || '',
+                    'Persiane - Colore': project.configPersiane?.colore || '',
+                    'Persiane BRM - Base L': project.brmConfigPersiane?.misuraBaseL || '',
+                    'Persiane BRM - Op. L': project.brmConfigPersiane?.operazioneL || '',
+                    'Persiane BRM - Valore L': project.brmConfigPersiane?.valoreL || '',
+                    'Persiane BRM - Base H': project.brmConfigPersiane?.misuraBaseH || '',
+                    'Persiane BRM - Op. H': project.brmConfigPersiane?.operazioneH || '',
+                    'Persiane BRM - Valore H': project.brmConfigPersiane?.valoreH || '',
+                    
+                    // TAPPARELLE CONFIG + BRM
+                    'Tapparelle - Azienda': project.configTapparelle?.azienda || '',
+                    'Tapparelle - Tipo': project.configTapparelle?.tipo || '',
+                    'Tapparelle - Colore': project.configTapparelle?.colore || '',
+                    'Tapparelle - Motorizzazione': project.configTapparelle?.motorizzazione || '',
+                    'Tapparelle BRM - Base L': project.brmConfigTapparelle?.misuraBaseL || '',
+                    'Tapparelle BRM - Op. L': project.brmConfigTapparelle?.operazioneL || '',
+                    'Tapparelle BRM - Valore L': project.brmConfigTapparelle?.valoreL || '',
+                    'Tapparelle BRM - Base H': project.brmConfigTapparelle?.misuraBaseH || '',
+                    'Tapparelle BRM - Op. H': project.brmConfigTapparelle?.operazioneH || '',
+                    'Tapparelle BRM - Valore H': project.brmConfigTapparelle?.valoreH || '',
+                    
+                    // ZANZARIERE CONFIG + BRM
+                    'Zanzariere - Azienda': project.configZanzariere?.azienda || '',
+                    'Zanzariere - Modello F': project.configZanzariere?.modelloF || '',
+                    'Zanzariere - Modello PF': project.configZanzariere?.modelloPF || '',
+                    'Zanzariere - Colore': project.configZanzariere?.colore || '',
+                    'Zanzariere BRM - Base L': project.brmConfigZanzariere?.misuraBaseL || '',
+                    'Zanzariere BRM - Op. L': project.brmConfigZanzariere?.operazioneL || '',
+                    'Zanzariere BRM - Valore L': project.brmConfigZanzariere?.valoreL || '',
+                    'Zanzariere BRM - Base H': project.brmConfigZanzariere?.misuraBaseH || '',
+                    'Zanzariere BRM - Op. H': project.brmConfigZanzariere?.operazioneH || '',
+                    'Zanzariere BRM - Valore H': project.brmConfigZanzariere?.valoreH || '',
+                    
+                    // CASSONETTI CONFIG + BRM
+                    'Cassonetti - Tipo': project.configCassonetti?.tipo || '',
+                    'Cassonetti - Azienda': project.configCassonetti?.azienda || '',
+                    'Cassonetti - Colore': project.configCassonetti?.colore || '',
+                    'Cassonetti BRM - Base L': project.brmConfigCassonetti?.misuraBaseL || '',
+                    'Cassonetti BRM - Base H': project.brmConfigCassonetti?.misuraBaseH || '',
+                    'Cassonetti BRM - Base C': project.brmConfigCassonetti?.misuraBaseC || '',
+                    'Cassonetti BRM - Base B': project.brmConfigCassonetti?.misuraBaseB || ''
+                }];
                 
-                // Per ogni posizione crea una RIGA con TUTTE le colonne
+                // ========== FOGLIO 2: POSIZIONI ==========
+                const posizioniRows = [];
+                
                 (project.positions || []).forEach(pos => {
+                    // Ottieni caratteristiche muro (override o globali)
+                    const cm = pos.caratteristicheMuroOverride || project.caratteristicheMuro || {};
+                    
                     const row = {
-                        // ========== DATI PROGETTO ==========
-                        'ID_Progetto': project.id,
-                        'Nome_Progetto': project.name || '',
-                        'Cliente': project.client || '',
-                        'Nome_Cliente': project.clientData?.nome || '',
-                        'Cognome_Cliente': project.clientData?.cognome || '',
-                        'Telefono': project.clientData?.telefono || '',
-                        'Email': project.clientData?.email || '',
-                        'Indirizzo': project.clientData?.indirizzo || '',
-                        'Citta': project.clientData?.citta || '',
-                        'CAP': project.clientData?.cap || '',
-                        'Piano_Cliente': project.clientData?.piano || '',
-                        'Note_Cliente': project.clientData?.note || '',
-                        'Data_Creazione': project.created || '',
-                        'Ultima_Modifica': project.updated || '',
-                        
-                        // ========== PRODOTTI ABILITATI ==========
-                        'Prodotto_Infissi': project.prodotti?.infissi ? 'SI' : 'NO',
-                        'Prodotto_Persiane': project.prodotti?.persiane ? 'SI' : 'NO',
-                        'Prodotto_Tapparelle': project.prodotti?.tapparelle ? 'SI' : 'NO',
-                        'Prodotto_Zanzariere': project.prodotti?.zanzariere ? 'SI' : 'NO',
-                        'Prodotto_Cassonetti': project.prodotti?.cassonetti ? 'SI' : 'NO',
-                        
-                        // ========== CARATTERISTICHE MURO ==========
-                        'Muro_Materiale': project.caratteristicheMuro?.materialeMuro || '',
-                        'Muro_Spessore': project.caratteristicheMuro?.spessoreMuro || '',
-                        'Muro_Isolamento': project.caratteristicheMuro?.isolamento || '',
-                        
-                        // ========== CONFIG GLOBALE INFISSI ==========
-                        'ConfigGlob_Infissi_Azienda': project.configInfissi?.azienda || '',
-                        'ConfigGlob_Infissi_Telaio': project.configInfissi?.telaio || '',
-                        'ConfigGlob_Infissi_Colore_INT': project.configInfissi?.coloreInt || '',
-                        'ConfigGlob_Infissi_Colore_EST': project.configInfissi?.coloreEst || '',
-                        'ConfigGlob_Infissi_Tipo_Anta': project.configInfissi?.tipoAnta || '',
-                        'ConfigGlob_Infissi_Finitura': project.configInfissi?.finIntEst || '',
-                        'ConfigGlob_Infissi_Vetro': project.configInfissi?.vetro || '',
-                        'ConfigGlob_Infissi_Tagli_Telaio': project.configInfissi?.tagliTelaio || '',
-                        'ConfigGlob_Infissi_Codici_Tagli': (project.configInfissi?.codTagliValues || []).join(','),
-                        
-                        // ========== BRM GLOBALE INFISSI ==========
-                        'BRM_Glob_Infissi_Base_L': project.brmConfigInfissi?.misuraBaseL || '',
-                        'BRM_Glob_Infissi_Operazione_L': project.brmConfigInfissi?.operazioneL || '',
-                        'BRM_Glob_Infissi_Valore_L': project.brmConfigInfissi?.valoreL || '',
-                        'BRM_Glob_Infissi_Base_H': project.brmConfigInfissi?.misuraBaseH || '',
-                        'BRM_Glob_Infissi_Operazione_H': project.brmConfigInfissi?.operazioneH || '',
-                        'BRM_Glob_Infissi_Valore_H': project.brmConfigInfissi?.valoreH || '',
-                        'BRM_Glob_Infissi_Note': project.brmConfigInfissi?.note || '',
-                        
-                        // ========== RILIEVO GLOBALE INFISSI ==========
-                        'Rilievo_Glob_Infissi_Materiale': project.rilievoInfissi?.materiale || '',
-                        'Rilievo_Glob_Infissi_Togliere': project.rilievoInfissi?.togliere ? 'SI' : 'NO',
-                        'Rilievo_Glob_Infissi_Smaltimento': project.rilievoInfissi?.smaltimento ? 'SI' : 'NO',
-                        'Rilievo_Glob_Infissi_Coprifili_INT': project.rilievoInfissi?.coprifiliInt ? 'SI' : 'NO',
-                        'Rilievo_Glob_Infissi_Coprifili_EST': project.rilievoInfissi?.coprifiliEst ? 'SI' : 'NO',
-                        'Rilievo_Glob_Infissi_Note': project.rilievoInfissi?.note || '',
-                        
-                        // ========== CONFIG GLOBALE PERSIANE ==========
-                        'ConfigGlob_Persiane_Azienda': project.configPersiane?.azienda || '',
-                        'ConfigGlob_Persiane_Modello': project.configPersiane?.modello || '',
-                        'ConfigGlob_Persiane_Fissaggio': project.configPersiane?.fissaggio || '',
-                        'ConfigGlob_Persiane_Colore': project.configPersiane?.colore || '',
-                        'ConfigGlob_Persiane_Tipo_Stecca': project.configPersiane?.tipoStecca || '',
-                        'ConfigGlob_Persiane_Asolato': project.configPersiane?.asolato || '',
-                        
-                        // ========== BRM GLOBALE PERSIANE ==========
-                        'BRM_Glob_Persiane_Base_L': project.brmConfigPersiane?.misuraBaseL || '',
-                        'BRM_Glob_Persiane_Operazione_L': project.brmConfigPersiane?.operazioneL || '',
-                        'BRM_Glob_Persiane_Valore_L': project.brmConfigPersiane?.valoreL || '',
-                        'BRM_Glob_Persiane_Base_H': project.brmConfigPersiane?.misuraBaseH || '',
-                        'BRM_Glob_Persiane_Operazione_H': project.brmConfigPersiane?.operazioneH || '',
-                        'BRM_Glob_Persiane_Valore_H': project.brmConfigPersiane?.valoreH || '',
-                        'BRM_Glob_Persiane_Note': project.brmConfigPersiane?.note || '',
-                        
-                        // ========== RILIEVO GLOBALE PERSIANE ==========
-                        'Rilievo_Glob_Persiane_Materiale': project.rilievoPersiane?.materiale || '',
-                        'Rilievo_Glob_Persiane_Togliere': project.rilievoPersiane?.togliere ? 'SI' : 'NO',
-                        'Rilievo_Glob_Persiane_Smaltimento': project.rilievoPersiane?.smaltimento ? 'SI' : 'NO',
-                        'Rilievo_Glob_Persiane_Note': project.rilievoPersiane?.note || '',
-                        
-                        // ========== CONFIG GLOBALE TAPPARELLE ==========
-                        'ConfigGlob_Tapparelle_Azienda': project.configTapparelle?.azienda || '',
-                        'ConfigGlob_Tapparelle_Tipo': project.configTapparelle?.tipo || '',
-                        'ConfigGlob_Tapparelle_Colore': project.configTapparelle?.colore || '',
-                        'ConfigGlob_Tapparelle_Motorizzazione': project.configTapparelle?.motorizzazione || '',
-                        'ConfigGlob_Tapparelle_Comando': project.configTapparelle?.comando || '',
-                        
-                        // ========== BRM GLOBALE TAPPARELLE ==========
-                        'BRM_Glob_Tapparelle_Base_L': project.brmConfigTapparelle?.misuraBaseL || '',
-                        'BRM_Glob_Tapparelle_Operazione_L': project.brmConfigTapparelle?.operazioneL || '',
-                        'BRM_Glob_Tapparelle_Valore_L': project.brmConfigTapparelle?.valoreL || '',
-                        'BRM_Glob_Tapparelle_Base_H': project.brmConfigTapparelle?.misuraBaseH || '',
-                        'BRM_Glob_Tapparelle_Operazione_H': project.brmConfigTapparelle?.operazioneH || '',
-                        'BRM_Glob_Tapparelle_Valore_H': project.brmConfigTapparelle?.valoreH || '',
-                        'BRM_Glob_Tapparelle_Note': project.brmConfigTapparelle?.note || '',
-                        
-                        // ========== RILIEVO GLOBALE TAPPARELLE ==========
-                        'Rilievo_Glob_Tapparelle_Materiale': project.rilievoTapparelle?.materiale || '',
-                        'Rilievo_Glob_Tapparelle_Togliere': project.rilievoTapparelle?.togliere ? 'SI' : 'NO',
-                        'Rilievo_Glob_Tapparelle_Smaltimento': project.rilievoTapparelle?.smaltimento ? 'SI' : 'NO',
-                        'Rilievo_Glob_Tapparelle_Note': project.rilievoTapparelle?.note || '',
-                        
-                        // ========== CONFIG GLOBALE ZANZARIERE ==========
-                        'ConfigGlob_Zanzariere_Azienda': project.configZanzariere?.azienda || '',
-                        'ConfigGlob_Zanzariere_Modello_F': project.configZanzariere?.modelloF || '',
-                        'ConfigGlob_Zanzariere_Modello_PF': project.configZanzariere?.modelloPF || '',
-                        'ConfigGlob_Zanzariere_Colore': project.configZanzariere?.colore || '',
-                        
-                        // ========== BRM GLOBALE ZANZARIERE ==========
-                        'BRM_Glob_Zanzariere_Base_L': project.brmConfigZanzariere?.misuraBaseL || '',
-                        'BRM_Glob_Zanzariere_Operazione_L': project.brmConfigZanzariere?.operazioneL || '',
-                        'BRM_Glob_Zanzariere_Valore_L': project.brmConfigZanzariere?.valoreL || '',
-                        'BRM_Glob_Zanzariere_Base_H': project.brmConfigZanzariere?.misuraBaseH || '',
-                        'BRM_Glob_Zanzariere_Operazione_H': project.brmConfigZanzariere?.operazioneH || '',
-                        'BRM_Glob_Zanzariere_Valore_H': project.brmConfigZanzariere?.valoreH || '',
-                        'BRM_Glob_Zanzariere_Note': project.brmConfigZanzariere?.note || '',
-                        
-                        // ========== RILIEVO GLOBALE ZANZARIERE ==========
-                        'Rilievo_Glob_Zanzariere_Materiale': project.rilievoZanzariere?.materiale || '',
-                        'Rilievo_Glob_Zanzariere_Togliere': project.rilievoZanzariere?.togliere ? 'SI' : 'NO',
-                        'Rilievo_Glob_Zanzariere_Smaltimento': project.rilievoZanzariere?.smaltimento ? 'SI' : 'NO',
-                        'Rilievo_Glob_Zanzariere_Note': project.rilievoZanzariere?.note || '',
-                        
-                        // ========== CONFIG GLOBALE CASSONETTI ==========
-                        'ConfigGlob_Cassonetti_Tipo': project.configCassonetti?.tipo || '',
-                        'ConfigGlob_Cassonetti_Azienda': project.configCassonetti?.azienda || '',
-                        'ConfigGlob_Cassonetti_Colore': project.configCassonetti?.colore || '',
-                        
-                        // ========== BRM GLOBALE CASSONETTI ==========
-                        'BRM_Glob_Cassonetti_Base_L': project.brmConfigCassonetti?.misuraBaseL || '',
-                        'BRM_Glob_Cassonetti_Operazione_L': project.brmConfigCassonetti?.operazioneL || '',
-                        'BRM_Glob_Cassonetti_Valore_L': project.brmConfigCassonetti?.valoreL || '',
-                        'BRM_Glob_Cassonetti_Base_H': project.brmConfigCassonetti?.misuraBaseH || '',
-                        'BRM_Glob_Cassonetti_Operazione_H': project.brmConfigCassonetti?.operazioneH || '',
-                        'BRM_Glob_Cassonetti_Valore_H': project.brmConfigCassonetti?.valoreH || '',
-                        'BRM_Glob_Cassonetti_Base_C': project.brmConfigCassonetti?.misuraBaseC || '',
-                        'BRM_Glob_Cassonetti_Operazione_C': project.brmConfigCassonetti?.operazioneC || '',
-                        'BRM_Glob_Cassonetti_Valore_C': project.brmConfigCassonetti?.valoreC || '',
-                        'BRM_Glob_Cassonetti_Base_B': project.brmConfigCassonetti?.misuraBaseB || '',
-                        'BRM_Glob_Cassonetti_Operazione_B': project.brmConfigCassonetti?.operazioneB || '',
-                        'BRM_Glob_Cassonetti_Valore_B': project.brmConfigCassonetti?.valoreB || '',
-                        'BRM_Glob_Cassonetti_SRSX': project.brmConfigCassonetti?.SRSX || '',
-                        'BRM_Glob_Cassonetti_SRDX': project.brmConfigCassonetti?.SRDX || '',
-                        'BRM_Glob_Cassonetti_ZSX': project.brmConfigCassonetti?.ZSX || '',
-                        'BRM_Glob_Cassonetti_ZDX': project.brmConfigCassonetti?.ZDX || '',
-                        'BRM_Glob_Cassonetti_Note': project.brmConfigCassonetti?.note || '',
-                        
-                        // ========== RILIEVO GLOBALE CASSONETTI ==========
-                        'Rilievo_Glob_Cassonetti_Materiale': project.rilievoCassonetti?.materiale || '',
-                        'Rilievo_Glob_Cassonetti_Togliere': project.rilievoCassonetti?.togliere ? 'SI' : 'NO',
-                        'Rilievo_Glob_Cassonetti_Smaltimento': project.rilievoCassonetti?.smaltimento ? 'SI' : 'NO',
-                        'Rilievo_Glob_Cassonetti_Note': project.rilievoCassonetti?.note || '',
-                        
-                        // ========== DATI POSIZIONE ==========
-                        'ID_Posizione': pos.id,
-                        'Nome_Posizione': pos.name || '',
+                        // DATI POSIZIONE
+                        'Nome Posizione': pos.name || '',
                         'Ambiente': pos.ambiente || '',
                         'Piano': pos.piano || '',
-                        'Quantita': pos.quantita || '',
                         
-                        // ========== MISURE POSIZIONE (mm) ==========
+                        // CARATTERISTICHE MURO (valori reali posizione)
+                        'Prof. Muro Int': cm.profMuroInt || '',
+                        'Prof. Piana Sopra': cm.profPianaSopra || '',
+                        'Prof. Piana Sotto': cm.profPianaSotto || '',
+                        'Telaio Prof': cm.telaioProfondita || '',
+                        'Telaio Largh': cm.telaioLarghezza || '',
+                        'Guida Esistente?': cm.guidaEsistente || '',
+                        'Prof. Guida': cm.profGuida || '',
+                        'Larghezza Guida': cm.larghezzaGuida || '',
+                        'Prof. Muro Est.': cm.profMuroEst || '',
+                        'Battuta Sup. con Tapp.': cm.battutaSuperioreTapparella || '',
+                        'Falso Esistente?': cm.falsoEsistente || '',
+                        'Spessore Falso': cm.spessoreFalso || '',
+                        'Dist. Falso-Infisso': cm.distanzaFalsoInfisso || '',
+                        
+                        // MISURE POSIZIONE
                         'LVT': pos.misure?.LVT || '',
                         'HVT': pos.misure?.HVT || '',
                         'LF': pos.misure?.LF || '',
@@ -14580,111 +14537,102 @@
                         'HMT': pos.misure?.HMT || '',
                         'L4': pos.misure?.L4 || '',
                         'H4': pos.misure?.H4 || '',
-                        'Delta_INT': pos.misure?.DeltaINT || '',
-                        'Delta_EST': pos.misure?.DeltaEST || '',
-                        'H_Soffitto': pos.misure?.HSoffitto || '',
-                        'H_Parapetto_Soffitto': pos.misure?.HParapettoSoffitto || '',
-                        'H_Pavimento_Parapetto': pos.misure?.HPavimentoParapetto || '',
+                        'Delta INT': pos.misure?.DeltaINT || '',
+                        'Delta EST': pos.misure?.DeltaEST || '',
+                        'H Soffitto': pos.misure?.HSoffitto || '',
+                        'H Parapetto Soffitto': pos.misure?.HParapettoSoffitto || '',
+                        'H Pavimento Parapetto': pos.misure?.HPavimentoParapetto || '',
                         
-                        // ========== RILIEVO ==========
-                        'Da_Togliere': pos.rilievo?.togliere ? 'SI' : 'NO',
+                        // RILIEVO POSIZIONE
+                        'Da Togliere': pos.rilievo?.togliere ? 'SI' : 'NO',
                         'Smaltimento': pos.rilievo?.smaltimento ? 'SI' : 'NO',
-                        'Materiale_Esistente': pos.rilievo?.materiale || '',
-                        'Coprifili_INT': pos.rilievo?.coprifiliInt ? 'SI' : 'NO',
-                        'Coprifili_EST': pos.rilievo?.coprifiliEst ? 'SI' : 'NO',
-                        'Note_Rilievo': pos.rilievo?.note || '',
+                        'Materiale Esistente': pos.rilievo?.materiale || '',
+                        'Coprifili INT': pos.rilievo?.coprifiliInt ? 'SI' : 'NO',
+                        'Coprifili EST': pos.rilievo?.coprifiliEst ? 'SI' : 'NO',
+                        'Note Rilievo': pos.rilievo?.note || '',
                         
-                        // ========== INFISSO ==========
-                        'Infisso_QTA': pos.infisso?.qta || '',
-                        'Infisso_Tipo': pos.infisso?.tipo || '',
-                        'Infisso_Apertura': pos.infisso?.apertura || '',
-                        'Infisso_Tipo_Associato': pos.infisso?.tipoInfissoAssociato || '',
-                        'Infisso_Azienda': pos.infisso?.azienda || '',
-                        'Infisso_Telaio': pos.infisso?.telaio || '',
-                        'Infisso_Colore_INT': pos.infisso?.coloreInt || '',
-                        'Infisso_Colore_EST': pos.infisso?.coloreEst || '',
-                        'Infisso_Tipo_Anta': pos.infisso?.tipoAnta || '',
-                        'Infisso_Finitura_INT_EST': pos.infisso?.finIntEst || '',
-                        'Infisso_Vetro': pos.infisso?.vetro || '',
-                        'Infisso_Tagli_Telaio': pos.infisso?.tagliTelaio || '',
-                        'Infisso_Codici_Tagli': (pos.infisso?.codTagliValues || []).join(','),
-                        'Infisso_Allarme': pos.infisso?.allarme || '',
-                        'Infisso_Microventilazione': pos.infisso?.microventilazione || '',
-                        'Infisso_BRM_L': pos.infisso?.BRM_L || '',
-                        'Infisso_BRM_H': pos.infisso?.BRM_H || '',
-                        'Infisso_Note': pos.infisso?.note || '',
+                        // INFISSO POSIZIONE
+                        'Infisso QTA': pos.infisso?.qta || '',
+                        'Infisso Tipo': pos.infisso?.tipo || '',
+                        'Infisso Apertura': pos.infisso?.apertura || '',
+                        'Infisso Azienda': pos.infisso?.azienda || '',
+                        'Infisso Telaio': pos.infisso?.telaio || '',
+                        'Infisso Colore INT': pos.infisso?.coloreInt || '',
+                        'Infisso Colore EST': pos.infisso?.coloreEst || '',
+                        'Infisso Tipo Anta': pos.infisso?.tipoAnta || '',
+                        'Infisso Vetro': pos.infisso?.vetro || '',
+                        'Infisso Tagli Telaio': pos.infisso?.tagliTelaio || '',
+                        'Infisso BRM L': pos.infisso?.BRM_L || '',
+                        'Infisso BRM H': pos.infisso?.BRM_H || '',
+                        'Infisso Note': pos.infisso?.note || '',
                         
-                        // ========== PERSIANA ==========
-                        'Persiana_QTA': pos.persiana?.qta || '',
-                        'Persiana_Azienda': pos.persiana?.azienda || '',
-                        'Persiana_Modello': pos.persiana?.modello || '',
-                        'Persiana_Fissaggio': pos.persiana?.fissaggio || '',
-                        'Persiana_Colore': pos.persiana?.colore || '',
-                        'Persiana_Tipo_Stecca': pos.persiana?.tipoStecca || '',
-                        'Persiana_Asolato': pos.persiana?.asolato || '',
-                        'Persiana_BRM_L': pos.persiana?.BRM_L || '',
-                        'Persiana_BRM_H': pos.persiana?.BRM_H || '',
-                        'Persiana_Note': pos.persiana?.note || '',
+                        // PERSIANA POSIZIONE
+                        'Persiana QTA': pos.persiana?.qta || '',
+                        'Persiana Azienda': pos.persiana?.azienda || '',
+                        'Persiana Modello': pos.persiana?.modello || '',
+                        'Persiana Fissaggio': pos.persiana?.fissaggio || '',
+                        'Persiana Colore': pos.persiana?.colore || '',
+                        'Persiana BRM L': pos.persiana?.BRM_L || '',
+                        'Persiana BRM H': pos.persiana?.BRM_H || '',
+                        'Persiana Note': pos.persiana?.note || '',
                         
-                        // ========== TAPPARELLA ==========
-                        'Tapparella_QTA': pos.tapparella?.qta || '',
-                        'Tapparella_Azienda': pos.tapparella?.azienda || '',
-                        'Tapparella_Tipo': pos.tapparella?.tipo || '',
-                        'Tapparella_Colore': pos.tapparella?.colore || '',
-                        'Tapparella_Motorizzazione': pos.tapparella?.motorizzazione || '',
-                        'Tapparella_Comando': pos.tapparella?.comando || '',
-                        'Tapparella_BRM_L': pos.tapparella?.BRM_L || '',
-                        'Tapparella_BRM_H': pos.tapparella?.BRM_H || '',
-                        'Tapparella_Note': pos.tapparella?.note || '',
+                        // TAPPARELLA POSIZIONE
+                        'Tapparella QTA': pos.tapparella?.qta || '',
+                        'Tapparella Azienda': pos.tapparella?.azienda || '',
+                        'Tapparella Tipo': pos.tapparella?.tipo || '',
+                        'Tapparella Colore': pos.tapparella?.colore || '',
+                        'Tapparella Motorizzazione': pos.tapparella?.motorizzazione || '',
+                        'Tapparella BRM L': pos.tapparella?.BRM_L || '',
+                        'Tapparella BRM H': pos.tapparella?.BRM_H || '',
+                        'Tapparella Note': pos.tapparella?.note || '',
                         
-                        // ========== ZANZARIERA ==========
-                        'Zanzariera_QTA': pos.zanzariera?.qta || '',
-                        'Zanzariera_Azienda': pos.zanzariera?.azienda || '',
-                        'Zanzariera_Modello_F': pos.zanzariera?.modelloF || '',
-                        'Zanzariera_Modello_PF': pos.zanzariera?.modelloPF || '',
-                        'Zanzariera_Tipo_Guida': pos.zanzariera?.tipoGuida || '',
-                        'Zanzariera_Colore_Telaio': pos.zanzariera?.coloreTelaio || '',
-                        'Zanzariera_Colore_Rete': pos.zanzariera?.coloreRete || '',
-                        'Zanzariera_BRM_L': pos.zanzariera?.BRM_L || '',
-                        'Zanzariera_BRM_H': pos.zanzariera?.BRM_H || '',
-                        'Zanzariera_Note': pos.zanzariera?.note || '',
+                        // ZANZARIERA POSIZIONE
+                        'Zanzariera QTA': pos.zanzariera?.qta || '',
+                        'Zanzariera Azienda': pos.zanzariera?.azienda || '',
+                        'Zanzariera Modello F': pos.zanzariera?.modelloF || '',
+                        'Zanzariera Modello PF': pos.zanzariera?.modelloPF || '',
+                        'Zanzariera Colore': pos.zanzariera?.colore || '',
+                        'Zanzariera BRM L': pos.zanzariera?.BRM_L || '',
+                        'Zanzariera BRM H': pos.zanzariera?.BRM_H || '',
+                        'Zanzariera Note': pos.zanzariera?.note || '',
                         
-                        // ========== CASSONETTO ==========
-                        'Cassonetto_QTA': pos.cassonetto?.qta || '',
-                        'Cassonetto_Tipo': pos.cassonetto?.tipo || '',
-                        'Cassonetto_Azienda': pos.cassonetto?.azienda || '',
-                        'Cassonetto_Colore': pos.cassonetto?.colore || '',
-                        'Cassonetto_BRM_L': pos.cassonetto?.BRM_L || '',
-                        'Cassonetto_BRM_H': pos.cassonetto?.BRM_H || '',
-                        'Cassonetto_Note': pos.cassonetto?.note || '',
+                        // CASSONETTO POSIZIONE
+                        'Cassonetto QTA': pos.cassonetto?.qta || '',
+                        'Cassonetto Tipo': pos.cassonetto?.tipo || '',
+                        'Cassonetto Azienda': pos.cassonetto?.azienda || '',
+                        'Cassonetto Colore': pos.cassonetto?.colore || '',
+                        'Cassonetto BRM L': pos.cassonetto?.BRM_L || '',
+                        'Cassonetto BRM H': pos.cassonetto?.BRM_H || '',
+                        'Cassonetto Note': pos.cassonetto?.note || '',
                         
-                        // ========== NOTE GENERALI ==========
-                        'Note_Posizione': pos.note || '',
-                        'Num_Foto': (pos.foto || []).length
+                        // NOTE
+                        'Note Posizione': pos.note || '',
+                        'Num Foto': (pos.foto || []).length
                     };
                     
-                    rows.push(row);
+                    posizioniRows.push(row);
                 });
                 
-                // Crea workbook con UN SOLO foglio
+                // Crea workbook con 2 fogli
                 const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.json_to_sheet(rows);
                 
-                XLSX.utils.book_append_sheet(wb, ws, "Posizioni");
+                const ws1 = XLSX.utils.json_to_sheet(progettoData);
+                const ws2 = XLSX.utils.json_to_sheet(posizioniRows);
+                
+                XLSX.utils.book_append_sheet(wb, ws1, "Progetto");
+                XLSX.utils.book_append_sheet(wb, ws2, "Posizioni");
                 
                 // Download
                 const fileName = `${project.name || 'progetto'}-${new Date().toISOString().split('T')[0]}.xlsx`;
                 XLSX.writeFile(wb, fileName);
                 
-                showNotification(`✅ Excel esportato! ${rows.length} posizioni con tutte le colonne`, 'success');
+                showNotification(`✅ Excel esportato! Progetto + ${posizioniRows.length} posizioni`, 'success');
                 
             } catch (error) {
                 console.error('Errore export Excel:', error);
                 showNotification(`Errore durante export Excel: ${error.message}`, 'error');
             }
         };
-
-        // NUOVE FUNZIONI PER ODOO - Export Singolo Progetto
         window.exportCurrentProjectJSON = () => {
             try {
                 const project = state.projects.find(p => p.id === state.currentProject);
