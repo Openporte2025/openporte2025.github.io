@@ -8879,12 +8879,9 @@
                                     const tagliTelaio = project.configInfissi?.tagliTelaio || '';
                                     const codTagli = project.configInfissi?.codTagli || [];
                                     
-                                    if (!tagliTelaio || codTagli.length === 0) {
-                                        return `
-                                            <div class="p-4 bg-orange-50 border-2 border-orange-400 rounded-lg">
-                                                <p class="text-orange-800 font-medium">⚠️ Seleziona prima "Tagli Telaio"</p>
-                                            </div>
-                                        `;
+                                    // Se non ha selezionato nulla, non mostrare niente
+                                    if (!tagliTelaio || tagliTelaio === '' || codTagli.length === 0) {
+                                        return '';
                                     }
                                     
                                     // Mappa posizioni con etichette italiane
@@ -8896,7 +8893,7 @@
                                     };
                                     
                                     return `
-                                        <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+                                        <div class="grid gap-2" style="grid-template-columns: repeat(auto-fit, minmax(110px, 110px));">
                                             ${codTagli.map((etichetta, idx) => {
                                                 const codice = project.configInfissi?.codTagliValues?.[idx] || '';
                                                 const isEmpty = !codice || codice.trim() === '';
@@ -8907,15 +8904,15 @@
                                                         <input type="text" 
                                                                value="${codice}"
                                                                onchange="updateCodTagliValue('${project.id}', ${idx}, this.value)"
-                                                               placeholder="Inserisci codice"
-                                                               class="w-full px-3 py-2.5 border-2 rounded-lg font-mono text-center font-bold text-base focus:ring-2 focus:ring-purple-500 ${
+                                                               placeholder="Codice"
+                                                               class="w-full px-2 py-2 border-2 rounded-lg font-mono text-center font-bold text-sm focus:ring-2 focus:ring-purple-500 ${
                                                                    isEmpty ? 'border-orange-400 bg-orange-50' : 'border-purple-400 bg-purple-50'
                                                                }">
                                                     </div>
                                                 `;
                                             }).join('')}
                                         </div>
-                                        <p class="text-sm text-gray-600 mt-2 font-medium">💡 Inserisci i codici per ogni posizione. Questi valori si copiano nelle posizioni (modificabili singolarmente)</p>
+                                        <p class="text-sm text-gray-600 mt-2 font-medium">💡 Inserisci i codici per ogni posizione</p>
                                     `;
                                 })()}
                             </div>
@@ -15565,3 +15562,4 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
     </script>
 </body>
 </html>
+
