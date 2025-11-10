@@ -1830,6 +1830,9 @@
     <!-- 🎯 FASE 021b: App container - tutto renderizzato dinamicamente -->
     <div id="app"></div>
     
+    <!-- 📊 SheetJS per export Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <script>
         // State Management
         let state = {
@@ -7485,7 +7488,12 @@
                                     <button onclick="exportAllProjects()" 
                                             class="px-4 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2">
                                         <span>💾</span>
-                                        <span>Esporta</span>
+                                        <span>JSON</span>
+                                    </button>
+                                    <button onclick="exportAllProjectsExcel()" 
+                                            class="px-4 py-1.5 bg-gradient-to-r from-emerald-600 to-green-700 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2">
+                                        <span>📊</span>
+                                        <span>Excel</span>
                                     </button>
                                     <button onclick="showNewProjectModal()" 
                                             class="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:shadow-lg transition-all">
@@ -14217,6 +14225,141 @@
             } catch (error) {
                 console.error('Errore export:', error);
                 showNotification(`Errore durante export: ${error.message}`, 'error');
+            }
+        };
+
+        // 📊 EXPORT EXCEL - Formato intuitivo con 3 fogli
+        window.exportAllProjectsExcel = () => {
+            try {
+                if (!window.XLSX) {
+                    showNotification('Errore: Libreria Excel non caricata', 'error');
+                    return;
+                }
+                
+                // Array per i 3 fogli
+                const progetti = [];
+                const posizioni = [];
+                const prodotti = [];
+                
+                // Processa ogni progetto
+                state.projects.forEach(project => {
+                    // FOGLIO 1: PROGETTI
+                    progetti.push({
+                        'ID Progetto': project.id,
+                        'Nome Progetto': project.name || '',
+                        'Cliente': project.client || '',
+                        'Telefono': project.clientData?.telefono || '',
+                        'Email': project.clientData?.email || '',
+                        'Indirizzo': project.clientData?.indirizzo || '',
+                        'Città': project.clientData?.citta || '',
+                        'CAP': project.clientData?.cap || '',
+                        'Piano': project.clientData?.piano || '',
+                        'Prodotti Abilitati': Object.keys(project.prodotti || {}).filter(k => project.prodotti[k]).join(', '),
+                        'Num Posizioni': (project.positions || []).length,
+                        'Data Creazione': project.created || '',
+                        'Ultima Modifica': project.updated || ''
+                    });
+                    
+                    // FOGLIO 2: POSIZIONI + FOGLIO 3: PRODOTTI
+                    (project.positions || []).forEach(pos => {
+                        posizioni.push({
+                            'ID Posizione': pos.id,
+                            'ID Progetto': project.id,
+                            'Nome Progetto': project.name,
+                            'Nome Posizione': pos.name || '',
+                            'Ambiente': pos.ambiente || '',
+                            'Piano': pos.piano || '',
+                            
+                            // Misure posizione
+                            'LVT (mm)': pos.misure?.LVT || '',
+                            'HVT (mm)': pos.misure?.HVT || '',
+                            'LF (mm)': pos.misure?.LF || '',
+                            'HF (mm)': pos.misure?.HF || '',
+                            'TMV (mm)': pos.misure?.TMV || '',
+                            'HMT (mm)': pos.misure?.HMT || '',
+                            'L4 (mm)': pos.misure?.L4 || '',
+                            'H4 (mm)': pos.misure?.H4 || '',
+                            'Delta INT (mm)': pos.misure?.DeltaINT || '',
+                            'Delta EST (mm)': pos.misure?.DeltaEST || '',
+                            
+                            // Rilievo
+                            'Da Togliere': pos.rilievo?.togliere ? 'SI' : 'NO',
+                            'Smaltimento': pos.rilievo?.smaltimento ? 'SI' : 'NO',
+                            'Materiale Esistente': pos.rilievo?.materiale || '',
+                            'Coprifili INT': pos.rilievo?.coprifiliInt ? 'SI' : 'NO',
+                            'Coprifili EST': pos.rilievo?.coprifiliEst ? 'SI' : 'NO',
+                            'Note Rilievo': pos.rilievo?.note || ''
+                        });
+                        
+                        // PRODOTTI nella posizione
+                        const prodottiTypes = ['infisso', 'persiana', 'tapparella', 'zanzariera', 'cassonetto'];
+                        
+                        prodottiTypes.forEach(tipo => {
+                            const prod = pos[tipo];
+                            if (prod && typeof prod === 'object' && parseInt(prod.qta || 0) > 0) {
+                                prodotti.push({
+                                    'ID Posizione': pos.id,
+                                    'ID Progetto': project.id,
+                                    'Nome Progetto': project.name,
+                                    'Nome Posizione': pos.name,
+                                    'Ambiente': pos.ambiente,
+                                    
+                                    // Tipo prodotto
+                                    'Tipo Prodotto': tipo.toUpperCase(),
+                                    'Quantità': prod.qta || '',
+                                    
+                                    // Dati comuni
+                                    'Azienda': prod.azienda || '',
+                                    'Modello/Tipo': prod.tipo || prod.modello || '',
+                                    'BRM Larghezza (mm)': prod.BRM_L || '',
+                                    'BRM Altezza (mm)': prod.BRM_H || '',
+                                    
+                                    // Colori
+                                    'Colore Interno': prod.coloreInt || prod.colore || '',
+                                    'Colore Esterno': prod.coloreEst || '',
+                                    
+                                    // Specifici infisso
+                                    'Apertura': prod.apertura || '',
+                                    'Tipo Anta': prod.tipoAnta || '',
+                                    'Telaio': prod.telaio || '',
+                                    'Vetro': prod.vetro || '',
+                                    'Tagli Telaio': prod.tagliTelaio || '',
+                                    'Codici Tagli': (prod.codTagliValues || []).join(','),
+                                    'Allarme': prod.allarme || '',
+                                    
+                                    // Specifici persiana/tapparella
+                                    'Fissaggio': prod.fissaggio || '',
+                                    'Motorizzazione': prod.motorizzazione || '',
+                                    
+                                    // Note
+                                    'Note Prodotto': prod.note || ''
+                                });
+                            }
+                        });
+                    });
+                });
+                
+                // Crea workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Aggiungi i 3 fogli
+                const ws1 = XLSX.utils.json_to_sheet(progetti);
+                const ws2 = XLSX.utils.json_to_sheet(posizioni);
+                const ws3 = XLSX.utils.json_to_sheet(prodotti);
+                
+                XLSX.utils.book_append_sheet(wb, ws1, "Progetti");
+                XLSX.utils.book_append_sheet(wb, ws2, "Posizioni");
+                XLSX.utils.book_append_sheet(wb, ws3, "Prodotti");
+                
+                // Download
+                const fileName = `openporte-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+                
+                showNotification(`✅ Excel esportato! ${progetti.length} progetti, ${posizioni.length} posizioni, ${prodotti.length} prodotti`, 'success');
+                
+            } catch (error) {
+                console.error('Errore export Excel:', error);
+                showNotification(`Errore durante export Excel: ${error.message}`, 'error');
             }
         };
 
