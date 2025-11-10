@@ -14714,9 +14714,15 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             `;
         }
 
-        // Navigation function for setup steps - MANCAVA QUESTA!
+        // Navigation function for setup steps
         window.navigateToStep = (step) => {
             state.setupStep = step;
+            render();
+        };
+
+        // Navigation function for screens - AGGIUNTA PER MENU
+        window.showScreen = (screenName) => {
+            state.screen = screenName;
             render();
         };
 
