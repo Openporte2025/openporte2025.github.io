@@ -6543,9 +6543,24 @@
                 // 🆕 FASE 014 - Copia valori globali per nuova posizione
                 const rilievoGlobaleInfissi = getRilievoGlobale(project, 'infissi');
                 
+                // 🔧 FIX: Trova il primo numero libero (senza buchi)
+                const usedNumbers = new Set();
+                project.positions.forEach(p => {
+                    const match = p.name.match(/Pos\.\s*(\d+)/);
+                    if (match) {
+                        usedNumbers.add(parseInt(match[1]));
+                    }
+                });
+                
+                // Trova il primo numero libero partendo da 1
+                let newNum = 1;
+                while (usedNumbers.has(newNum)) {
+                    newNum++;
+                }
+                
                 const pos = {
                     id: generateSequentialPositionId(projectId, project.positions),
-                    name: `Pos. ${project.positions.length + 1}`,
+                    name: `Pos. ${newNum}`,
                     piano: project.clientData?.piano || '',
                     ambiente: '',
                     quantita: '1',
@@ -9663,6 +9678,11 @@
                             <button onclick="state.showRiepilogoRilievi = true; render()"
                                     class="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 flex items-center gap-2">
                                 📋 Riepilogo Rilievi
+                            </button>
+                            <button onclick="exportCurrentProjectExcel()"
+                                    class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-green-700 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2">
+                                <span>📊</span>
+                                <span>Excel Progetto</span>
                             </button>
                             <button onclick="addPosition('${project.id}')"
                                     class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700">
@@ -14356,6 +14376,159 @@
                 XLSX.writeFile(wb, fileName);
                 
                 showNotification(`✅ Excel esportato! ${progetti.length} progetti, ${posizioni.length} posizioni, ${prodotti.length} prodotti`, 'success');
+                
+            } catch (error) {
+                console.error('Errore export Excel:', error);
+                showNotification(`Errore durante export Excel: ${error.message}`, 'error');
+            }
+        };
+
+        // 📊 EXPORT EXCEL SINGOLO PROGETTO - Tutte le colonne in orizzontale
+        window.exportCurrentProjectExcel = () => {
+            try {
+                if (!window.XLSX) {
+                    showNotification('Errore: Libreria Excel non caricata', 'error');
+                    return;
+                }
+                
+                const project = state.projects.find(p => p.id === state.currentProject);
+                if (!project) {
+                    showNotification('Nessun progetto selezionato', 'error');
+                    return;
+                }
+                
+                const rows = [];
+                
+                // Per ogni posizione crea una RIGA con TUTTE le colonne
+                (project.positions || []).forEach(pos => {
+                    const row = {
+                        // ========== DATI PROGETTO ==========
+                        'ID_Progetto': project.id,
+                        'Nome_Progetto': project.name || '',
+                        'Cliente': project.client || '',
+                        'Nome_Cliente': project.clientData?.nome || '',
+                        'Cognome_Cliente': project.clientData?.cognome || '',
+                        'Telefono': project.clientData?.telefono || '',
+                        'Email': project.clientData?.email || '',
+                        'Indirizzo': project.clientData?.indirizzo || '',
+                        'Citta': project.clientData?.citta || '',
+                        'CAP': project.clientData?.cap || '',
+                        'Piano_Cliente': project.clientData?.piano || '',
+                        'Note_Cliente': project.clientData?.note || '',
+                        
+                        // ========== DATI POSIZIONE ==========
+                        'ID_Posizione': pos.id,
+                        'Nome_Posizione': pos.name || '',
+                        'Ambiente': pos.ambiente || '',
+                        'Piano': pos.piano || '',
+                        'Quantita': pos.quantita || '',
+                        
+                        // ========== MISURE POSIZIONE (mm) ==========
+                        'LVT': pos.misure?.LVT || '',
+                        'HVT': pos.misure?.HVT || '',
+                        'LF': pos.misure?.LF || '',
+                        'HF': pos.misure?.HF || '',
+                        'TMV': pos.misure?.TMV || '',
+                        'HMT': pos.misure?.HMT || '',
+                        'L4': pos.misure?.L4 || '',
+                        'H4': pos.misure?.H4 || '',
+                        'Delta_INT': pos.misure?.DeltaINT || '',
+                        'Delta_EST': pos.misure?.DeltaEST || '',
+                        'H_Soffitto': pos.misure?.HSoffitto || '',
+                        'H_Parapetto_Soffitto': pos.misure?.HParapettoSoffitto || '',
+                        'H_Pavimento_Parapetto': pos.misure?.HPavimentoParapetto || '',
+                        
+                        // ========== RILIEVO ==========
+                        'Da_Togliere': pos.rilievo?.togliere ? 'SI' : 'NO',
+                        'Smaltimento': pos.rilievo?.smaltimento ? 'SI' : 'NO',
+                        'Materiale_Esistente': pos.rilievo?.materiale || '',
+                        'Coprifili_INT': pos.rilievo?.coprifiliInt ? 'SI' : 'NO',
+                        'Coprifili_EST': pos.rilievo?.coprifiliEst ? 'SI' : 'NO',
+                        'Note_Rilievo': pos.rilievo?.note || '',
+                        
+                        // ========== INFISSO ==========
+                        'Infisso_QTA': pos.infisso?.qta || '',
+                        'Infisso_Tipo': pos.infisso?.tipo || '',
+                        'Infisso_Apertura': pos.infisso?.apertura || '',
+                        'Infisso_Tipo_Associato': pos.infisso?.tipoInfissoAssociato || '',
+                        'Infisso_Azienda': pos.infisso?.azienda || '',
+                        'Infisso_Telaio': pos.infisso?.telaio || '',
+                        'Infisso_Colore_INT': pos.infisso?.coloreInt || '',
+                        'Infisso_Colore_EST': pos.infisso?.coloreEst || '',
+                        'Infisso_Tipo_Anta': pos.infisso?.tipoAnta || '',
+                        'Infisso_Finitura_INT_EST': pos.infisso?.finIntEst || '',
+                        'Infisso_Vetro': pos.infisso?.vetro || '',
+                        'Infisso_Tagli_Telaio': pos.infisso?.tagliTelaio || '',
+                        'Infisso_Codici_Tagli': (pos.infisso?.codTagliValues || []).join(','),
+                        'Infisso_Allarme': pos.infisso?.allarme || '',
+                        'Infisso_Microventilazione': pos.infisso?.microventilazione || '',
+                        'Infisso_BRM_L': pos.infisso?.BRM_L || '',
+                        'Infisso_BRM_H': pos.infisso?.BRM_H || '',
+                        'Infisso_Note': pos.infisso?.note || '',
+                        
+                        // ========== PERSIANA ==========
+                        'Persiana_QTA': pos.persiana?.qta || '',
+                        'Persiana_Azienda': pos.persiana?.azienda || '',
+                        'Persiana_Modello': pos.persiana?.modello || '',
+                        'Persiana_Fissaggio': pos.persiana?.fissaggio || '',
+                        'Persiana_Colore': pos.persiana?.colore || '',
+                        'Persiana_Tipo_Stecca': pos.persiana?.tipoStecca || '',
+                        'Persiana_Asolato': pos.persiana?.asolato || '',
+                        'Persiana_BRM_L': pos.persiana?.BRM_L || '',
+                        'Persiana_BRM_H': pos.persiana?.BRM_H || '',
+                        'Persiana_Note': pos.persiana?.note || '',
+                        
+                        // ========== TAPPARELLA ==========
+                        'Tapparella_QTA': pos.tapparella?.qta || '',
+                        'Tapparella_Azienda': pos.tapparella?.azienda || '',
+                        'Tapparella_Tipo': pos.tapparella?.tipo || '',
+                        'Tapparella_Colore': pos.tapparella?.colore || '',
+                        'Tapparella_Motorizzazione': pos.tapparella?.motorizzazione || '',
+                        'Tapparella_Comando': pos.tapparella?.comando || '',
+                        'Tapparella_BRM_L': pos.tapparella?.BRM_L || '',
+                        'Tapparella_BRM_H': pos.tapparella?.BRM_H || '',
+                        'Tapparella_Note': pos.tapparella?.note || '',
+                        
+                        // ========== ZANZARIERA ==========
+                        'Zanzariera_QTA': pos.zanzariera?.qta || '',
+                        'Zanzariera_Azienda': pos.zanzariera?.azienda || '',
+                        'Zanzariera_Modello_F': pos.zanzariera?.modelloF || '',
+                        'Zanzariera_Modello_PF': pos.zanzariera?.modelloPF || '',
+                        'Zanzariera_Tipo_Guida': pos.zanzariera?.tipoGuida || '',
+                        'Zanzariera_Colore_Telaio': pos.zanzariera?.coloreTelaio || '',
+                        'Zanzariera_Colore_Rete': pos.zanzariera?.coloreRete || '',
+                        'Zanzariera_BRM_L': pos.zanzariera?.BRM_L || '',
+                        'Zanzariera_BRM_H': pos.zanzariera?.BRM_H || '',
+                        'Zanzariera_Note': pos.zanzariera?.note || '',
+                        
+                        // ========== CASSONETTO ==========
+                        'Cassonetto_QTA': pos.cassonetto?.qta || '',
+                        'Cassonetto_Tipo': pos.cassonetto?.tipo || '',
+                        'Cassonetto_Azienda': pos.cassonetto?.azienda || '',
+                        'Cassonetto_Colore': pos.cassonetto?.colore || '',
+                        'Cassonetto_BRM_L': pos.cassonetto?.BRM_L || '',
+                        'Cassonetto_BRM_H': pos.cassonetto?.BRM_H || '',
+                        'Cassonetto_Note': pos.cassonetto?.note || '',
+                        
+                        // ========== NOTE GENERALI ==========
+                        'Note_Posizione': pos.note || '',
+                        'Num_Foto': (pos.foto || []).length
+                    };
+                    
+                    rows.push(row);
+                });
+                
+                // Crea workbook con UN SOLO foglio
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(rows);
+                
+                XLSX.utils.book_append_sheet(wb, ws, "Posizioni");
+                
+                // Download
+                const fileName = `${project.name || 'progetto'}-${new Date().toISOString().split('T')[0]}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+                
+                showNotification(`✅ Excel esportato! ${rows.length} posizioni con tutte le colonne`, 'success');
                 
             } catch (error) {
                 console.error('Errore export Excel:', error);
