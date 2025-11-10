@@ -2742,6 +2742,10 @@
             
             // Processa progetti nuovi (facile)
             analysis.newProjects.forEach(project => {
+                // ✅ NORMALIZZA positions
+                if (!project.positions || !Array.isArray(project.positions)) {
+                    project.positions = [];
+                }
                 state.projects.push(project);
             });
             
@@ -3007,6 +3011,10 @@
                     if (imported.metadata) {
                         imported.metadata.syncStatus = 'synced';
                     }
+                    // ✅ NORMALIZZA positions
+                    if (!imported.positions || !Array.isArray(imported.positions)) {
+                        imported.positions = [];
+                    }
                     state.projects[existingIndex] = imported;
                     break;
                     
@@ -3024,6 +3032,10 @@
                     imported.name = imported.name + ' (importato)';
                     if (imported.metadata) {
                         imported.metadata.syncStatus = 'local';
+                    }
+                    // ✅ NORMALIZZA positions
+                    if (!imported.positions || !Array.isArray(imported.positions)) {
+                        imported.positions = [];
                     }
                     state.projects.push(imported);
                     break;
@@ -3651,6 +3663,10 @@
                             }
                             
                             if (!existingIds.has(proj.id)) {
+                                // ✅ NORMALIZZA positions
+                                if (!proj.positions || !Array.isArray(proj.positions)) {
+                                    proj.positions = [];
+                                }
                                 state.projects.push(proj);
                                 existingIds.add(proj.id);
                                 importedCount++;
@@ -3843,6 +3859,11 @@
                         }
                         
                         if (project && project.id) {
+                            // ✅ NORMALIZZA: Garantisci che positions sia sempre un array
+                            if (!project.positions || !Array.isArray(project.positions)) {
+                                project.positions = [];
+                            }
+                            
                             // Migra dati se necessario
                             if (typeof migrateOldData === 'function') {
                                 migrateOldData();
@@ -3858,6 +3879,10 @@
                                 const localDate = new Date(existing.lastModified || existing.updatedAt || 0);
                                 
                                 if (remoteDate > localDate) {
+                                    // ✅ NORMALIZZA prima di salvare
+                                    if (!project.positions || !Array.isArray(project.positions)) {
+                                        project.positions = [];
+                                    }
                                     state.projects[existingIndex] = project;
                                     updatedCount++;
                                     console.log(`🔄 Aggiornato: ${project.name}`);
@@ -5643,7 +5668,7 @@
         function calculateRilievoCompleteness(pos) {
             // Questa funzione mantiene il nome originale per retrocompatibilità
             // Calcola la media di completezza di tutti i prodotti nella posizione
-            const project = state.projects.find(p => p.positions.some(position => position.id === pos.id));
+            const project = state.projects.find(p => p.positions?.some(position => position.id === pos.id));
             if (!project) return { percentage: 0, completed: 0, total: 0 };
             
             const prodotti = ['infissi', 'persiane', 'tapparelle', 'zanzariere', 'cassonetti'];
@@ -15093,7 +15118,8 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                             label: 'Dati Cliente',
                             icon: '👤',
                             action: () => {
-                                showScreen('client');
+                                state.setupStep = 1;
+                                render();
                                 MenuSistema.closeMenu();
                             }
                         },
@@ -15102,16 +15128,18 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                             label: 'Posizioni',
                             icon: '📍',
                             action: () => {
-                                showScreen('positions');
+                                state.setupStep = 9;
+                                render();
                                 MenuSistema.closeMenu();
                             }
                         },
                         {
                             id: 'rilievi-globali',
-                            label: 'Rilievi Globali',
+                            label: 'Prodotti e Rilievi',
                             icon: '📐',
                             action: () => {
-                                showScreen('rilievoGlobale');
+                                state.setupStep = 2;
+                                render();
                                 MenuSistema.closeMenu();
                             }
                         }
