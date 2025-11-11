@@ -4125,6 +4125,37 @@
         async function uploadSingleProjectToGitHub(project) {
             try {
                 
+                // ✅ FIX PROGETTI VUOTI: Non salvare su GitHub progetti incompleti
+                const hasValidName = (project.name && project.name.trim()) || 
+                                     (project.client && project.client.trim()) || 
+                                     (project.clientData?.nome && project.clientData.nome.trim());
+
+                const hasPositions = project.positions && project.positions.length > 0;
+
+                if (!hasValidName) {
+                    console.log('⚠️ Upload bloccato: progetto senza nome valido', {
+                        id: project.id,
+                        name: project.name,
+                        client: project.client,
+                        clientNome: project.clientData?.nome
+                    });
+                    return false;
+                }
+
+                if (!hasPositions) {
+                    console.log('⚠️ Upload bloccato: progetto senza posizioni', {
+                        id: project.id,
+                        name: hasValidName
+                    });
+                    return false;
+                }
+
+                console.log('✅ Progetto valido per upload:', {
+                    id: project.id,
+                    name: hasValidName,
+                    positions: project.positions.length
+                });
+                
                 // Prepara dati progetto COMPLETI
                 const projectData = {
                     // ═════════════════════════════════════════════════════════
