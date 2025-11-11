@@ -1,5 +1,37 @@
 <!DOCTYPE html>
 <!--
+    Open Porte v4.5 - AUTO-SYNC FIX: Sincronizzazione Automatica e Fix Campo Rilievo ✅
+    
+    ✨ MODIFICHE AUTO-SYNC + FIX (12 NOV 2025):
+    
+    ✅ FIX MAPPING CAMPI RILIEVO:
+       - PROBLEMA: Il sistema cercava pos.rilievoInfissi ma il campo è pos.rilievo
+       - CAUSA: Inconsistenza nei nomi dei campi tra globale e posizione
+         • Globale: project.rilievoInfissi, project.rilievoPersiane, ecc.
+         • Posizione: pos.rilievo (infissi), pos.rilievoPersiane, ecc.
+       - SOLUZIONE: Aggiunto mapping corretto in tutte le funzioni:
+         • renderRilievoPerProdotto: productType === 'infissi' ? 'rilievo' : 'rilievo[Prodotto]'
+         • isRilievoPersonalizzato: stesso fix
+         • updateRilievoProdotto: stesso fix  
+         • copiaRilievoDaGlobaleProdotto: stesso fix
+       - RISULTATO: I dati del rilievo infissi ora vengono visualizzati correttamente!
+    
+    ✅ SINCRONIZZAZIONE AUTOMATICA RILIEVI:
+       - PROBLEMA: Solo rilievo infissi veniva copiato nelle nuove posizioni
+       - SOLUZIONE: La funzione addPosition ora copia TUTTI i rilievi globali:
+         • rilievo (infissi) - FIXATO mapping
+         • rilievoPersiane - NUOVO auto-sync
+         • rilievoTapparelle - NUOVO auto-sync  
+         • rilievoZanzariere - NUOVO auto-sync
+         • rilievoCassonetti - NUOVO auto-sync
+       - RISULTATO: Creando una nuova posizione, tutti i dati vengono copiati automaticamente
+    
+    🎯 PROBLEMI RISOLTI:
+       1. Rilievo infissi che non veniva visualizzato (campo sbagliato)
+       2. Altri prodotti senza sincronizzazione automatica
+       3. Necessità di premere "Copia Rilievo" manualmente
+       4. Inconsistenza dati tra progetto iniziale e posizioni
+    
     Open Porte v3.5 - FASE 021f: FIX COMPLETAMENTO >100% ✅
     
     ✨ MODIFICHE FASE 021f (03 NOV 2025 - CHAT 021 FIX PERCENTUALE):
@@ -6759,7 +6791,8 @@
             const pos = project?.positions.find(p => p.id === posId);
             
             if (project && pos) {
-                const rilievoKey = `rilievo${productType.charAt(0).toUpperCase() + productType.slice(1)}`;
+                // FIX: Per infissi il campo è 'rilievo', per altri prodotti è 'rilievo[Prodotto]'
+                const rilievoKey = productType === 'infissi' ? 'rilievo' : `rilievo${productType.charAt(0).toUpperCase() + productType.slice(1)}`;
                 
                 // 🆕 FASE 014 - Inizializza rilievo con valori globali se non esiste
                 if (!pos[rilievoKey]) {
@@ -6797,7 +6830,8 @@
             
             if (project && pos) {
                 const rilievoGlobale = getRilievoGlobale(project, productType);
-                const rilievoKey = `rilievo${productType.charAt(0).toUpperCase() + productType.slice(1)}`;
+                // FIX: Per infissi il campo è 'rilievo', per altri prodotti è 'rilievo[Prodotto]'
+                const rilievoKey = productType === 'infissi' ? 'rilievo' : `rilievo${productType.charAt(0).toUpperCase() + productType.slice(1)}`;
                 
                 // Inizializza pos.rilievo se non esiste
                 if (!pos[rilievoKey]) {
@@ -7144,7 +7178,7 @@
                     ambiente: '',
                     quantita: '1',
                     misure: {},
-                    // 📋 FASE 014: Inizializza con valori globali se esistono
+                    // 📋 AUTO-SYNC: Inizializza TUTTI i rilievi con valori globali
                     rilievo: {
                         togliere: rilievoGlobaleInfissi.togliere || false,
                         smaltimento: rilievoGlobaleInfissi.smaltimento || false,
@@ -7153,6 +7187,31 @@
                         coprifiliEst: rilievoGlobaleInfissi.coprifiliEst || false,
                         note: rilievoGlobaleInfissi.note || ''
                     },
+                    // 🆕 AUTO-SYNC: Inizializza anche rilievi altri prodotti
+                    rilievoPersiane: project.rilievoPersiane ? {
+                        togliere: project.rilievoPersiane.togliere || false,
+                        smaltimento: project.rilievoPersiane.smaltimento || false,
+                        materiale: project.rilievoPersiane.materiale || '',
+                        note: project.rilievoPersiane.note || ''
+                    } : undefined,
+                    rilievoTapparelle: project.rilievoTapparelle ? {
+                        togliere: project.rilievoTapparelle.togliere || false,
+                        smaltimento: project.rilievoTapparelle.smaltimento || false,
+                        materiale: project.rilievoTapparelle.materiale || '',
+                        note: project.rilievoTapparelle.note || ''
+                    } : undefined,
+                    rilievoZanzariere: project.rilievoZanzariere ? {
+                        togliere: project.rilievoZanzariere.togliere || false,
+                        smaltimento: project.rilievoZanzariere.smaltimento || false,
+                        materiale: project.rilievoZanzariere.materiale || '',
+                        note: project.rilievoZanzariere.note || ''
+                    } : undefined,
+                    rilievoCassonetti: project.rilievoCassonetti ? {
+                        togliere: project.rilievoCassonetti.togliere || false,
+                        smaltimento: project.rilievoCassonetti.smaltimento || false,
+                        materiale: project.rilievoCassonetti.materiale || '',
+                        note: project.rilievoCassonetti.note || ''
+                    } : undefined,
                     infissi: [],
                     persiane: [],
                     cassonetti: [],
@@ -11397,7 +11456,8 @@
 
         // 🆕 FASE 014 - Helper per verificare se rilievo posizione è diverso da globale
         function isRilievoPersonalizzato(project, pos, productType) {
-            const rilievoKey = `rilievo${productType.charAt(0).toUpperCase() + productType.slice(1)}`;
+            // FIX: Per infissi il campo è 'rilievo', per altri prodotti è 'rilievo[Prodotto]'
+            const rilievoKey = productType === 'infissi' ? 'rilievo' : `rilievo${productType.charAt(0).toUpperCase() + productType.slice(1)}`;
             const rilievoPos = pos[rilievoKey];
             const rilievoGlobale = getRilievoGlobale(project, productType);
             
@@ -11435,7 +11495,8 @@
         }
 
         function renderRilievoPerProdotto(project, pos, productType, productLabel, hasCoprifili) {
-            const rilievoKey = `rilievo${productType.charAt(0).toUpperCase() + productType.slice(1)}`;
+            // FIX: Per infissi il campo è 'rilievo', per altri prodotti è 'rilievo[Prodotto]'
+            const rilievoKey = productType === 'infissi' ? 'rilievo' : `rilievo${productType.charAt(0).toUpperCase() + productType.slice(1)}`;
             const r = pos[rilievoKey] || {};
             
             // 🆕 FASE 014 - Controlla se rilievo è personalizzato
