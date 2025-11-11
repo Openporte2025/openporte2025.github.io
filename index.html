@@ -1924,6 +1924,111 @@
 
         let syncInterval = null;  // Timer per sync automatica
         
+        // ============================================================================
+        // SISTEMA INDICATORI COMPLETAMENTO - Definito qui per essere accessibile globalmente
+        // ============================================================================
+        const CompletionSystem = {
+            checkProjectData(project) {
+                return !!(project.name && project.client);
+            },
+            checkClientData(project) {
+                const c = project.clientData || {};
+                return !!(c.nome || c.cognome || c.telefono);
+            },
+            checkProducts(project) {
+                const p = project.prodotti || {};
+                return Object.values(p).some(v => v === true);
+            },
+            checkCaratteristicheMuro(project) {
+                const m = project.caratteristicheMuro || {};
+                return Object.values(m).some(v => v && v !== '');
+            },
+            checkConfigInfissi(project) {
+                if (!project.prodotti?.infissi) return null;
+                const c = project.configInfissi || {};
+                return !!(c.azienda || c.telaio);
+            },
+            checkConfigPersiane(project) {
+                if (!project.prodotti?.persiane) return null;
+                const c = project.configPersiane || {};
+                return !!(c.azienda || c.modello);
+            },
+            checkConfigTapparelle(project) {
+                if (!project.prodotti?.tapparelle) return null;
+                const c = project.configTapparelle || {};
+                return !!(c.azienda || c.tipo);
+            },
+            checkConfigZanzariere(project) {
+                if (!project.prodotti?.zanzariere) return null;
+                const c = project.configZanzariere || {};
+                return !!(c.azienda || c.modelloF);
+            },
+            checkConfigCassonetti(project) {
+                if (!project.prodotti?.cassonetti) return null;
+                const c = project.configCassonetti || {};
+                return !!(c.tipo || c.azienda);
+            },
+            checkRilieviGlobali(project) {
+                const rilievi = [
+                    project.rilievoInfissi,
+                    project.rilievoPersiane,
+                    project.rilievoTapparelle,
+                    project.rilievoZanzariere,
+                    project.rilievoCassonetti
+                ].filter(r => r && (r.materiale || r.togliere || r.smaltimento));
+                return rilievi.length > 0;
+            },
+            checkBRMGlobali(project) {
+                const brm = [
+                    project.brmConfigInfissi,
+                    project.brmConfigPersiane,
+                    project.brmConfigTapparelle,
+                    project.brmConfigZanzariere,
+                    project.brmConfigCassonetti
+                ].filter(b => b && (b.misuraBaseL || b.misuraBaseH));
+                return brm.length > 0;
+            },
+            getOverallCompletion(project) {
+                if (!project) return 0;
+                const checks = [
+                    this.checkProjectData(project),
+                    this.checkClientData(project),
+                    this.checkProducts(project),
+                    this.checkCaratteristicheMuro(project),
+                    this.checkConfigInfissi(project),
+                    this.checkConfigPersiane(project),
+                    this.checkConfigTapparelle(project),
+                    this.checkConfigZanzariere(project),
+                    this.checkConfigCassonetti(project),
+                    this.checkRilieviGlobali(project),
+                    this.checkBRMGlobali(project)
+                ].filter(v => v !== null);
+                const completed = checks.filter(v => v === true).length;
+                return checks.length > 0 ? Math.round((completed / checks.length) * 100) : 0;
+            },
+            getIcon(isComplete) {
+                if (isComplete === null) return '';
+                return isComplete ? '✅' : '⭕';
+            },
+            getBadgeHTML(isComplete) {
+                if (isComplete === null) return '';
+                const icon = this.getIcon(isComplete);
+                const className = isComplete ? 'complete' : 'incomplete';
+                return `<span class="completion-badge ${className}">${icon}</span>`;
+            },
+            getProgressBar(percentage) {
+                const color = percentage === 100 ? '#10b981' : 
+                             percentage >= 75 ? '#3b82f6' :
+                             percentage >= 50 ? '#f59e0b' : '#ef4444';
+                return `
+                    <div class="progress-bar" style="background: #e5e7eb; border-radius: 10px; height: 6px; overflow: hidden; margin: 5px 0;">
+                        <div style="width: ${percentage}%; height: 100%; background: ${color}; transition: width 0.3s;"></div>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #6b7280; text-align: right;">${percentage}%</div>
+                `;
+            }
+        };
+        
         // ⚡ FASE 024B: Sistema aggiornamenti parziali DOM (approccio cloud)
         // Invece di render() completo, aggiorniamo solo gli elementi necessari
         
@@ -2229,6 +2334,82 @@
         }
 
         // Migrazione dati da vecchio formato (array) a nuovo formato (oggetto singolo)
+        // ============================================================================
+        // MIGRAZIONE RILIEVI: Aggiunge rilievi mancanti alle posizioni
+        // ============================================================================
+        function migrateProjectRilievi(project) {
+            if (!project || !project.positions) return project;
+            
+            console.log(`🔄 Migrazione rilievi per progetto: ${project.name || project.id}`);
+            
+            let migratedCount = 0;
+            
+            project.positions.forEach((pos, index) => {
+                let positionMigrated = false;
+                
+                // PERSIANE
+                if (!pos.rilievoPersiane && project.rilievoPersiane) {
+                    pos.rilievoPersiane = {
+                        togliere: project.rilievoPersiane.togliere || false,
+                        smaltimento: project.rilievoPersiane.smaltimento || false,
+                        materiale: project.rilievoPersiane.materiale || '',
+                        note: project.rilievoPersiane.note || ''
+                    };
+                    positionMigrated = true;
+                }
+                
+                // TAPPARELLE
+                if (!pos.rilievoTapparelle && project.rilievoTapparelle) {
+                    pos.rilievoTapparelle = {
+                        togliere: project.rilievoTapparelle.togliere || false,
+                        smaltimento: project.rilievoTapparelle.smaltimento || false,
+                        materiale: project.rilievoTapparelle.materiale || '',
+                        note: project.rilievoTapparelle.note || ''
+                    };
+                    positionMigrated = true;
+                }
+                
+                // ZANZARIERE
+                if (!pos.rilievoZanzariere && project.rilievoZanzariere) {
+                    pos.rilievoZanzariere = {
+                        togliere: project.rilievoZanzariere.togliere || false,
+                        smaltimento: project.rilievoZanzariere.smaltimento || false,
+                        materiale: project.rilievoZanzariere.materiale || '',
+                        note: project.rilievoZanzariere.note || ''
+                    };
+                    positionMigrated = true;
+                }
+                
+                // CASSONETTI
+                if (!pos.rilievoCassonetti && project.rilievoCassonetti) {
+                    pos.rilievoCassonetti = {
+                        togliere: project.rilievoCassonetti.togliere || false,
+                        smaltimento: project.rilievoCassonetti.smaltimento || false,
+                        materiale: project.rilievoCassonetti.materiale || '',
+                        note: project.rilievoCassonetti.note || ''
+                    };
+                    positionMigrated = true;
+                }
+                
+                if (positionMigrated) {
+                    migratedCount++;
+                    console.log(`  ✅ Posizione ${index + 1} (${pos.name}): rilievi aggiunti`);
+                }
+            });
+            
+            if (migratedCount > 0) {
+                console.log(`✅ Migrazione completata: ${migratedCount} posizioni aggiornate`);
+                // Aggiorna metadata versione
+                if (!project.metadata) project.metadata = {};
+                project.metadata.migratedToV45 = true;
+                project.metadata.migrationDate = new Date().toISOString();
+            } else {
+                console.log(`✓ Nessuna migrazione necessaria`);
+            }
+            
+            return project;
+        }
+
         function migrateOldData() {
             if (!state.projects) return;
             
@@ -3955,6 +4136,8 @@
                             }
                             
                             // Migra dati se necessario
+                            project = migrateProjectRilievi(project);
+                            
                             if (typeof migrateOldData === 'function') {
                                 migrateOldData();
                             }
@@ -4443,7 +4626,7 @@
                     
                     // METADATA
                     metadata: {
-                        version: '4.0',
+                        version: '4.5',
                         device: {
                             id: localStorage.getItem('deviceId'),
                             name: localStorage.getItem('deviceName')
@@ -9245,6 +9428,17 @@
                 ${renderTopNavbar()}
                 
                 <div class="max-w-7xl mx-auto p-4">
+                    
+                    <!-- HEADER COMPLETAMENTO PROGETTO -->
+                    <div class="project-completion-header mb-4">
+                        <div style="padding: 15px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-weight: 600; color: #374151;">Completamento Progetto</span>
+                                <span style="font-weight: 700; color: #1f2937;">${CompletionSystem.getOverallCompletion(project)}%</span>
+                            </div>
+                            ${CompletionSystem.getProgressBar(CompletionSystem.getOverallCompletion(project))}
+                        </div>
+                    </div>
                     
                     <div class="flex justify-between items-center mb-6 bg-white rounded-lg p-4 shadow overflow-x-auto">
                         ${(() => {
@@ -16844,6 +17038,11 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }
             
             // Configura le azioni del menu per integrarsi con l'app esistente
+        // ============================================================================
+        // SISTEMA INDICATORI COMPLETAMENTO
+        // ============================================================================
+        // SPOSTATO ALL'INIZIO DEL FILE (dopo GITHUB_CONFIG)
+
             MenuSistema.config.menuItems = [
                 {
                     id: 'progetti',
