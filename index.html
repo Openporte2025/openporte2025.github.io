@@ -7187,13 +7187,21 @@
                         foto: []
                     };
                     
-                    // Log per debug
-                    console.log('➕ Infisso aggiunto:', {
-                        posId: pos.id,
-                        azienda: pos.infisso.azienda || '(vuoto)',
-                        telaio: pos.infisso.telaio || '(vuoto)',
-                        codTagli: pos.infisso.codTagli.length > 0 ? pos.infisso.codTagli : '(vuoto)'
+                    // Log per debug DETTAGLIATO
+                    console.log('═══════════════════════════════════════');
+                    console.log('➕ INFISSO AGGIUNTO - DEBUG COMPLETO');
+                    console.log('═══════════════════════════════════════');
+                    console.log('📊 Config Globale Infissi:', project.configInfissi);
+                    console.log('📍 Posizione ID:', pos.id);
+                    console.log('🪟 Infisso Creato:', {
+                        azienda: pos.infisso.azienda || '❌ VUOTO',
+                        telaio: pos.infisso.telaio || '❌ VUOTO',
+                        coloreInt: pos.infisso.coloreInt || '❌ VUOTO',
+                        coloreEst: pos.infisso.coloreEst || '❌ VUOTO',
+                        vetro: pos.infisso.vetro || '❌ VUOTO',
+                        codTagli: pos.infisso.codTagli.length > 0 ? `✅ ${pos.infisso.codTagli.length} taglio/i` : '❌ VUOTO'
                     });
+                    console.log('═══════════════════════════════════════');
                     
                     saveState();
                     render();
@@ -7236,6 +7244,20 @@
                         note: '',
                         foto: []
                     };
+                    
+                    // Log debug DETTAGLIATO PERSIANE
+                    console.log('═══════════════════════════════════════');
+                    console.log('➕ PERSIANA AGGIUNTA - DEBUG COMPLETO');
+                    console.log('═══════════════════════════════════════');
+                    console.log('📊 Config Globale Persiane:', project.configPersiane);
+                    console.log('🚪 Persiana Creata:', {
+                        azienda: pos.persiana.azienda || '❌ VUOTO',
+                        modello: pos.persiana.modello || '❌ VUOTO',
+                        fissaggio: pos.persiana.fissaggio || '❌ VUOTO',
+                        colorePersiana: pos.persiana.colorePersiana || '❌ VUOTO'
+                    });
+                    console.log('═══════════════════════════════════════');
+                    
                     saveState();
                     render();
                 }
@@ -7363,6 +7385,62 @@
                     }
                 }
             }
+        }
+
+        // 🔄 NUOVA FUNZIONE: Ricarica infisso da configurazione globale
+        function ricaricaInfissoDaGlobali(projectId, posId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const pos = project.positions.find(p => p.id === posId);
+            if (!pos || !pos.infisso) return;
+            
+            // Conferma azione
+            if (!confirm('Ricaricare la configurazione dalle Impostazioni Globali? I dati attuali verranno sovrascritti (tranne BRM e note).')) {
+                return;
+            }
+            
+            // Salva BRM e note (non vanno sovrascritti)
+            const savedBRM_L = pos.infisso.BRM_L;
+            const savedBRM_H = pos.infisso.BRM_H;
+            const savedNote = pos.infisso.note || '';
+            const savedFoto = pos.infisso.foto || [];
+            const savedQta = pos.infisso.qta || '1';
+            const savedId = pos.infisso.id;
+            
+            // Ricarica TUTTO da config globale
+            pos.infisso = {
+                id: savedId,
+                qta: savedQta,
+                azienda: project.configInfissi?.azienda || '',
+                finituraInt: project.configInfissi?.finituraInt || '',
+                finituraEst: project.configInfissi?.finituraEst || '',
+                coloreInt: project.configInfissi?.coloreInt || '',
+                coloreEst: project.configInfissi?.coloreEst || '',
+                tipoAnta: project.configInfissi?.tipoAnta || '',
+                telaio: project.configInfissi?.telaio || '',
+                allarme: project.configInfissi?.allarme || '',
+                vetro: project.configInfissi?.vetro || '',
+                tagliTelaio: project.configInfissi?.tagliTelaio || '',
+                codTagli: project.configInfissi?.codTagli ? [...project.configInfissi.codTagli] : [],
+                motoreAzienda: project.configInfissi?.motoreAzienda || '',
+                motoreModello: project.configInfissi?.motoreModello || '',
+                BRM_L: savedBRM_L, // Mantieni BRM
+                BRM_H: savedBRM_H,
+                note: savedNote, // Mantieni note
+                foto: savedFoto  // Mantieni foto
+            };
+            
+            console.log('🔄 INFISSO RICARICATO DA GLOBALI:', {
+                posId,
+                azienda: pos.infisso.azienda,
+                telaio: pos.infisso.telaio,
+                coloreInt: pos.infisso.coloreInt
+            });
+            
+            saveState();
+            showNotification('✅ Configurazione ricaricata da Globali', 'success');
+            render();
         }
 
         function updateProduct(projectId, posId, productType, field, value) {
@@ -11177,9 +11255,9 @@
             return `
                 <!-- 🆕 FASE 014: Pulsante per mostrare/nascondere rilievo -->
                 <div class="mb-4">
-                    <button onclick="document.getElementById('${collapseId}').style.display = document.getElementById('${collapseId}').style.display === 'none' ? 'block' : 'none'; this.innerHTML = document.getElementById('${collapseId}').style.display === 'none' ? '📋 Modifica Rilievo' : '✖ Nascondi Rilievo';"
+                    <button onclick="document.getElementById('${collapseId}').style.display = document.getElementById('${collapseId}').style.display === 'none' ? 'block' : 'none'; this.innerHTML = document.getElementById('${collapseId}').style.display === 'none' ? 'RILIEVO PREESISTENTE - ${productLabel}' : '✖ Nascondi Rilievo';"
                             class="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 border-2 ${personalizz.isPersonalizzato ? 'border-orange-400' : 'border-gray-300'} rounded-lg font-semibold text-sm transition flex items-center justify-between">
-                        <span>📋 Modifica Rilievo</span>
+                        <span>RILIEVO PREESISTENTE - ${productLabel}</span>
                         ${personalizz.isPersonalizzato ? `
                             <span class="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
                                 ⚠️ PERSONALIZZATO
@@ -11674,10 +11752,17 @@
                         <div class="product-card">
                             <div class="flex justify-between items-start mb-3">
                                 <h4 class="font-semibold text-blue-700 text-lg">🪟 Infisso</h4>
-                                <button onclick="deleteProduct('${project.id}', '${pos.id}', 'infisso')"
-                                        class="px-3 py-1.5 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700">
-                                    🗑️ Elimina
-                                </button>
+                                <div class="flex gap-2">
+                                    <button onclick="ricaricaInfissoDaGlobali('${project.id}', '${pos.id}')"
+                                            class="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700"
+                                            title="Ricarica configurazione da Config Globali">
+                                        🔄 Ricarica
+                                    </button>
+                                    <button onclick="deleteProduct('${project.id}', '${pos.id}', 'infisso')"
+                                            class="px-3 py-1.5 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700">
+                                        🗑️ Elimina
+                                    </button>
+                                </div>
                             </div>
                             
                             <!-- 📋 DATI SPECIFICI -->
