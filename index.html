@@ -1437,6 +1437,18 @@
             display: inline-block;
             margin-left: auto;
         }
+        
+        /* 🎨 FASE DISEGNI: Badge conteggio */
+        .count-badge {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: auto;
+        }
 
         .sync-settings-modal {
             position: fixed;
@@ -4343,11 +4355,24 @@
                         // Prodotti assenti
                         prodottiAssenti: pos.prodottiAssenti || [],
                         
+                        // 🎨 FASE DISEGNI: Disegni posizione
+                        drawings: pos.drawings || [],
+                        
                         // Note e foto
                         note: pos.note || '',
                         noteVisibilita: pos.noteVisibilita || [],
                         foto: pos.foto || []
                     })),
+                    
+                    // 🎨 FASE DISEGNI: Disegni progetto
+                    drawings: project.drawings || {
+                        general: [],
+                        stats: {
+                            total: 0,
+                            totalSize: 0,
+                            lastUpdate: new Date().toISOString()
+                        }
+                    },
                     
                     // DATE
                     created: project.created || new Date().toISOString(),
@@ -5088,7 +5113,7 @@
 
         // Naviga a pagina disegni
         function navigateToDrawings() {
-            state.viewMode = 'drawings';
+            state.screen = 'drawings';
             render();
         }
 
@@ -5353,6 +5378,19 @@
                                 <span>Posizioni</span>
                             </div>
                             ${canGoToPositions ? renderCompletionBadge(completamentoPosizioni) : ''}
+                        </div>
+                        
+                        <!-- 🎨 FASE DISEGNI: Disegni -->
+                        <div class="nav-item ${state.screen === 'drawings' ? 'active' : ''}" 
+                             onclick="navigateToDrawings(); closeProjectMenu();">
+                            <div class="nav-label">
+                                <span class="nav-icon">🎨</span>
+                                <span>Disegni</span>
+                            </div>
+                            ${(() => {
+                                const count = getDrawingsCount(state.currentProject);
+                                return count > 0 ? `<span class="count-badge">${count}</span>` : '';
+                            })()}
                         </div>
                         
                         <!-- Riepilogo -->
@@ -8069,6 +8107,315 @@
         }
 
         // Main Menu laterale dell'applicazione
+        // ═══════════════════════════════════════════════════════════════
+        // 🎨 PAGINA DISEGNI PROGETTO
+        // ═══════════════════════════════════════════════════════════════
+
+        function DrawingsPage() {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            
+            if (!project) {
+                return `<div style="padding: 20px; text-align: center;">
+                    <p>❌ Progetto non trovato</p>
+                </div>`;
+            }
+            
+            // Migra se necessario
+            migrateProjectDrawings(project);
+            
+            const drawings = project.drawings?.general || [];
+            const stats = project.drawings?.stats || { total: 0, totalSize: 0 };
+            const totalSize = calculateTotalDrawingsSize(project);
+            const usedSpace = (totalSize / DRAWING_LIMITS.maxProjectSize * 100).toFixed(1);
+            
+            return `
+                ${renderProjectMenu()}
+                
+                <div style="padding: 80px 20px 20px 20px;">
+                    <!-- Header Pagina -->
+                    <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                            <h2 style="margin: 0; font-size: 24px; color: #2d3748;">
+                                🎨 Disegni Progetto
+                            </h2>
+                            <button onclick="showUploadDialog()" 
+                                    style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 20px;">+</span>
+                                Aggiungi
+                            </button>
+                        </div>
+                        
+                        <!-- Statistiche -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; font-size: 14px; color: #718096;">
+                            <div>
+                                <strong>${drawings.length}</strong> disegni
+                            </div>
+                            <div>
+                                <strong>${formatFileSize(totalSize)}</strong> occupati
+                            </div>
+                            <div>
+                                <strong>${usedSpace}%</strong> spazio usato
+                            </div>
+                        </div>
+                        
+                        <!-- Barra progresso spazio -->
+                        <div style="margin-top: 10px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                            <div style="width: ${usedSpace}%; height: 100%; background: ${usedSpace > 80 ? '#f56565' : '#4CAF50'}; transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Lista Disegni -->
+                    ${drawings.length === 0 ? `
+                        <div style="background: white; border-radius: 12px; padding: 40px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;">🎨</div>
+                            <h3 style="margin: 0 0 10px 0; color: #2d3748;">Nessun disegno</h3>
+                            <p style="color: #718096; margin: 0 0 20px 0;">
+                                Aggiungi disegni schematici dal rilievo per avere riferimenti visivi
+                            </p>
+                            <button onclick="showUploadDialog()" 
+                                    style="padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">
+                                Aggiungi primo disegno
+                            </button>
+                        </div>
+                    ` : drawings.map(drawing => renderDrawingCard(drawing, project)).join('')}
+                </div>
+            `;
+        }
+
+        // Render card singolo disegno
+        function renderDrawingCard(drawing, project) {
+            const isImage = drawing.type.startsWith('image/');
+            const isPDF = drawing.type === 'application/pdf';
+            const linkedPos = drawing.linkedPositions || [];
+            const posNames = linkedPos.map(id => {
+                const pos = project.positions.find(p => p.id === id);
+                return pos?.name || 'Sconosciuta';
+            });
+            
+            return `
+                <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <!-- Thumbnail -->
+                        <div style="flex-shrink: 0;">
+                            ${drawing.thumbnail ? `
+                                <img src="${drawing.thumbnail}" 
+                                     alt="${drawing.name}"
+                                     onclick="viewDrawing('${drawing.id}')"
+                                     style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #e2e8f0;">
+                            ` : `
+                                <div onclick="viewDrawing('${drawing.id}')"
+                                     style="width: 120px; height: 120px; background: #f7fafc; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #e2e8f0;">
+                                    <span style="font-size: 48px;">${isPDF ? '📄' : '🖼️'}</span>
+                                </div>
+                            `}
+                        </div>
+                        
+                        <!-- Info -->
+                        <div style="flex: 1; min-width: 200px;">
+                            <h3 style="margin: 0 0 8px 0; font-size: 18px; color: #2d3748; overflow: hidden; text-overflow: ellipsis;">
+                                ${drawing.name}
+                            </h3>
+                            
+                            ${drawing.description ? `
+                                <p style="margin: 0 0 10px 0; color: #718096; font-size: 14px;">
+                                    ${drawing.description}
+                                </p>
+                            ` : ''}
+                            
+                            <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; color: #a0aec0; margin-bottom: 12px;">
+                                <span>📅 ${new Date(drawing.uploadDate).toLocaleDateString('it-IT')}</span>
+                                <span>💾 ${formatFileSize(drawing.size)}</span>
+                                ${isPDF && drawing.metadata?.pageCount ? `
+                                    <span>📄 ${drawing.metadata.pageCount} pag.</span>
+                                ` : ''}
+                                ${drawing.metadata?.dimensions ? `
+                                    <span>📐 ${drawing.metadata.dimensions.width}×${drawing.metadata.dimensions.height}px</span>
+                                ` : ''}
+                            </div>
+                            
+                            ${linkedPos.length > 0 ? `
+                                <div style="margin-bottom: 12px;">
+                                    <div style="font-size: 12px; color: #a0aec0; margin-bottom: 4px;">Collegato a:</div>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                        ${posNames.map(name => `
+                                            <span style="background: #edf2f7; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #4a5568;">
+                                                📍 ${name}
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            <!-- Azioni -->
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button onclick="viewDrawing('${drawing.id}')"
+                                        style="padding: 8px 16px; background: #4299e1; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer;">
+                                    👁️ Visualizza
+                                </button>
+                                <button onclick="downloadDrawing('${drawing.id}')"
+                                        style="padding: 8px 16px; background: #48bb78; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer;">
+                                    💾 Scarica
+                                </button>
+                                <button onclick="confirmDeleteDrawing('${drawing.id}')"
+                                        style="padding: 8px 16px; background: #f56565; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer;">
+                                    🗑️ Elimina
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Dialog upload
+        function showUploadDialog() {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            const availableSpace = DRAWING_LIMITS.maxProjectSize - calculateTotalDrawingsSize(project);
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'modal-overlay';
+            dialog.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+            dialog.innerHTML = `
+                <div style="background: white; border-radius: 16px; padding: 30px; max-width: 500px; width: 90%;">
+                    <h2 style="margin: 0 0 20px 0; font-size: 24px; color: #2d3748;">
+                        📤 Aggiungi Disegno
+                    </h2>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; color: #4a5568; font-weight: 500;">
+                            File (PNG, JPG, PDF)
+                        </label>
+                        <input type="file" 
+                               id="drawing-file-input"
+                               accept="image/png,image/jpeg,image/jpg,application/pdf"
+                               style="width: 100%; padding: 10px; border: 2px dashed #cbd5e0; border-radius: 8px; cursor: pointer;">
+                        <div style="margin-top: 8px; font-size: 12px; color: #a0aec0;">
+                            Max ${formatFileSize(DRAWING_LIMITS.maxFileSize)} per file • Disponibili ${formatFileSize(availableSpace)}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; color: #4a5568; font-weight: 500;">
+                            Descrizione (opzionale)
+                        </label>
+                        <textarea id="drawing-description"
+                                  placeholder="Es: Vista generale piano terra"
+                                  style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; min-height: 80px; font-family: inherit; resize: vertical;"></textarea>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button onclick="this.closest('.modal-overlay').remove()"
+                                style="padding: 10px 20px; background: #e2e8f0; color: #4a5568; border: none; border-radius: 8px; cursor: pointer;">
+                            Annulla
+                        </button>
+                        <button onclick="uploadDrawingFromDialog()"
+                                style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            Carica
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+        }
+
+        // Upload da dialog
+        async function uploadDrawingFromDialog() {
+            const fileInput = document.getElementById('drawing-file-input');
+            const descriptionInput = document.getElementById('drawing-description');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showNotification('⚠️ Seleziona un file', 'warning');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const description = descriptionInput.value.trim();
+            
+            const success = await addDrawingToProject(file, description);
+            
+            if (success) {
+                document.querySelector('.modal-overlay').remove();
+            }
+        }
+
+        // Visualizza disegno (lightbox)
+        function viewDrawing(drawingId) {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            const drawing = project?.drawings?.general?.find(d => d.id === drawingId);
+            
+            if (!drawing) return;
+            
+            const isPDF = drawing.type === 'application/pdf';
+            
+            const lightbox = document.createElement('div');
+            lightbox.className = 'lightbox-overlay';
+            lightbox.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px;';
+            lightbox.onclick = (e) => {
+                if (e.target === lightbox) lightbox.remove();
+            };
+            
+            lightbox.innerHTML = `
+                <div style="position: relative; max-width: 90vw; max-height: 90vh; background: white; border-radius: 12px; overflow: hidden;">
+                    <div style="padding: 15px; background: #2d3748; color: white; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 18px;">${drawing.name}</h3>
+                        <button onclick="this.closest('.lightbox-overlay').remove()"
+                                style="background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">
+                            ×
+                        </button>
+                    </div>
+                    <div style="padding: 20px; max-height: calc(90vh - 100px); overflow: auto;">
+                        ${isPDF ? `
+                            <iframe src="${drawing.data}" 
+                                    style="width: 80vw; height: 70vh; border: none; border-radius: 8px;"></iframe>
+                            <div style="margin-top: 15px; text-align: center;">
+                                <a href="${drawing.data}" 
+                                   download="${drawing.name}.pdf"
+                                   style="padding: 10px 20px; background: #4299e1; color: white; text-decoration: none; border-radius: 8px; display: inline-block;">
+                                    💾 Scarica PDF
+                                </a>
+                            </div>
+                        ` : `
+                            <img src="${drawing.data}" 
+                                 alt="${drawing.name}"
+                                 style="max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto;">
+                        `}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(lightbox);
+        }
+
+        // Scarica disegno
+        function downloadDrawing(drawingId) {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            const drawing = project?.drawings?.general?.find(d => d.id === drawingId);
+            
+            if (!drawing) return;
+            
+            const ext = drawing.type === 'application/pdf' ? 'pdf' : 
+                        drawing.type === 'image/png' ? 'png' : 'jpg';
+            
+            const link = document.createElement('a');
+            link.href = drawing.data;
+            link.download = `${drawing.name}.${ext}`;
+            link.click();
+            
+            showNotification('💾 Download avviato', 'success');
+        }
+
+        // Conferma eliminazione
+        function confirmDeleteDrawing(drawingId) {
+            if (confirm('Eliminare questo disegno? L\'operazione non può essere annullata.')) {
+                deleteDrawing(drawingId);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // 📋 MAIN MENU
+        // ═══════════════════════════════════════════════════════════════
+        
         function MainMenu() {
             return `
                 <!-- Main Menu Laterale -->
@@ -15774,6 +16121,7 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                 <main class="min-h-screen">
                     ${state.screen === 'list' ? ProjectsList() :
                       state.screen === 'position' ? PositionDetail() :
+                      state.screen === 'drawings' ? DrawingsPage() :
                       ProjectSetup()}
                 </main>
                 ${NewProjectModal()}
