@@ -291,6 +291,14 @@
        - Dati sempre aggiornati e tracciati
        - Squadra posa può scaricare PDF da Odoo su smartphone
     
+    ✨ MODIFICHE FASE 027 (11 NOV 2025):
+    ✅ AUTO-SELEZIONE TIPO INFISSO ASSOCIATO:
+       - Quando selezioni tipo (F1, PF1, F2, PF2, etc) → auto-check radio F/PF
+       - Vale per INFISSI: F1,F2,F3,FISSO,HST → auto F | PF1,PF2,PF3 → auto PF
+       - Vale per PERSIANE: F1,F2,F3 → auto F | PF1,PF2,PF3 → auto PF
+       - Opzioni persiane allineate: F1,PF1 (prima erano FA,PFA)
+       - Console log conferma selezione automatica
+    
     ✨ MODIFICHE FASE 26 (22 OTT 2025 - PRECEDENTE):
     ✅ CAMPO "TIPO TAGLI" ELIMINATO:
        - Rimosso completamente il campo "Tipo Tagli" dalla posizione infissi
@@ -532,7 +540,7 @@
        - Possibilità di scrivere custom e tornare a selezionare dal dropdown
     
     ✅ PERSIANA - Tipo e Apertura aggiornati:
-       - TIPO: FA, PFA, F2, PF2, F3, PF3, SCORREVOLE + ✏️ ALTRO - SCRIVO
+       - TIPO: F1, PF1, F2, PF2, F3, PF3, SCORREVOLE + ✏️ ALTRO - SCRIVO
        - APERTURA: SP SX, SP DX, LIB SX, LIB DX, SCORR SX, SCORR DX + ✏️ Altro SCRIVO
        - Campo input che appare quando si seleziona ALTRO - SCRIVO
        - Possibilità di tornare a selezionare dal dropdown
@@ -580,8 +588,8 @@
        - Default: 1
        - Visibile nella griglia dettagli infisso
     
-    ✅ PERSIANE TIPO: Aggiunte opzioni F1 e PF1
-       - Lista completa: FA, PFA, F1, PF1, F2, PF2, F3, PF3, SCORREVOLE
+    ✅ PERSIANE TIPO: Opzioni allineate con infissi
+       - Lista completa: F1, PF1, F2, PF2, F3, PF3, SCORREVOLE
        - Opzione "✏️ ALTRO - SCRIVO" per tipi personalizzati
     
     ✅ LAYOUT OTTIMIZZATO:
@@ -7072,6 +7080,37 @@
                                 zan.BRM_H = brm.H;
                             }
                         }
+                        
+                        // 🎯 AUTO-SELEZIONE tipoInfissoAssociato per INFISSO
+                        let autoTipo = null;
+                        if (value && value.includes('PF')) {
+                            // PF1, PF2, PF3 → Porta Finestra
+                            autoTipo = 'PF';
+                        } else if (value && (value.match(/F\d/) || value === 'FISSO' || value === 'HST')) {
+                            // F1, F2, F3, FISSO, HST → Finestra
+                            autoTipo = 'F';
+                        }
+                        if (autoTipo) {
+                            inf.tipoInfissoAssociato = autoTipo;
+                            console.log(`✅ Auto-selezionato tipoInfissoAssociato: ${autoTipo} per infisso tipo ${value}`);
+                        }
+                    }
+                    
+                    // 🎯 PERSIANE: Auto-selezione tipoInfissoAssociato  
+                    if (productType === 'persiana' && field === 'tipo') {
+                        const per = pos.persiana;
+                        let autoTipo = null;
+                        if (value && value.includes('PF')) {
+                            // PF1, PF2, PF3 → Porta Finestra
+                            autoTipo = 'PF';
+                        } else if (value && value.match(/F[A\d]/)) {
+                            // F1, F2, F3 → Finestra
+                            autoTipo = 'F';
+                        }
+                        if (autoTipo) {
+                            per.tipoInfissoAssociato = autoTipo;
+                            console.log(`✅ Auto-selezionato tipoInfissoAssociato: ${autoTipo} per persiana tipo ${value}`);
+                        }
                     }
                     
                     // CASSONETTI: Se cambiano le misure, ricalcola il BRM
@@ -7092,6 +7131,11 @@
                     }
                     
                     saveState();
+                    
+                    // 🔄 Re-render SOLO se cambiato tipo (infisso/persiana) per aggiornare tipoInfissoAssociato radio
+                    if ((productType === 'infisso' || productType === 'persiana') && field === 'tipo') {
+                        render();
+                    }
                     
                     // RIMOSSO: render() per evitare reload pagina dopo ogni modifica
                     // I dati sono già salvati, non serve ricaricare la pagina
@@ -11492,7 +11536,7 @@
                                     <div>
                                         <label class="text-xs font-medium">Tipo</label>
                                         ${(() => {
-                                            const options = ['FA', 'PFA', 'F2', 'PF2', 'F3', 'PF3', 'SCORREVOLE'];
+                                            const options = ['F1', 'PF1', 'F2', 'PF2', 'F3', 'PF3', 'SCORREVOLE'];
                                             const current = per.tipo || '';
                                             const isCustom = current && !options.includes(current);
                                             const selectId = `per-tipo-${pos.id}`;
