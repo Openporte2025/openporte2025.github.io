@@ -7139,7 +7139,6 @@
                 // INFISSI
                 if (project.prodotti?.infissi) {
                     console.log('  ✅ Creando infisso con config globali...');
-                    const brm = calculateBRM(project, pos, pos.misure, project.brmConfigInfissi);
                     pos.infisso = {
                         id: generateId(),
                         qta: '1',
@@ -7156,8 +7155,8 @@
                         codTagli: project.configInfissi?.codTagli ? [...project.configInfissi.codTagli] : [],
                         motoreAzienda: project.configInfissi?.motoreAzienda || '',
                         motoreModello: project.configInfissi?.motoreModello || '',
-                        BRM_L: brm.L,
-                        BRM_H: brm.H,
+                        BRM_L: '0',  // Sarà calcolato quando inserisci misure
+                        BRM_H: '0',  // Sarà calcolato quando inserisci misure
                         note: '',
                         foto: []
                     };
@@ -7167,7 +7166,6 @@
                 // PERSIANE
                 if (project.prodotti?.persiane) {
                     console.log('  ✅ Creando persiana con config globali...');
-                    const brm = calculateBRM(project, pos, pos.misure, project.brmConfigPersiane);
                     pos.persiana = {
                         id: generateId(),
                         qta: '1',
@@ -7186,8 +7184,8 @@
                         materiale: project.configPersiane?.materiale || '',
                         colore: project.configPersiane?.colore || '',
                         apertura: project.configPersiane?.apertura || '',
-                        BRM_L: brm.L,
-                        BRM_H: brm.H,
+                        BRM_L: '0',  // Sarà calcolato quando inserisci misure
+                        BRM_H: '0',  // Sarà calcolato quando inserisci misure
                         note: '',
                         foto: []
                     };
@@ -7197,7 +7195,6 @@
                 // TAPPARELLE
                 if (project.prodotti?.tapparelle) {
                     console.log('  ✅ Creando tapparella con config globali...');
-                    const brm = calculateBRM(project, pos, pos.misure, project.brmConfigTapparelle);
                     pos.tapparella = {
                         id: generateId(),
                         qta: '1',
@@ -7208,8 +7205,8 @@
                         comando: project.configTapparelle?.comando || '',
                         motoreAzienda: project.configTapparelle?.motoreAzienda || '',
                         motoreModello: project.configTapparelle?.motoreModello || '',
-                        BRM_L: brm.L,
-                        BRM_H: brm.H,
+                        BRM_L: '0',  // Sarà calcolato quando inserisci misure
+                        BRM_H: '0',  // Sarà calcolato quando inserisci misure
                         note: '',
                         foto: []
                     };
@@ -7219,7 +7216,6 @@
                 // ZANZARIERE
                 if (project.prodotti?.zanzariere) {
                     console.log('  ✅ Creando zanzariera con config globali...');
-                    const brm = calculateBRM(project, pos, pos.misure, project.brmConfigZanzariere);
                     pos.zanzariera = {
                         id: generateId(),
                         qta: '1',
@@ -7227,8 +7223,8 @@
                         tipo: project.configZanzariere?.tipo || '',
                         colore: project.configZanzariere?.colore || '',
                         materiale: project.configZanzariere?.materiale || '',
-                        BRM_L: brm.L,
-                        BRM_H: brm.H,
+                        BRM_L: '0',  // Sarà calcolato quando inserisci misure
+                        BRM_H: '0',  // Sarà calcolato quando inserisci misure
                         note: '',
                         foto: []
                     };
