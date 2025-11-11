@@ -1947,7 +1947,7 @@
          */
         function updateBRMDisplay(projectId, posId, productType) {
             const project = state.projects.find(p => p.id === projectId);
-            if (!project) return;
+            if (!project || !project.positions) return;
             
             const pos = project.positions.find(p => p.id === posId);
             if (!pos) return;
@@ -5231,7 +5231,7 @@
             
             if (positionId) {
                 // Disegno di posizione
-                const position = project.positions.find(p => p.id === positionId);
+                const position = project.positions?.find(p => p.id === positionId);
                 if (position?.drawings) {
                     position.drawings = position.drawings.filter(d => d.id !== drawingId);
                 }
@@ -6137,7 +6137,7 @@
         // 🛡️ OVERRIDE VALIDAZIONE MANUALE - Conferma che una misura è corretta
         function confirmValidationOverride(projectId, posId, fieldName) {
             const project = state.projects.find(p => p.id === projectId);
-            if (!project) return;
+            if (!project || !project.positions) return;
             
             const pos = project.positions.find(p => p.id === posId);
             if (!pos) return;
@@ -6161,7 +6161,7 @@
         // 🛡️ OVERRIDE VALIDAZIONE MANUALE - Annulla la conferma manuale
         function cancelValidationOverride(projectId, posId, fieldName) {
             const project = state.projects.find(p => p.id === projectId);
-            if (!project) return;
+            if (!project || !project.positions) return;
             
             const pos = project.positions.find(p => p.id === posId);
             if (!pos) return;
@@ -6183,7 +6183,7 @@
         // 📋 RILIEVO PREESISTENTE - Gestione e Validazione
         function updateRilievo(projectId, posId, field, value) {
             const project = state.projects.find(p => p.id === projectId);
-            if (project) {
+            if (project && project.positions) {
                 const pos = project.positions.find(p => p.id === posId);
                 if (pos) {
                     if (!pos.rilievo) {
@@ -14331,8 +14331,8 @@
 
         // 🆕 FASE 014 - Controllo completamento prima cambio posizione
         window.switchPosition = (id) => {
-            const project = state.projects.find(p => p.positions.some(pos => pos.id === state.currentPosition));
-            const currentPos = project?.positions.find(p => p.id === state.currentPosition);
+            const project = state.projects.find(p => p.positions && p.positions.some(pos => pos.id === state.currentPosition));
+            const currentPos = project?.positions?.find(p => p.id === state.currentPosition);
             
             // Se c'è una posizione corrente, controlla completamento
             if (currentPos && currentPos.id !== id) {
