@@ -4096,76 +4096,249 @@
         async function uploadSingleProjectToGitHub(project) {
             try {
                 
-                // Prepara dati progetto (DOPPIO FORMATO: vecchio + nuovo)
+                // Prepara dati progetto COMPLETI
                 const projectData = {
                     // ═════════════════════════════════════════════════════════
-                    // FORMATO VECCHIO (compatibilità con dashboard esistenti)
+                    // DATI PROGETTO COMPLETI (v4.0)
                     // ═════════════════════════════════════════════════════════
                     id: project.id,
-                    projectName: project.cliente?.nome || 'Progetto',
-                    customerName: project.cliente?.nome || '',
-                    customerPhone: project.cliente?.telefono || '',
-                    customerEmail: project.cliente?.email || '',
-                    customerAddress: project.cliente?.indirizzo || '',
-                    currentEnvironment: project.vani?.[0]?.nome || '',
-                    project: {
-                        hasInfissi: project.setup?.hasInfissi || false,
-                        hasPersiane: project.setup?.hasPersiane || false,
-                        hasTapparelle: project.setup?.hasTapparelle || false,
-                        hasZanzariere: project.setup?.hasZanzariere || false,
-                        rilievoInfissi: project.positions || []
+                    name: project.name || '',
+                    client: project.client || '',
+                    
+                    // DATI CLIENTE COMPLETI
+                    clientData: {
+                        nome: project.clientData?.nome || '',
+                        cognome: project.clientData?.cognome || '',
+                        telefono: project.clientData?.telefono || '',
+                        email: project.clientData?.email || '',
+                        indirizzo: project.clientData?.indirizzo || '',
+                        citta: project.clientData?.citta || '',
+                        cap: project.clientData?.cap || '',
+                        piano: project.clientData?.piano || '',
+                        note: project.clientData?.note || ''
                     },
                     
-                    // ═════════════════════════════════════════════════════════
-                    // FORMATO NUOVO (standard con campi normalizzati)
-                    // ═════════════════════════════════════════════════════════
-                    rilievo: {
-                        meta: {
-                            id_rilievo: project.id,
-                            data_creazione: project.dataCreazione || new Date().toISOString(),
-                            data_modifica: new Date().toISOString(),
-                            operatore: "Operatore",
-                            stato: "completato",
-                            versione_app: "3.5.027m"
-                        },
-                        cliente: {
-                            nome: project.cliente?.nome || '',
-                            telefono: project.cliente?.telefono || '',
-                            email: project.cliente?.email || '',
-                            indirizzo: {
-                                via: project.cliente?.indirizzo || '',
-                                citta: '',
-                                cap: '',
-                                provincia: ''
-                            }
-                        },
-                        cantiere: {
-                            indirizzo: project.cliente?.indirizzo || '',
-                            note_accesso: '',
-                            foto_cantiere: [],
-                            coordinate_gps: null
-                        },
-                        misure: normalizePositionsToMisure(project.positions || []),
-                        preventivo_richiesto: {
-                            tipo: "automatico",
-                            elementi_inclusi: [],
-                            sconto_richiesto: 0,
-                            note_commerciali: ""
-                        },
-                        allegati: {
-                            planimetria: null,
-                            foto_generali: [],
-                            documenti: []
-                        }
+                    // PRODOTTI ABILITATI
+                    prodotti: {
+                        infissi: project.prodotti?.infissi || false,
+                        persiane: project.prodotti?.persiane || false,
+                        tapparelle: project.prodotti?.tapparelle || false,
+                        zanzariere: project.prodotti?.zanzariere || false,
+                        cassonetti: project.prodotti?.cassonetti || false
                     },
                     
-                    // ═════════════════════════════════════════════════════════
+                    // CARATTERISTICHE MURO
+                    caratteristicheMuro: {
+                        profMuroInt: project.caratteristicheMuro?.profMuroInt || '',
+                        profPianaSopra: project.caratteristicheMuro?.profPianaSopra || '',
+                        profPianaSotto: project.caratteristicheMuro?.profPianaSotto || '',
+                        telaioProfondita: project.caratteristicheMuro?.telaioProfondita || '',
+                        telaioLarghezza: project.caratteristicheMuro?.telaioLarghezza || '',
+                        guidaEsistente: project.caratteristicheMuro?.guidaEsistente || '',
+                        profGuida: project.caratteristicheMuro?.profGuida || '',
+                        larghezzaGuida: project.caratteristicheMuro?.larghezzaGuida || '',
+                        profMuroEst: project.caratteristicheMuro?.profMuroEst || '',
+                        battutaSuperioreTapparella: project.caratteristicheMuro?.battutaSuperioreTapparella || '',
+                        falsoEsistente: project.caratteristicheMuro?.falsoEsistente || '',
+                        spessoreFalso: project.caratteristicheMuro?.spessoreFalso || '',
+                        distanzaFalsoInfisso: project.caratteristicheMuro?.distanzaFalsoInfisso || ''
+                    },
+                    
+                    // CONFIG INFISSI
+                    configInfissi: {
+                        azienda: project.configInfissi?.azienda || '',
+                        telaio: project.configInfissi?.telaio || '',
+                        coloreInt: project.configInfissi?.coloreInt || '',
+                        coloreEst: project.configInfissi?.coloreEst || '',
+                        tipoAnta: project.configInfissi?.tipoAnta || '',
+                        finIntEst: project.configInfissi?.finIntEst || '',
+                        vetro: project.configInfissi?.vetro || '',
+                        tagliTelaio: project.configInfissi?.tagliTelaio || '',
+                        codTagli: project.configInfissi?.codTagli || [],
+                        codTagliValues: project.configInfissi?.codTagliValues || []
+                    },
+                    
+                    // BRM INFISSI
+                    brmConfigInfissi: {
+                        misuraBaseL: project.brmConfigInfissi?.misuraBaseL || '',
+                        operazioneL: project.brmConfigInfissi?.operazioneL || '',
+                        valoreL: project.brmConfigInfissi?.valoreL || '',
+                        misuraBaseH: project.brmConfigInfissi?.misuraBaseH || '',
+                        operazioneH: project.brmConfigInfissi?.operazioneH || '',
+                        valoreH: project.brmConfigInfissi?.valoreH || '',
+                        note: project.brmConfigInfissi?.note || ''
+                    },
+                    
+                    // RILIEVO INFISSI
+                    rilievoInfissi: {
+                        materiale: project.rilievoInfissi?.materiale || '',
+                        togliere: project.rilievoInfissi?.togliere || false,
+                        smaltimento: project.rilievoInfissi?.smaltimento || false,
+                        coprifiliInt: project.rilievoInfissi?.coprifiliInt || false,
+                        coprifiliEst: project.rilievoInfissi?.coprifiliEst || false,
+                        note: project.rilievoInfissi?.note || ''
+                    },
+                    
+                    // CONFIG PERSIANE
+                    configPersiane: {
+                        azienda: project.configPersiane?.azienda || '',
+                        modello: project.configPersiane?.modello || '',
+                        fissaggio: project.configPersiane?.fissaggio || '',
+                        colore: project.configPersiane?.colore || '',
+                        tipoStecca: project.configPersiane?.tipoStecca || '',
+                        asolato: project.configPersiane?.asolato || ''
+                    },
+                    
+                    // BRM PERSIANE
+                    brmConfigPersiane: {
+                        misuraBaseL: project.brmConfigPersiane?.misuraBaseL || '',
+                        operazioneL: project.brmConfigPersiane?.operazioneL || '',
+                        valoreL: project.brmConfigPersiane?.valoreL || '',
+                        misuraBaseH: project.brmConfigPersiane?.misuraBaseH || '',
+                        operazioneH: project.brmConfigPersiane?.operazioneH || '',
+                        valoreH: project.brmConfigPersiane?.valoreH || '',
+                        note: project.brmConfigPersiane?.note || ''
+                    },
+                    
+                    // RILIEVO PERSIANE
+                    rilievoPersiane: {
+                        materiale: project.rilievoPersiane?.materiale || '',
+                        togliere: project.rilievoPersiane?.togliere || false,
+                        smaltimento: project.rilievoPersiane?.smaltimento || false,
+                        note: project.rilievoPersiane?.note || ''
+                    },
+                    
+                    // CONFIG TAPPARELLE
+                    configTapparelle: {
+                        azienda: project.configTapparelle?.azienda || '',
+                        tipo: project.configTapparelle?.tipo || '',
+                        colore: project.configTapparelle?.colore || '',
+                        motorizzazione: project.configTapparelle?.motorizzazione || '',
+                        comando: project.configTapparelle?.comando || ''
+                    },
+                    
+                    // BRM TAPPARELLE
+                    brmConfigTapparelle: {
+                        misuraBaseL: project.brmConfigTapparelle?.misuraBaseL || '',
+                        operazioneL: project.brmConfigTapparelle?.operazioneL || '',
+                        valoreL: project.brmConfigTapparelle?.valoreL || '',
+                        misuraBaseH: project.brmConfigTapparelle?.misuraBaseH || '',
+                        operazioneH: project.brmConfigTapparelle?.operazioneH || '',
+                        valoreH: project.brmConfigTapparelle?.valoreH || '',
+                        note: project.brmConfigTapparelle?.note || ''
+                    },
+                    
+                    // RILIEVO TAPPARELLE
+                    rilievoTapparelle: {
+                        materiale: project.rilievoTapparelle?.materiale || '',
+                        togliere: project.rilievoTapparelle?.togliere || false,
+                        smaltimento: project.rilievoTapparelle?.smaltimento || false,
+                        note: project.rilievoTapparelle?.note || ''
+                    },
+                    
+                    // CONFIG ZANZARIERE
+                    configZanzariere: {
+                        azienda: project.configZanzariere?.azienda || '',
+                        modelloF: project.configZanzariere?.modelloF || '',
+                        modelloPF: project.configZanzariere?.modelloPF || '',
+                        colore: project.configZanzariere?.colore || ''
+                    },
+                    
+                    // BRM ZANZARIERE
+                    brmConfigZanzariere: {
+                        misuraBaseL: project.brmConfigZanzariere?.misuraBaseL || '',
+                        operazioneL: project.brmConfigZanzariere?.operazioneL || '',
+                        valoreL: project.brmConfigZanzariere?.valoreL || '',
+                        misuraBaseH: project.brmConfigZanzariere?.misuraBaseH || '',
+                        operazioneH: project.brmConfigZanzariere?.operazioneH || '',
+                        valoreH: project.brmConfigZanzariere?.valoreH || '',
+                        note: project.brmConfigZanzariere?.note || ''
+                    },
+                    
+                    // RILIEVO ZANZARIERE
+                    rilievoZanzariere: {
+                        materiale: project.rilievoZanzariere?.materiale || '',
+                        togliere: project.rilievoZanzariere?.togliere || false,
+                        smaltimento: project.rilievoZanzariere?.smaltimento || false,
+                        note: project.rilievoZanzariere?.note || ''
+                    },
+                    
+                    // CONFIG CASSONETTI
+                    configCassonetti: {
+                        tipo: project.configCassonetti?.tipo || '',
+                        azienda: project.configCassonetti?.azienda || '',
+                        colore: project.configCassonetti?.colore || ''
+                    },
+                    
+                    // BRM CASSONETTI
+                    brmConfigCassonetti: {
+                        misuraBaseL: project.brmConfigCassonetti?.misuraBaseL || '',
+                        operazioneL: project.brmConfigCassonetti?.operazioneL || '',
+                        valoreL: project.brmConfigCassonetti?.valoreL || '',
+                        misuraBaseH: project.brmConfigCassonetti?.misuraBaseH || '',
+                        operazioneH: project.brmConfigCassonetti?.operazioneH || '',
+                        valoreH: project.brmConfigCassonetti?.valoreH || '',
+                        misuraBaseC: project.brmConfigCassonetti?.misuraBaseC || '',
+                        operazioneC: project.brmConfigCassonetti?.operazioneC || '',
+                        valoreC: project.brmConfigCassonetti?.valoreC || '',
+                        misuraBaseB: project.brmConfigCassonetti?.misuraBaseB || '',
+                        operazioneB: project.brmConfigCassonetti?.operazioneB || '',
+                        valoreB: project.brmConfigCassonetti?.valoreB || '',
+                        SRSX: project.brmConfigCassonetti?.SRSX || '',
+                        SRDX: project.brmConfigCassonetti?.SRDX || '',
+                        ZSX: project.brmConfigCassonetti?.ZSX || '',
+                        ZDX: project.brmConfigCassonetti?.ZDX || '',
+                        note: project.brmConfigCassonetti?.note || ''
+                    },
+                    
+                    // RILIEVO CASSONETTI
+                    rilievoCassonetti: {
+                        materiale: project.rilievoCassonetti?.materiale || '',
+                        togliere: project.rilievoCassonetti?.togliere || false,
+                        smaltimento: project.rilievoCassonetti?.smaltimento || false,
+                        note: project.rilievoCassonetti?.note || ''
+                    },
+                    
+                    // POSIZIONI (con caratteristiche muro per posizione)
+                    positions: (project.positions || []).map(pos => ({
+                        id: pos.id,
+                        name: pos.name || '',
+                        ambiente: pos.ambiente || '',
+                        piano: pos.piano || '',
+                        quantita: pos.quantita || '',
+                        
+                        // Caratteristiche muro posizione
+                        caratteristicheMuroOverride: pos.caratteristicheMuroOverride || null,
+                        
+                        // Misure
+                        misure: pos.misure || {},
+                        
+                        // Rilievo
+                        rilievo: pos.rilievo || {},
+                        
+                        // Prodotti
+                        infisso: pos.infisso || null,
+                        persiana: pos.persiana || null,
+                        tapparella: pos.tapparella || null,
+                        zanzariera: pos.zanzariera || null,
+                        cassonetto: pos.cassonetto || null,
+                        
+                        // Prodotti assenti
+                        prodottiAssenti: pos.prodottiAssenti || [],
+                        
+                        // Note e foto
+                        note: pos.note || '',
+                        noteVisibilita: pos.noteVisibilita || [],
+                        foto: pos.foto || []
+                    })),
+                    
+                    // DATE
+                    created: project.created || new Date().toISOString(),
+                    updated: new Date().toISOString(),
+                    
                     // METADATA
-                    // ═════════════════════════════════════════════════════════
                     metadata: {
-                        version: '3.5.027m',
-                        createdAt: project.dataCreazione,
-                        lastModified: new Date().toISOString(),
+                        version: '4.0',
                         device: {
                             id: localStorage.getItem('deviceId'),
                             name: localStorage.getItem('deviceName')
@@ -5787,15 +5960,31 @@
                 });
             }
             
-            // Se non ci sono prodotti nel progetto, è un problema
+            // Se non ci sono prodotti configurati nel progetto,
+            // verifica se la posizione ha almeno UN prodotto presente
             if (prodottiProgetto.length === 0) {
-                missing.push('Nessun prodotto configurato nel progetto');
-                return {
-                    percentage: score,
-                    isComplete: false,
-                    missing: missing,
-                    enabledProducts: 0
-                };
+                // Controlla se ci sono prodotti direttamente nella posizione
+                const hasPosProducts = 
+                    (pos.infisso && Object.keys(pos.infisso).length > 0) ||
+                    (pos.persiana && Object.keys(pos.persiana).length > 0) ||
+                    (pos.tapparella && Object.keys(pos.tapparella).length > 0) ||
+                    (pos.zanzariera && Object.keys(pos.zanzariera).length > 0) ||
+                    (pos.cassonetto && Object.keys(pos.cassonetto).length > 0);
+                
+                if (hasPosProducts) {
+                    // Posizione ha prodotti anche senza configurazione progetto
+                    // Assegna punti prodotti (33 punti)
+                    score += 33;
+                } else {
+                    // Nessun prodotto né nel progetto né nella posizione
+                    missing.push('Nessun prodotto configurato nel progetto');
+                    return {
+                        percentage: score,
+                        isComplete: false,
+                        missing: missing,
+                        enabledProducts: 0
+                    };
+                }
             }
             
             // Verifica TUTTI i prodotti del progetto
