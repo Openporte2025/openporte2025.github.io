@@ -1998,6 +1998,15 @@
                     console.log('🔄 ESEGUENDO migrateGitHubStructure...');
                     migrateGitHubStructure(); // 📦 FASE 027K: Migra struttura GitHub se mancante
                     
+                    console.log('🔄 ESEGUENDO migrateProjectDrawings per tutti i progetti...');
+                    // 🎨 FASE DISEGNI: Migra struttura drawings
+                    if (state.projects && Array.isArray(state.projects)) {
+                        state.projects.forEach(project => {
+                            migrateProjectDrawings(project);
+                        });
+                        console.log('✅ Struttura drawings migrata per tutti i progetti');
+                    }
+                    
                 } catch (e) {
                     console.error('❌ Errore caricando stato da localStorage:', e);
                     console.log('🔄 Resetto allo stato iniziale...');
@@ -4889,6 +4898,300 @@
                 localStorage.setItem('deviceId', deviceId);
             }
             return deviceId;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // 🎨 FASE DISEGNI: GESTIONE DISEGNI NOTABILITY
+        // ═══════════════════════════════════════════════════════════════
+        
+        const DRAWING_LIMITS = {
+            maxFileSize: 5 * 1024 * 1024,      // 5 MB
+            maxProjectSize: 20 * 1024 * 1024,  // 20 MB
+            maxDrawingsPerProject: 50,
+            maxDrawingsPerPosition: 10,
+            thumbnailSize: 200,
+            thumbnailQuality: 0.7
+        };
+
+        // Genera ID univoco per disegno
+        function generateDrawingId() {
+            const timestamp = Date.now();
+            const random = Math.random().toString(36).substring(2, 8);
+            return `drw-${timestamp}-${random}`;
+        }
+
+        // Conta disegni totali progetto
+        function getDrawingsCount(projectId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return 0;
+            
+            let count = 0;
+            
+            // Disegni generali
+            if (project.drawings?.general) {
+                count += project.drawings.general.length;
+            }
+            
+            // Disegni posizioni
+            if (project.positions) {
+                project.positions.forEach(pos => {
+                    if (pos.drawings) {
+                        count += pos.drawings.length;
+                    }
+                });
+            }
+            
+            return count;
+        }
+
+        // Calcola dimensione totale disegni
+        function calculateTotalDrawingsSize(project) {
+            let total = 0;
+            
+            if (project.drawings?.general) {
+                total += project.drawings.general.reduce((sum, d) => sum + (d.size || 0), 0);
+            }
+            
+            if (project.positions) {
+                project.positions.forEach(pos => {
+                    if (pos.drawings) {
+                        total += pos.drawings.reduce((sum, d) => sum + (d.size || 0), 0);
+                    }
+                });
+            }
+            
+            return total;
+        }
+
+        // Formatta dimensione file
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
+        }
+
+        // Converti file in base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Genera thumbnail da immagine
+        function generateThumbnail(file, maxSize = 200) {
+            return new Promise((resolve, reject) => {
+                if (!file.type.startsWith('image/')) {
+                    resolve(null);
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const scale = Math.min(maxSize / img.width, maxSize / img.height);
+                        canvas.width = img.width * scale;
+                        canvas.height = img.height * scale;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        
+                        resolve(canvas.toDataURL('image/jpeg', DRAWING_LIMITS.thumbnailQuality));
+                    };
+                    img.onerror = () => resolve(null);
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Valida file disegno
+        function validateDrawingFile(file, project) {
+            const errors = [];
+            
+            // Tipo file
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+            if (!allowedTypes.includes(file.type)) {
+                errors.push('Formato non supportato. Usa PNG, JPG o PDF.');
+            }
+            
+            // Dimensione singolo file
+            if (file.size > DRAWING_LIMITS.maxFileSize) {
+                errors.push(`File troppo grande. Max ${formatFileSize(DRAWING_LIMITS.maxFileSize)}`);
+            }
+            
+            // Dimensione totale progetto
+            const currentSize = calculateTotalDrawingsSize(project);
+            if (currentSize + file.size > DRAWING_LIMITS.maxProjectSize) {
+                const available = DRAWING_LIMITS.maxProjectSize - currentSize;
+                errors.push(`Spazio insufficiente. Disponibili ${formatFileSize(available)}`);
+            }
+            
+            // Numero disegni
+            const currentCount = getDrawingsCount(project.id);
+            if (currentCount >= DRAWING_LIMITS.maxDrawingsPerProject) {
+                errors.push(`Limite disegni raggiunto (${DRAWING_LIMITS.maxDrawingsPerProject})`);
+            }
+            
+            return {
+                valid: errors.length === 0,
+                errors
+            };
+        }
+
+        // Migra progetti esistenti
+        function migrateProjectDrawings(project) {
+            if (!project.drawings) {
+                project.drawings = {
+                    general: [],
+                    stats: {
+                        total: 0,
+                        totalSize: 0,
+                        lastUpdate: new Date().toISOString()
+                    }
+                };
+            }
+            
+            if (project.positions) {
+                project.positions.forEach(pos => {
+                    if (!pos.drawings) {
+                        pos.drawings = [];
+                    }
+                });
+            }
+            
+            return project;
+        }
+
+        // Aggiorna statistiche disegni
+        function updateDrawingsStats(project) {
+            const total = getDrawingsCount(project.id);
+            const totalSize = calculateTotalDrawingsSize(project);
+            
+            if (!project.drawings) {
+                project.drawings = { general: [] };
+            }
+            
+            project.drawings.stats = {
+                total,
+                totalSize,
+                lastUpdate: new Date().toISOString()
+            };
+        }
+
+        // Naviga a pagina disegni
+        function navigateToDrawings() {
+            state.viewMode = 'drawings';
+            render();
+        }
+
+        // Ottieni dimensioni immagine
+        function getImageDimensions(dataUrl) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve({ width: img.width, height: img.height });
+                img.onerror = () => resolve(null);
+                img.src = dataUrl;
+            });
+        }
+
+        // Aggiungi disegno al progetto
+        async function addDrawingToProject(file, description = '', linkedPositions = []) {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            if (!project) {
+                showNotification('❌ Progetto non trovato', 'error');
+                return false;
+            }
+            
+            // Migra struttura se necessario
+            migrateProjectDrawings(project);
+            
+            // Valida file
+            const validation = validateDrawingFile(file, project);
+            if (!validation.valid) {
+                showNotification('❌ ' + validation.errors[0], 'error');
+                return false;
+            }
+            
+            try {
+                showNotification('📤 Caricamento in corso...', 'info');
+                
+                // Converti in base64
+                const data = await fileToBase64(file);
+                
+                // Genera thumbnail per immagini
+                const thumbnail = await generateThumbnail(file);
+                
+                // Crea oggetto disegno
+                const drawing = {
+                    id: generateDrawingId(),
+                    name: file.name.replace(/\.[^/.]+$/, ''), // Rimuovi estensione
+                    description,
+                    type: file.type,
+                    size: file.size,
+                    data,
+                    thumbnail,
+                    uploadDate: new Date().toISOString(),
+                    linkedPositions,
+                    metadata: {
+                        originalName: file.name,
+                        source: 'Upload',
+                        dimensions: file.type.startsWith('image/') ? await getImageDimensions(data) : null
+                    }
+                };
+                
+                // Aggiungi a progetto
+                project.drawings.general.push(drawing);
+                
+                // Aggiorna statistiche
+                updateDrawingsStats(project);
+                
+                // Salva
+                saveToLocalStorage();
+                
+                showNotification('✅ Disegno aggiunto', 'success');
+                render();
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Errore aggiunta disegno:', error);
+                showNotification('❌ Errore caricamento: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // Elimina disegno
+        function deleteDrawing(drawingId, positionId = null) {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            if (!project) return false;
+            
+            if (positionId) {
+                // Disegno di posizione
+                const position = project.positions.find(p => p.id === positionId);
+                if (position?.drawings) {
+                    position.drawings = position.drawings.filter(d => d.id !== drawingId);
+                }
+            } else {
+                // Disegno generale
+                if (project.drawings?.general) {
+                    project.drawings.general = project.drawings.general.filter(d => d.id !== drawingId);
+                }
+            }
+            
+            updateDrawingsStats(project);
+            saveToLocalStorage();
+            showNotification('✅ Disegno eliminato', 'success');
+            render();
+            
+            return true;
         }
 
         // ═══════════════════════════════════════════════════════════════
