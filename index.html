@@ -7132,6 +7132,140 @@
                     noteVisibilita: []
                 };
                 project.positions.push(pos);
+                
+                // 🆕 AUTO-CREAZIONE PRODOTTI: Aggiungi automaticamente i prodotti abilitati
+                console.log('🆕 NUOVA POSIZIONE - Auto-creazione prodotti abilitati...');
+                
+                // INFISSI
+                if (project.prodotti?.infissi) {
+                    console.log('  ✅ Creando infisso con config globali...');
+                    const brm = calculateBRM(project, pos, pos.misure, project.brmConfigInfissi);
+                    pos.infisso = {
+                        id: generateId(),
+                        qta: '1',
+                        azienda: project.configInfissi?.azienda || '',
+                        finituraInt: project.configInfissi?.finituraInt || '',
+                        finituraEst: project.configInfissi?.finituraEst || '',
+                        coloreInt: project.configInfissi?.coloreInt || '',
+                        coloreEst: project.configInfissi?.coloreEst || '',
+                        tipoAnta: project.configInfissi?.tipoAnta || '',
+                        telaio: project.configInfissi?.telaio || '',
+                        allarme: project.configInfissi?.allarme || '',
+                        vetro: project.configInfissi?.vetro || '',
+                        tagliTelaio: project.configInfissi?.tagliTelaio || '',
+                        codTagli: project.configInfissi?.codTagli ? [...project.configInfissi.codTagli] : [],
+                        motoreAzienda: project.configInfissi?.motoreAzienda || '',
+                        motoreModello: project.configInfissi?.motoreModello || '',
+                        BRM_L: brm.L,
+                        BRM_H: brm.H,
+                        note: '',
+                        foto: []
+                    };
+                    console.log('  ✅ Infisso creato:', pos.infisso.azienda || '(vuoto)', pos.infisso.telaio || '(vuoto)');
+                }
+                
+                // PERSIANE
+                if (project.prodotti?.persiane) {
+                    console.log('  ✅ Creando persiana con config globali...');
+                    const brm = calculateBRM(project, pos, pos.misure, project.brmConfigPersiane);
+                    pos.persiana = {
+                        id: generateId(),
+                        qta: '1',
+                        azienda: project.configPersiane?.azienda || '',
+                        modello: project.configPersiane?.modello || '',
+                        fissaggio: project.configPersiane?.fissaggio || '',
+                        tipoTelaio: (project.configPersiane?.fissaggio === 'TELAIO') 
+                                    ? (project.configPersiane?.tipoTelaio || '') 
+                                    : '',
+                        coloreTelaio: (project.configPersiane?.fissaggio === 'TELAIO')
+                                      ? (project.configPersiane?.coloreTelaio || '')
+                                      : '',
+                        battuta: project.configPersiane?.battuta || '',
+                        colorePersiana: project.configPersiane?.colorePersiana || '',
+                        tipo: project.configPersiane?.tipo || '',
+                        materiale: project.configPersiane?.materiale || '',
+                        colore: project.configPersiane?.colore || '',
+                        apertura: project.configPersiane?.apertura || '',
+                        BRM_L: brm.L,
+                        BRM_H: brm.H,
+                        note: '',
+                        foto: []
+                    };
+                    console.log('  ✅ Persiana creata:', pos.persiana.azienda || '(vuoto)', pos.persiana.modello || '(vuoto)');
+                }
+                
+                // TAPPARELLE
+                if (project.prodotti?.tapparelle) {
+                    console.log('  ✅ Creando tapparella con config globali...');
+                    const brm = calculateBRM(project, pos, pos.misure, project.brmConfigTapparelle);
+                    pos.tapparella = {
+                        id: generateId(),
+                        qta: '1',
+                        azienda: 'azienda-tapparelle-1',
+                        tipo: project.configTapparelle?.tipo || '',
+                        materiale: project.configTapparelle?.materiale || '',
+                        colore: project.configTapparelle?.colore || '',
+                        comando: project.configTapparelle?.comando || '',
+                        motoreAzienda: project.configTapparelle?.motoreAzienda || '',
+                        motoreModello: project.configTapparelle?.motoreModello || '',
+                        BRM_L: brm.L,
+                        BRM_H: brm.H,
+                        note: '',
+                        foto: []
+                    };
+                    console.log('  ✅ Tapparella creata:', pos.tapparella.tipo || '(vuoto)');
+                }
+                
+                // ZANZARIERE
+                if (project.prodotti?.zanzariere) {
+                    console.log('  ✅ Creando zanzariera con config globali...');
+                    const brm = calculateBRM(project, pos, pos.misure, project.brmConfigZanzariere);
+                    pos.zanzariera = {
+                        id: generateId(),
+                        qta: '1',
+                        azienda: 'azienda-zanzariere-1',
+                        tipo: project.configZanzariere?.tipo || '',
+                        colore: project.configZanzariere?.colore || '',
+                        materiale: project.configZanzariere?.materiale || '',
+                        BRM_L: brm.L,
+                        BRM_H: brm.H,
+                        note: '',
+                        foto: []
+                    };
+                    console.log('  ✅ Zanzariera creata:', pos.zanzariera.tipo || '(vuoto)');
+                }
+                
+                // CASSONETTI
+                if (project.prodotti?.cassonetti) {
+                    console.log('  ✅ Creando cassonetto con config globali...');
+                    const cm = pos.overrideCaratteristiche && pos.caratteristicheMuroOverride 
+                        ? pos.caratteristicheMuroOverride 
+                        : project.caratteristicheMuro || {};
+                    const bSuperioreDefault = cm.battutaSuperioreTapparella || '0';
+                    
+                    pos.cassonetto = {
+                        id: generateId(),
+                        qta: '1',
+                        azienda: 'azienda-cassonetti-1',
+                        tipo: project.configCassonetti?.tipo || '',
+                        materiale: project.configCassonetti?.materiale || '',
+                        finitura: project.configCassonetti?.finitura || '',
+                        coibentazione: project.configCassonetti?.coibentazione || '',
+                        LS: '0',
+                        SRSX: '0',
+                        ZSX: '0',
+                        SRDX: '0',
+                        ZDX: '0',
+                        HCASS: '0',
+                        BSuperiore: bSuperioreDefault,
+                        note: '',
+                        foto: []
+                    };
+                    console.log('  ✅ Cassonetto creato:', pos.cassonetto.tipo || '(vuoto)');
+                }
+                
+                console.log('✅ NUOVA POSIZIONE COMPLETA con tutti i prodotti abilitati');
+                
                 // ✅ SOLUZIONE C: Track modifica
                 updateProjectTimestamp(projectId, 'addPosition', `Aggiunta posizione: ${pos.name}`);
                 saveState();
