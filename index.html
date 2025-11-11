@@ -7443,6 +7443,64 @@
             render();
         }
 
+        // 🔄 NUOVA FUNZIONE: Ricarica persiana da configurazione globale
+        function ricaricaPersianaDaGlobali(projectId, posId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const pos = project.positions.find(p => p.id === posId);
+            if (!pos || !pos.persiana) return;
+            
+            // Conferma azione
+            if (!confirm('Ricaricare la configurazione dalle Impostazioni Globali? I dati attuali verranno sovrascritti (tranne BRM e note).')) {
+                return;
+            }
+            
+            // Salva BRM e note
+            const savedBRM_L = pos.persiana.BRM_L;
+            const savedBRM_H = pos.persiana.BRM_H;
+            const savedNote = pos.persiana.note || '';
+            const savedFoto = pos.persiana.foto || [];
+            const savedQta = pos.persiana.qta || '1';
+            const savedId = pos.persiana.id;
+            
+            // Ricarica TUTTO da config globale
+            pos.persiana = {
+                id: savedId,
+                qta: savedQta,
+                azienda: project.configPersiane?.azienda || '',
+                modello: project.configPersiane?.modello || '',
+                fissaggio: project.configPersiane?.fissaggio || '',
+                tipoTelaio: (project.configPersiane?.fissaggio === 'TELAIO') 
+                            ? (project.configPersiane?.tipoTelaio || '') 
+                            : '',
+                coloreTelaio: (project.configPersiane?.fissaggio === 'TELAIO')
+                              ? (project.configPersiane?.coloreTelaio || '')
+                              : '',
+                battuta: project.configPersiane?.battuta || '',
+                colorePersiana: project.configPersiane?.colorePersiana || '',
+                tipo: project.configPersiane?.tipo || '',
+                materiale: project.configPersiane?.materiale || '',
+                colore: project.configPersiane?.colore || '',
+                apertura: project.configPersiane?.apertura || '',
+                BRM_L: savedBRM_L,
+                BRM_H: savedBRM_H,
+                note: savedNote,
+                foto: savedFoto
+            };
+            
+            console.log('🔄 PERSIANA RICARICATA DA GLOBALI:', {
+                posId,
+                azienda: pos.persiana.azienda,
+                modello: pos.persiana.modello,
+                fissaggio: pos.persiana.fissaggio
+            });
+            
+            saveState();
+            showNotification('✅ Configurazione ricaricata da Globali', 'success');
+            render();
+        }
+
         function updateProduct(projectId, posId, productType, field, value) {
             markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
@@ -11283,8 +11341,9 @@
                             </div>
                             <div class="flex flex-col items-end gap-2">
                                 <button onclick="copiaRilievoDaGlobaleProdotto('${project.id}', '${pos.id}', '${productType}')"
-                                        class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-semibold transition">
-                                    📥 Copia da Globale
+                                        class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-semibold transition"
+                                        title="Copia solo dati Rilievo Preesistente (togliere, materiale, ecc.)">
+                                    📥 Copia Rilievo
                                 </button>
                                 <div class="text-right">
                                     <div class="flex items-center gap-2 mb-1">
@@ -12247,10 +12306,17 @@
                         <div class="product-card">
                             <div class="flex justify-between items-start mb-3">
                                 <h4 class="font-semibold text-purple-700 text-lg">🚪 Persiana</h4>
-                                <button onclick="deleteProduct('${project.id}', '${pos.id}', 'persiana')"
-                                        class="px-3 py-1.5 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700">
-                                    🗑️ Elimina
-                                </button>
+                                <div class="flex gap-2">
+                                    <button onclick="ricaricaPersianaDaGlobali('${project.id}', '${pos.id}')"
+                                            class="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700"
+                                            title="Ricarica configurazione da Config Globali">
+                                        🔄 Ricarica
+                                    </button>
+                                    <button onclick="deleteProduct('${project.id}', '${pos.id}', 'persiana')"
+                                            class="px-3 py-1.5 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700">
+                                        🗑️ Elimina
+                                    </button>
+                                </div>
                             </div>
                             
                             <!-- 📋 DATI SPECIFICI -->
