@@ -1924,6 +1924,111 @@
 
         let syncInterval = null;  // Timer per sync automatica
         
+        // ============================================================================
+        // SISTEMA INDICATORI COMPLETAMENTO
+        // ============================================================================
+        const CompletionSystem = {
+            checkProjectData(project) {
+                return !!(project.name && project.client);
+            },
+            checkClientData(project) {
+                const c = project.clientData || {};
+                return !!(c.nome || c.cognome || c.telefono);
+            },
+            checkProducts(project) {
+                const p = project.prodotti || {};
+                return Object.values(p).some(v => v === true);
+            },
+            checkCaratteristicheMuro(project) {
+                const m = project.caratteristicheMuro || {};
+                return Object.values(m).some(v => v && v !== '');
+            },
+            checkConfigInfissi(project) {
+                if (!project.prodotti?.infissi) return null;
+                const c = project.configInfissi || {};
+                return !!(c.azienda || c.telaio);
+            },
+            checkConfigPersiane(project) {
+                if (!project.prodotti?.persiane) return null;
+                const c = project.configPersiane || {};
+                return !!(c.azienda || c.modello);
+            },
+            checkConfigTapparelle(project) {
+                if (!project.prodotti?.tapparelle) return null;
+                const c = project.configTapparelle || {};
+                return !!(c.azienda || c.tipo);
+            },
+            checkConfigZanzariere(project) {
+                if (!project.prodotti?.zanzariere) return null;
+                const c = project.configZanzariere || {};
+                return !!(c.azienda || c.modelloF);
+            },
+            checkConfigCassonetti(project) {
+                if (!project.prodotti?.cassonetti) return null;
+                const c = project.configCassonetti || {};
+                return !!(c.tipo || c.azienda);
+            },
+            checkRilieviGlobali(project) {
+                const rilievi = [
+                    project.rilievoInfissi,
+                    project.rilievoPersiane,
+                    project.rilievoTapparelle,
+                    project.rilievoZanzariere,
+                    project.rilievoCassonetti
+                ].filter(r => r && (r.materiale || r.togliere || r.smaltimento));
+                return rilievi.length > 0;
+            },
+            checkBRMGlobali(project) {
+                const brm = [
+                    project.brmConfigInfissi,
+                    project.brmConfigPersiane,
+                    project.brmConfigTapparelle,
+                    project.brmConfigZanzariere,
+                    project.brmConfigCassonetti
+                ].filter(b => b && (b.misuraBaseL || b.misuraBaseH));
+                return brm.length > 0;
+            },
+            getOverallCompletion(project) {
+                if (!project) return 0;
+                const checks = [
+                    this.checkProjectData(project),
+                    this.checkClientData(project),
+                    this.checkProducts(project),
+                    this.checkCaratteristicheMuro(project),
+                    this.checkConfigInfissi(project),
+                    this.checkConfigPersiane(project),
+                    this.checkConfigTapparelle(project),
+                    this.checkConfigZanzariere(project),
+                    this.checkConfigCassonetti(project),
+                    this.checkRilieviGlobali(project),
+                    this.checkBRMGlobali(project)
+                ].filter(v => v !== null);
+                const completed = checks.filter(v => v === true).length;
+                return checks.length > 0 ? Math.round((completed / checks.length) * 100) : 0;
+            },
+            getIcon(isComplete) {
+                if (isComplete === null) return '';
+                return isComplete ? '✅' : '⭕';
+            },
+            getBadgeHTML(isComplete) {
+                if (isComplete === null) return '';
+                const icon = this.getIcon(isComplete);
+                const className = isComplete ? 'complete' : 'incomplete';
+                return `<span class="completion-badge ${className}">${icon}</span>`;
+            },
+            getProgressBar(percentage) {
+                const color = percentage === 100 ? '#10b981' : 
+                             percentage >= 75 ? '#3b82f6' :
+                             percentage >= 50 ? '#f59e0b' : '#ef4444';
+                return `
+                    <div class="progress-bar" style="background: #e5e7eb; border-radius: 10px; height: 6px; overflow: hidden; margin: 5px 0;">
+                        <div style="width: ${percentage}%; height: 100%; background: ${color}; transition: width 0.3s;"></div>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #6b7280; text-align: right;">${percentage}%</div>
+                `;
+            }
+        };
+        
         // ⚡ FASE 024B: Sistema aggiornamenti parziali DOM (approccio cloud)
         // Invece di render() completo, aggiorniamo solo gli elementi necessari
         
@@ -2032,6 +2137,13 @@
                     
                     console.log('🔄 ESEGUENDO migrateOldData...');
                     migrateOldData(); // Migra dati vecchi formato array -> singolo oggetto
+                    
+                    console.log('🔄 ESEGUENDO migrateProjectRilievi per tutti i progetti...');
+                    if (state.projects && Array.isArray(state.projects)) {
+                        state.projects.forEach(project => {
+                            migrateProjectRilievi(project);
+                        });
+                    }
                     
                     console.log('🔄 ESEGUENDO cleanNegativeValues...');
                     cleanNegativeValues(); // ✅ NUOVO: Pulisce valori negativi nei BRM
@@ -2295,6 +2407,81 @@
             if (migratedCount > 0) {
                 console.log(`✅ Migrazione completata: ${migratedCount} posizioni aggiornate`);
                 // Aggiorna metadata versione
+                if (!project.metadata) project.metadata = {};
+                project.metadata.migratedToV45 = true;
+                project.metadata.migrationDate = new Date().toISOString();
+            } else {
+                console.log(`✓ Nessuna migrazione necessaria`);
+            }
+            
+            return project;
+        }
+
+        // ============================================================================
+        // MIGRAZIONE RILIEVI: Aggiunge rilievi mancanti alle posizioni
+        // ============================================================================
+        function migrateProjectRilievi(project) {
+            if (!project || !project.positions) return project;
+            
+            console.log(`🔄 Migrazione rilievi per progetto: ${project.name || project.id}`);
+            
+            let migratedCount = 0;
+            
+            project.positions.forEach((pos, index) => {
+                let positionMigrated = false;
+                
+                // PERSIANE
+                if (!pos.rilievoPersiane && project.rilievoPersiane) {
+                    pos.rilievoPersiane = {
+                        togliere: project.rilievoPersiane.togliere || false,
+                        smaltimento: project.rilievoPersiane.smaltimento || false,
+                        materiale: project.rilievoPersiane.materiale || '',
+                        note: project.rilievoPersiane.note || ''
+                    };
+                    positionMigrated = true;
+                }
+                
+                // TAPPARELLE
+                if (!pos.rilievoTapparelle && project.rilievoTapparelle) {
+                    pos.rilievoTapparelle = {
+                        togliere: project.rilievoTapparelle.togliere || false,
+                        smaltimento: project.rilievoTapparelle.smaltimento || false,
+                        materiale: project.rilievoTapparelle.materiale || '',
+                        note: project.rilievoTapparelle.note || ''
+                    };
+                    positionMigrated = true;
+                }
+                
+                // ZANZARIERE
+                if (!pos.rilievoZanzariere && project.rilievoZanzariere) {
+                    pos.rilievoZanzariere = {
+                        togliere: project.rilievoZanzariere.togliere || false,
+                        smaltimento: project.rilievoZanzariere.smaltimento || false,
+                        materiale: project.rilievoZanzariere.materiale || '',
+                        note: project.rilievoZanzariere.note || ''
+                    };
+                    positionMigrated = true;
+                }
+                
+                // CASSONETTI
+                if (!pos.rilievoCassonetti && project.rilievoCassonetti) {
+                    pos.rilievoCassonetti = {
+                        togliere: project.rilievoCassonetti.togliere || false,
+                        smaltimento: project.rilievoCassonetti.smaltimento || false,
+                        materiale: project.rilievoCassonetti.materiale || '',
+                        note: project.rilievoCassonetti.note || ''
+                    };
+                    positionMigrated = true;
+                }
+                
+                if (positionMigrated) {
+                    migratedCount++;
+                    console.log(`  ✅ Posizione ${index + 1} (${pos.name}): rilievi aggiunti`);
+                }
+            });
+            
+            if (migratedCount > 0) {
+                console.log(`✅ Migrazione completata: ${migratedCount} posizioni aggiornate`);
                 if (!project.metadata) project.metadata = {};
                 project.metadata.migratedToV45 = true;
                 project.metadata.migrationDate = new Date().toISOString();
@@ -7266,30 +7453,30 @@
                         note: rilievoGlobaleInfissi.note || ''
                     },
                     // 🆕 AUTO-SYNC: Inizializza anche rilievi altri prodotti
-                    rilievoPersiane: project.rilievoPersiane ? {
-                        togliere: project.rilievoPersiane.togliere || false,
-                        smaltimento: project.rilievoPersiane.smaltimento || false,
-                        materiale: project.rilievoPersiane.materiale || '',
-                        note: project.rilievoPersiane.note || ''
-                    } : undefined,
-                    rilievoTapparelle: project.rilievoTapparelle ? {
-                        togliere: project.rilievoTapparelle.togliere || false,
-                        smaltimento: project.rilievoTapparelle.smaltimento || false,
-                        materiale: project.rilievoTapparelle.materiale || '',
-                        note: project.rilievoTapparelle.note || ''
-                    } : undefined,
-                    rilievoZanzariere: project.rilievoZanzariere ? {
-                        togliere: project.rilievoZanzariere.togliere || false,
-                        smaltimento: project.rilievoZanzariere.smaltimento || false,
-                        materiale: project.rilievoZanzariere.materiale || '',
-                        note: project.rilievoZanzariere.note || ''
-                    } : undefined,
-                    rilievoCassonetti: project.rilievoCassonetti ? {
-                        togliere: project.rilievoCassonetti.togliere || false,
-                        smaltimento: project.rilievoCassonetti.smaltimento || false,
-                        materiale: project.rilievoCassonetti.materiale || '',
-                        note: project.rilievoCassonetti.note || ''
-                    } : undefined,
+                    rilievoPersiane: {
+                        togliere: project.rilievoPersiane?.togliere || false,
+                        smaltimento: project.rilievoPersiane?.smaltimento || false,
+                        materiale: project.rilievoPersiane?.materiale || '',
+                        note: project.rilievoPersiane?.note || ''
+                    },
+                    rilievoTapparelle: {
+                        togliere: project.rilievoTapparelle?.togliere || false,
+                        smaltimento: project.rilievoTapparelle?.smaltimento || false,
+                        materiale: project.rilievoTapparelle?.materiale || '',
+                        note: project.rilievoTapparelle?.note || ''
+                    },
+                    rilievoZanzariere: {
+                        togliere: project.rilievoZanzariere?.togliere || false,
+                        smaltimento: project.rilievoZanzariere?.smaltimento || false,
+                        materiale: project.rilievoZanzariere?.materiale || '',
+                        note: project.rilievoZanzariere?.note || ''
+                    },
+                    rilievoCassonetti: {
+                        togliere: project.rilievoCassonetti?.togliere || false,
+                        smaltimento: project.rilievoCassonetti?.smaltimento || false,
+                        materiale: project.rilievoCassonetti?.materiale || '',
+                        note: project.rilievoCassonetti?.note || ''
+                    },
                     infissi: [],
                     persiane: [],
                     cassonetti: [],
@@ -7323,6 +7510,7 @@
                         codTagli: project.configInfissi?.codTagli ? [...project.configInfissi.codTagli] : [],
                         codTagliValues: project.configInfissi?.codTagliValues ? [...project.configInfissi.codTagliValues] : [],
                         maniglia: project.configInfissi?.maniglia || '',
+                        coloreManiglia: project.configInfissi?.coloreManiglia || '',
                         motoreAzienda: project.configInfissi?.motoreAzienda || '',
                         motoreModello: project.configInfissi?.motoreModello || '',
                         BRM_L: '0',  // Sarà calcolato quando inserisci misure
@@ -7725,6 +7913,7 @@
                 codTagli: project.configInfissi?.codTagli ? [...project.configInfissi.codTagli] : [],
                 codTagliValues: project.configInfissi?.codTagliValues ? [...project.configInfissi.codTagliValues] : [],
                 maniglia: project.configInfissi?.maniglia || '',
+                coloreManiglia: project.configInfissi?.coloreManiglia || '',
                 motoreAzienda: project.configInfissi?.motoreAzienda || '',
                 motoreModello: project.configInfissi?.motoreModello || '',
                 BRM_L: savedBRM_L, // Mantieni BRM
@@ -8358,6 +8547,25 @@
                     console.log('   codTagli auto-impostati:', project.configInfissi.codTagli);
                     console.log('   codTagliValues inizializzati:', project.configInfissi.codTagliValues);
                     
+                    // 🆕 SYNC AUTOMATICO tagliTelaio A TUTTE LE POSIZIONI
+                    if (project.positions) {
+                        let posizioniAggiornate = 0;
+                        project.positions.forEach(pos => {
+                            if (pos.infisso) {
+                                // Aggiorna tagliTelaio
+                                pos.infisso.tagliTelaio = value;
+                                // Aggiorna codTagli
+                                pos.infisso.codTagli = [...(tagliMap[value] || [])];
+                                // Reset codTagliValues se numero diverso, altrimenti mantieni
+                                if (pos.infisso.codTagliValues?.length !== pos.infisso.codTagli.length) {
+                                    pos.infisso.codTagliValues = new Array(pos.infisso.codTagli.length).fill('');
+                                }
+                                posizioniAggiornate++;
+                            }
+                        });
+                        console.log(`✅ Aggiornati tagliTelaio e codTagli in ${posizioniAggiornate} posizioni`);
+                    }
+                    
                     // Sincronizza codTagli con le posizioni
                     syncConfigToPositions(project, 'infisso', 'codTagli', project.configInfissi.codTagli, null);
                     syncConfigToPositions(project, 'infisso', 'codTagliValues', project.configInfissi.codTagliValues, null);
@@ -8428,7 +8636,7 @@
             const campiDaSincronizzare = [
                 'azienda', 'tipoAnta', 'finituraInt', 'finituraEst', 
                 'coloreInt', 'coloreEst', 'telaio', 'allarme', 'vetro', 
-                'tagliTelaio', 'codTagli', 'codTagliValues', 'maniglia',
+                'tagliTelaio', 'codTagli', 'codTagliValues', 'maniglia', 'coloreManiglia',
                 'motoreAzienda', 'motoreModello'
             ];
             
@@ -9327,140 +9535,6 @@
             `;
         }
 
-        // ✅ COMPLETION SYSTEM - Sistema Indicatori Completamento Progetto
-        const CompletionSystem = {
-            // Verifica completamento dati progetto
-            checkProjectData(project) {
-                return !!(project.name && project.client);
-            },
-            
-            // Verifica completamento cliente
-            checkClientData(project) {
-                const c = project.clientData || {};
-                return !!(c.nome || c.cognome || c.telefono);
-            },
-            
-            // Verifica completamento prodotti
-            checkProducts(project) {
-                const p = project.prodotti || {};
-                return Object.values(p).some(v => v === true);
-            },
-            
-            // Verifica caratteristiche muro
-            checkCaratteristicheMuro(project) {
-                const m = project.caratteristicheMuro || {};
-                return Object.values(m).some(v => v && v !== '');
-            },
-            
-            // Verifica config infissi
-            checkConfigInfissi(project) {
-                if (!project.prodotti?.infissi) return null; // Non visibile
-                const c = project.configInfissi || {};
-                return !!(c.azienda || c.telaio);
-            },
-            
-            // Verifica config persiane
-            checkConfigPersiane(project) {
-                if (!project.prodotti?.persiane) return null;
-                const c = project.configPersiane || {};
-                return !!(c.azienda || c.modello);
-            },
-            
-            // Verifica config tapparelle
-            checkConfigTapparelle(project) {
-                if (!project.prodotti?.tapparelle) return null;
-                const c = project.configTapparelle || {};
-                return !!(c.azienda || c.tipo);
-            },
-            
-            // Verifica config zanzariere
-            checkConfigZanzariere(project) {
-                if (!project.prodotti?.zanzariere) return null;
-                const c = project.configZanzariere || {};
-                return !!(c.azienda || c.modelloF);
-            },
-            
-            // Verifica config cassonetti
-            checkConfigCassonetti(project) {
-                if (!project.prodotti?.cassonetti) return null;
-                const c = project.configCassonetti || {};
-                return !!(c.tipo || c.azienda);
-            },
-            
-            // Verifica rilievi globali
-            checkRilieviGlobali(project) {
-                const rilievi = [
-                    project.rilievoInfissi,
-                    project.rilievoPersiane,
-                    project.rilievoTapparelle,
-                    project.rilievoZanzariere,
-                    project.rilievoCassonetti
-                ].filter(r => r && (r.materiale || r.togliere || r.smaltimento));
-                return rilievi.length > 0;
-            },
-            
-            // Verifica BRM globali
-            checkBRMGlobali(project) {
-                const brm = [
-                    project.brmConfigInfissi,
-                    project.brmConfigPersiane,
-                    project.brmConfigTapparelle,
-                    project.brmConfigZanzariere,
-                    project.brmConfigCassonetti
-                ].filter(b => b && (b.misuraBaseL || b.misuraBaseH));
-                return brm.length > 0;
-            },
-            
-            // Calcola percentuale completamento totale
-            getOverallCompletion(project) {
-                if (!project) return 0;
-                
-                const checks = [
-                    this.checkProjectData(project),
-                    this.checkClientData(project),
-                    this.checkProducts(project),
-                    this.checkCaratteristicheMuro(project),
-                    this.checkConfigInfissi(project),
-                    this.checkConfigPersiane(project),
-                    this.checkConfigTapparelle(project),
-                    this.checkConfigZanzariere(project),
-                    this.checkConfigCassonetti(project),
-                    this.checkRilieviGlobali(project),
-                    this.checkBRMGlobali(project)
-                ].filter(v => v !== null); // Rimuovi items non visibili
-                
-                const completed = checks.filter(v => v === true).length;
-                return checks.length > 0 ? Math.round((completed / checks.length) * 100) : 0;
-            },
-            
-            // Icone
-            getIcon(isComplete) {
-                if (isComplete === null) return ''; // Non visibile
-                return isComplete ? '✅' : '⭕';
-            },
-            
-            // Badge HTML
-            getBadgeHTML(isComplete) {
-                if (isComplete === null) return '';
-                const icon = this.getIcon(isComplete);
-                const className = isComplete ? 'complete' : 'incomplete';
-                return `<span class="completion-badge ${className}">${icon}</span>`;
-            },
-            
-            // Barra progresso
-            getProgressBar(percentage) {
-                const color = percentage === 100 ? '#10b981' : 
-                             percentage >= 75 ? '#3b82f6' :
-                             percentage >= 50 ? '#f59e0b' : '#ef4444';
-                             
-                return `
-                    <div class="progress-bar" style="background: #e5e7eb; border-radius: 10px; height: 6px; overflow: hidden; margin: 5px 0;">
-                        <div style="width: ${percentage}%; height: 100%; background: ${color}; transition: width 0.3s;"></div>
-                    </div>
-                    <div style="font-size: 0.75rem; color: #6b7280; text-align: right;">${percentage}%</div>
-                `;
-            }
-        };
 
         function ProjectSetup() {
             const project = state.projects.find(p => p.id === state.currentProject);
@@ -10436,6 +10510,17 @@
                                 null,
                                 'infisso',
                                 '12. Maniglia'
+                            )}
+
+                            <!-- 13. COLORE MANIGLIA -->
+                            ${renderSelectWithCustom(
+                                'coloreManiglia',
+                                project.configInfissi?.coloreManiglia || '',
+                                ['bianco', 'bronzo', 'oro', 'nero', 'inox', 'satinato'],
+                                project.id,
+                                null,
+                                'infisso',
+                                '13. Colore Maniglia'
                             )}
                         </div>
                     </div>
@@ -12517,6 +12602,28 @@
                                         pos.id,
                                         'infisso',
                                         'Vetro'
+                                    )}
+
+                                    <!-- MANIGLIA -->
+                                    ${renderSelectWithCustom(
+                                        'maniglia',
+                                        inf.maniglia || '',
+                                        ['interna', 'esterna', 'bilaterale'],
+                                        project.id,
+                                        pos.id,
+                                        'infisso',
+                                        'Maniglia'
+                                    )}
+
+                                    <!-- COLORE MANIGLIA -->
+                                    ${renderSelectWithCustom(
+                                        'coloreManiglia',
+                                        inf.coloreManiglia || '',
+                                        ['bianco', 'bronzo', 'oro', 'nero', 'inox', 'satinato'],
+                                        project.id,
+                                        pos.id,
+                                        'infisso',
+                                        'Colore Maniglia'
                                     )}
 
                                     <!-- TAGLI TELAIO -->
@@ -15858,6 +15965,8 @@
                                     'Vetro': prod.vetro || '',
                                     'Tagli Telaio': prod.tagliTelaio || '',
                                     'Codici Tagli': (prod.codTagliValues || []).join(','),
+                                    'Maniglia': prod.maniglia || '',
+                                    'Colore Maniglia': prod.coloreManiglia || '',
                                     'Allarme': prod.allarme || '',
                                     
                                     // Specifici persiana/tapparella
@@ -16065,6 +16174,8 @@
                         'Infisso Tipo Anta': pos.infisso?.tipoAnta || '',
                         'Infisso Vetro': pos.infisso?.vetro || '',
                         'Infisso Tagli Telaio': pos.infisso?.tagliTelaio || '',
+                        'Infisso Maniglia': pos.infisso?.maniglia || '',
+                        'Infisso Colore Maniglia': pos.infisso?.coloreManiglia || '',
                         'Infisso BRM L': pos.infisso?.BRM_L || '',
                         'Infisso BRM H': pos.infisso?.BRM_H || '',
                         'Infisso Note': pos.infisso?.note || '',
@@ -16288,7 +16399,9 @@
                                 allarme: pos.infisso.allarme || '',
                                 vetro: pos.infisso.vetro || '',
                                 tagli_telaio: pos.infisso.tagliTelaio || '',
-                                cod_tagli: pos.infisso.codTagli || {}
+                                cod_tagli: pos.infisso.codTagli || {},
+                                maniglia: pos.infisso.maniglia || '',
+                                colore_maniglia: pos.infisso.coloreManiglia || ''
                             };
                         }
                         
@@ -17091,42 +17204,6 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }
             
             // Configura le azioni del menu per integrarsi con l'app esistente
-        // ============================================================================
-        // SISTEMA INDICATORI COMPLETAMENTO
-        // ============================================================================
-        
-        
-        // Inizializzazione nel DOMContentLoaded
-        document.addEventListener('DOMContentLoaded', () => {
-            // Aggiorna indicatori quando cambia progetto
-            const originalRender = render;
-            render = function() {
-                originalRender();
-                updateCompletionIndicators();
-            };
-        });
-        
-        function updateCompletionIndicators() {
-            const project = state.currentProject ? state.projects.find(p => p.id === state.currentProject) : null;
-            if (!project) return;
-            
-            const percentage = CompletionSystem.getOverallCompletion(project);
-            
-            // Aggiorna header se esiste
-            const header = document.querySelector('.project-completion-header');
-            if (header) {
-                header.innerHTML = `
-                    <div style="padding: 15px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-weight: 600; color: #374151;">Completamento Progetto</span>
-                            <span style="font-weight: 700; color: #1f2937;">${percentage}%</span>
-                        </div>
-                        ${CompletionSystem.getProgressBar(percentage)}
-                    </div>
-                `;
-            }
-        }
-
             MenuSistema.config.menuItems = [
                 {
                     id: 'progetti',
