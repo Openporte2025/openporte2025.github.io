@@ -9939,6 +9939,122 @@
                                            class="w-full md:w-1/2 px-2 py-1 border rounded text-sm">
                                 </div>
                             </div>
+                            
+                            <!-- ✅ NUOVO: Dislivello Piana DEFAULT FINESTRE (F) -->
+                            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mt-4">
+                                <h3 class="text-sm font-bold text-blue-800 mb-3">📐 Dislivello Piana - FINESTRE (F) - Default</h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-medium mb-2">C'è dislivello?</label>
+                                        <div class="flex gap-4">
+                                            <label class="inline-flex items-center">
+                                                <input type="radio" name="dislivelloFinestre-${project.id}" value="no"
+                                                       ${!project.caratteristicheMuro?.dislivelloPianaFinestre?.presente ? 'checked' : ''}
+                                                       onchange="updateDislivelloDefault('${project.id}', 'finestre', 'presente', false)"
+                                                       class="mr-2">
+                                                <span class="text-sm">Nessun dislivello</span>
+                                            </label>
+                                            <label class="inline-flex items-center">
+                                                <input type="radio" name="dislivelloFinestre-${project.id}" value="si"
+                                                       ${project.caratteristicheMuro?.dislivelloPianaFinestre?.presente ? 'checked' : ''}
+                                                       onchange="updateDislivelloDefault('${project.id}', 'finestre', 'presente', true)"
+                                                       class="mr-2">
+                                                <span class="text-sm">Dislivello presente</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="dislivelloFinestreFields-${project.id}" 
+                                         style="display: ${project.caratteristicheMuro?.dislivelloPianaFinestre?.presente ? 'block' : 'none'}">
+                                        <div class="space-y-2">
+                                            <div>
+                                                <label class="block text-xs font-medium mb-1">Piana più alta:</label>
+                                                <div class="flex gap-4">
+                                                    <label class="inline-flex items-center">
+                                                        <input type="radio" name="pianaAltaFinestre-${project.id}" value="interna"
+                                                               ${project.caratteristicheMuro?.dislivelloPianaFinestre?.pianaAlta === 'interna' ? 'checked' : ''}
+                                                               onchange="updateDislivelloDefault('${project.id}', 'finestre', 'pianaAlta', 'interna')"
+                                                               class="mr-2">
+                                                        <span class="text-sm">🏠 Interna</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center">
+                                                        <input type="radio" name="pianaAltaFinestre-${project.id}" value="esterna"
+                                                               ${project.caratteristicheMuro?.dislivelloPianaFinestre?.pianaAlta === 'esterna' ? 'checked' : ''}
+                                                               onchange="updateDislivelloDefault('${project.id}', 'finestre', 'pianaAlta', 'esterna')"
+                                                               class="mr-2">
+                                                        <span class="text-sm">🌍 Esterna</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium mb-1">Dislivello (mm):</label>
+                                                <input type="number" placeholder="0" min="0"
+                                                       value="${project.caratteristicheMuro?.dislivelloPianaFinestre?.valore || ''}"
+                                                       onchange="updateDislivelloDefault('${project.id}', 'finestre', 'valore', this.value)"
+                                                       class="w-32 px-2 py-1 border rounded text-sm">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- ✅ NUOVO: Dislivello Piana DEFAULT PORTE-FINESTRE (PF) -->
+                            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-lg mt-4">
+                                <h3 class="text-sm font-bold text-amber-800 mb-3">📐 Dislivello Piana - PORTE-FINESTRE (PF) - Default</h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-medium mb-2">C'è dislivello?</label>
+                                        <div class="flex gap-4">
+                                            <label class="inline-flex items-center">
+                                                <input type="radio" name="dislivelloPF-${project.id}" value="no"
+                                                       ${!project.caratteristicheMuro?.dislivelloPianaPorteFinestre?.presente ? 'checked' : ''}
+                                                       onchange="updateDislivelloDefault('${project.id}', 'porteFinestre', 'presente', false)"
+                                                       class="mr-2">
+                                                <span class="text-sm">Nessun dislivello</span>
+                                            </label>
+                                            <label class="inline-flex items-center">
+                                                <input type="radio" name="dislivelloPF-${project.id}" value="si"
+                                                       ${project.caratteristicheMuro?.dislivelloPianaPorteFinestre?.presente ? 'checked' : ''}
+                                                       onchange="updateDislivelloDefault('${project.id}', 'porteFinestre', 'presente', true)"
+                                                       class="mr-2">
+                                                <span class="text-sm">Dislivello presente</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="dislivelloPFFields-${project.id}" 
+                                         style="display: ${project.caratteristicheMuro?.dislivelloPianaPorteFinestre?.presente ? 'block' : 'none'}">
+                                        <div class="space-y-2">
+                                            <div>
+                                                <label class="block text-xs font-medium mb-1">Piana più alta:</label>
+                                                <div class="flex gap-4">
+                                                    <label class="inline-flex items-center">
+                                                        <input type="radio" name="pianaAltaPF-${project.id}" value="interna"
+                                                               ${project.caratteristicheMuro?.dislivelloPianaPorteFinestre?.pianaAlta === 'interna' ? 'checked' : ''}
+                                                               onchange="updateDislivelloDefault('${project.id}', 'porteFinestre', 'pianaAlta', 'interna')"
+                                                               class="mr-2">
+                                                        <span class="text-sm">🏠 Interna</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center">
+                                                        <input type="radio" name="pianaAltaPF-${project.id}" value="esterna"
+                                                               ${project.caratteristicheMuro?.dislivelloPianaPorteFinestre?.pianaAlta === 'esterna' ? 'checked' : ''}
+                                                               onchange="updateDislivelloDefault('${project.id}', 'porteFinestre', 'pianaAlta', 'esterna')"
+                                                               class="mr-2">
+                                                        <span class="text-sm">🌍 Esterna</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium mb-1">Dislivello (mm):</label>
+                                                <input type="number" placeholder="0" min="0"
+                                                       value="${project.caratteristicheMuro?.dislivelloPianaPorteFinestre?.valore || ''}"
+                                                       onchange="updateDislivelloDefault('${project.id}', 'porteFinestre', 'valore', this.value)"
+                                                       class="w-32 px-2 py-1 border rounded text-sm">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -10445,7 +10561,29 @@
                                 '9. Vetro'
                             )}
 
-                            <!-- 10. TAGLI TELAIO -->
+                            <!-- 10. MANIGLIA -->
+                            ${renderSelectWithCustom(
+                                'maniglia',
+                                project.configInfissi?.maniglia || '',
+                                ['standard', 'con-chiave', 'alzante-scorrevole', 'cremonese'],
+                                project.id,
+                                null,
+                                'infisso',
+                                '10. Maniglia'
+                            )}
+
+                            <!-- 11. COLORE MANIGLIA -->
+                            ${renderSelectWithCustom(
+                                'coloreManiglia',
+                                project.configInfissi?.coloreManiglia || '',
+                                ['bianco', 'bronzo', 'oro', 'nero', 'inox', 'satinato'],
+                                project.id,
+                                null,
+                                'infisso',
+                                '11. Colore Maniglia'
+                            )}
+
+                            <!-- 12. TAGLI TELAIO -->
                             ${renderSelectWithCustom(
                                 'tagliTelaio',
                                 project.configInfissi?.tagliTelaio || '',
@@ -10453,12 +10591,12 @@
                                 project.id,
                                 null,
                                 'infisso',
-                                '10. Tagli Telaio'
+                                '12. Tagli Telaio'
                             )}
 
-                            <!-- 11. COD.TAGLI (Editabili con etichette chiare) -->
+                            <!-- 13. COD.TAGLI (Editabili con etichette chiare) -->
                             <div>
-                                <label class="block text-base font-bold mb-1 text-gray-800">11. COD.TAGLI</label>
+                                <label class="block text-base font-bold mb-1 text-gray-800">13. COD.TAGLI</label>
                                 ${(() => {
                                     const tagliTelaio = project.configInfissi?.tagliTelaio || '';
                                     const codTagli = project.configInfissi?.codTagli || [];
@@ -10500,28 +10638,6 @@
                                     `;
                                 })()}
                             </div>
-
-                            <!-- 12. MANIGLIA -->
-                            ${renderSelectWithCustom(
-                                'maniglia',
-                                project.configInfissi?.maniglia || '',
-                                ['standard', 'con-chiave', 'alzante-scorrevole', 'cremonese'],
-                                project.id,
-                                null,
-                                'infisso',
-                                '12. Maniglia'
-                            )}
-
-                            <!-- 13. COLORE MANIGLIA -->
-                            ${renderSelectWithCustom(
-                                'coloreManiglia',
-                                project.configInfissi?.coloreManiglia || '',
-                                ['bianco', 'bronzo', 'oro', 'nero', 'inox', 'satinato'],
-                                project.id,
-                                null,
-                                'infisso',
-                                '13. Colore Maniglia'
-                            )}
                         </div>
                     </div>
                     
@@ -12203,22 +12319,76 @@
                         </div>
                     </div>
 
-                    <div class="bg-blue-50 rounded-lg p-4 border-2 border-blue-300">
-                        <p class="text-sm font-bold text-blue-800 mb-3">📐 Delta (mm)</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold mb-1">Delta INT</label>
-                                <input type="number" placeholder="0" value="${pos.misure?.DeltaINT || ''}"
-                                       onchange="updateMisuraWithValidation('${project.id}', '${pos.id}', 'DeltaINT', this.value)"
-                                       class="w-full px-3 py-2 border rounded font-semibold">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold mb-1">Delta EST</label>
-                                <input type="number" placeholder="0" value="${pos.misure?.DeltaEST || ''}"
-                                       onchange="updateMisuraWithValidation('${project.id}', '${pos.id}', 'DeltaEST', this.value)"
-                                       class="w-full px-3 py-2 border rounded font-semibold">
-                            </div>
-                        </div>
+                    <!-- ✅ NUOVO: Dislivello Piana Int ed Est -->
+                    <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-4 border-2 border-amber-300">
+                        <p class="text-sm font-bold text-amber-800 mb-3">📐 Dislivello Piana Int ed Est</p>
+                        ${(() => {
+                            // Cerca dislivello in finestra o portaFinestra
+                            const dislivello = pos.finestra?.dislivelloPiana || pos.portaFinestra?.dislivelloPiana || {};
+                            const presente = dislivello.presente || false;
+                            const pianaAlta = dislivello.pianaAlta || '';
+                            const valore = dislivello.valore || '';
+                            const note = dislivello.note || '';
+                            
+                            return `
+                                <div class="space-y-3">
+                                    <div>
+                                        <div class="flex gap-4">
+                                            <label class="inline-flex items-center">
+                                                <input type="radio" name="dislivelloPresente-${pos.id}" value="no"
+                                                       ${!presente ? 'checked' : ''}
+                                                       onchange="updateDislivelloPosizione('${project.id}', '${pos.id}', 'presente', false)"
+                                                       class="mr-2">
+                                                <span class="text-sm">Nessun dislivello (piane allineate)</span>
+                                            </label>
+                                            <label class="inline-flex items-center">
+                                                <input type="radio" name="dislivelloPresente-${pos.id}" value="si"
+                                                       ${presente ? 'checked' : ''}
+                                                       onchange="updateDislivelloPosizione('${project.id}', '${pos.id}', 'presente', true)"
+                                                       class="mr-2">
+                                                <span class="text-sm">Dislivello presente</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="dislivelloFields-${pos.id}" style="display: ${presente ? 'block' : 'none'}">
+                                        <div class="space-y-3 bg-white bg-opacity-60 p-3 rounded">
+                                            <div>
+                                                <label class="block text-xs font-semibold mb-2 text-amber-900">Piana più alta:</label>
+                                                <div class="flex gap-4">
+                                                    <label class="inline-flex items-center">
+                                                        <input type="radio" name="pianaAlta-${pos.id}" value="interna"
+                                                               ${pianaAlta === 'interna' ? 'checked' : ''}
+                                                               onchange="updateDislivelloPosizione('${project.id}', '${pos.id}', 'pianaAlta', 'interna')"
+                                                               class="mr-2">
+                                                        <span class="text-sm font-medium">🏠 Interna</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center">
+                                                        <input type="radio" name="pianaAlta-${pos.id}" value="esterna"
+                                                               ${pianaAlta === 'esterna' ? 'checked' : ''}
+                                                               onchange="updateDislivelloPosizione('${project.id}', '${pos.id}', 'pianaAlta', 'esterna')"
+                                                               class="mr-2">
+                                                        <span class="text-sm font-medium">🌍 Esterna</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-semibold mb-1 text-amber-900">Dislivello (mm):</label>
+                                                <input type="number" placeholder="0" min="0" value="${valore}"
+                                                       onchange="updateDislivelloPosizione('${project.id}', '${pos.id}', 'valore', this.value)"
+                                                       class="w-32 px-3 py-2 border rounded-lg font-semibold">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-semibold mb-1 text-amber-900">Note (opzionale):</label>
+                                                <input type="text" placeholder="es. Gradino interno..." value="${note}"
+                                                       onchange="updateDislivelloPosizione('${project.id}', '${pos.id}', 'note', this.value)"
+                                                       class="w-full px-3 py-2 border rounded-lg text-sm">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        })()}
                     </div>
 
                     <div class="bg-gray-50 rounded-lg p-4">
@@ -15463,6 +15633,102 @@
                 const guidaFields = document.getElementById(`guida-fields-${projectId}`);
                 if (guidaFields) {
                     guidaFields.style.display = value === 'si' ? 'block' : 'none';
+                }
+            }
+        };
+        
+        // ✅ NUOVO: Aggiorna dislivello default (finestre o porteFinestre)
+        window.updateDislivelloDefault = (projectId, tipo, field, value) => {
+            markUserTyping();
+            const project = state.projects.find(p => p.id === projectId);
+            if (project) {
+                if (!project.caratteristicheMuro) project.caratteristicheMuro = {};
+                
+                // Inizializza struttura dislivello se non esiste
+                const key = tipo === 'finestre' ? 'dislivelloPianaFinestre' : 'dislivelloPianaPorteFinestre';
+                if (!project.caratteristicheMuro[key]) {
+                    project.caratteristicheMuro[key] = {
+                        presente: false,
+                        pianaAlta: null,
+                        valore: 0,
+                        note: ''
+                    };
+                }
+                
+                // Aggiorna campo
+                if (field === 'presente') {
+                    project.caratteristicheMuro[key].presente = value;
+                    // Mostra/nascondi campi
+                    const fieldsId = tipo === 'finestre' ? 
+                        `dislivelloFinestreFields-${projectId}` : 
+                        `dislivelloPFFields-${projectId}`;
+                    const fieldsEl = document.getElementById(fieldsId);
+                    if (fieldsEl) {
+                        fieldsEl.style.display = value ? 'block' : 'none';
+                    }
+                    // Se disattivato, resetta valori
+                    if (!value) {
+                        project.caratteristicheMuro[key].pianaAlta = null;
+                        project.caratteristicheMuro[key].valore = 0;
+                    }
+                } else if (field === 'valore') {
+                    project.caratteristicheMuro[key].valore = parseInt(value) || 0;
+                } else {
+                    project.caratteristicheMuro[key][field] = value;
+                }
+                
+                saveState();
+            }
+        };
+        
+        // ✅ NUOVO: Aggiorna dislivello per posizione specifica
+        window.updateDislivelloPosizione = (projectId, posId, field, value) => {
+            markUserTyping();
+            const project = state.projects.find(p => p.id === projectId);
+            if (project) {
+                const pos = project.positions.find(p => p.id === posId);
+                if (pos) {
+                    // Determina se è finestra o porta-finestra
+                    let prodotto = pos.finestra || pos.portaFinestra;
+                    const tipoKey = pos.finestra ? 'finestra' : 'portaFinestra';
+                    
+                    // Se il prodotto non esiste ancora, crealo
+                    if (!prodotto) {
+                        prodotto = {};
+                        pos[tipoKey] = prodotto;
+                    }
+                    
+                    // Inizializza struttura dislivello
+                    if (!prodotto.dislivelloPiana) {
+                        prodotto.dislivelloPiana = {
+                            presente: false,
+                            pianaAlta: null,
+                            valore: 0,
+                            note: ''
+                        };
+                    }
+                    
+                    // Aggiorna campo
+                    if (field === 'presente') {
+                        prodotto.dislivelloPiana.presente = value;
+                        // Mostra/nascondi campi
+                        const fieldsEl = document.getElementById(`dislivelloFields-${posId}`);
+                        if (fieldsEl) {
+                            fieldsEl.style.display = value ? 'block' : 'none';
+                        }
+                        // Se disattivato, resetta valori
+                        if (!value) {
+                            prodotto.dislivelloPiana.pianaAlta = null;
+                            prodotto.dislivelloPiana.valore = 0;
+                            prodotto.dislivelloPiana.note = '';
+                        }
+                    } else if (field === 'valore') {
+                        prodotto.dislivelloPiana.valore = parseInt(value) || 0;
+                    } else {
+                        prodotto.dislivelloPiana[field] = value;
+                    }
+                    
+                    saveState();
                 }
             }
         };
