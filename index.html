@@ -11801,7 +11801,8 @@
                                 <input type="text" 
                                        id="ambiente-input-${pos.id}"
                                        value="${pos.ambiente || ''}"
-                                       oninput="updatePosition('${project.id}', '${pos.id}', 'ambiente', this.value)"
+                                       oninput="updatePosition('${project.id}', '${pos.id}', 'ambiente', this.value, false)"
+                                       onblur="updatePosition('${project.id}', '${pos.id}', 'ambiente', this.value, true)"
                                        placeholder="Scrivi ambiente..."
                                        class="flex-1 compact-input border rounded ${!pos.ambiente ? 'border-red-500 bg-red-50' : ''}"
                                        style="display: none;">
@@ -15808,7 +15809,7 @@
             }
         };
 
-        window.updatePosition = (projectId, posId, field, value) => {
+        window.updatePosition = (projectId, posId, field, value, shouldUpdateId = true) => {
             markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
             if (project) {
@@ -15816,12 +15817,27 @@
                 if (pos) {
                     pos[field] = value;
                     
-                    // ✅ AGGIORNAMENTO ID quando cambia l'ambiente
-                    if (field === 'ambiente' && value && value.trim() !== '') {
+                    // ✅ AGGIORNAMENTO ID quando cambia l'ambiente (solo se shouldUpdateId = true)
+                    if (field === 'ambiente' && value && value.trim() !== '' && shouldUpdateId) {
                         const newId = generatePositionId(value, project.positions);
                         pos.id = newId;
                         
                         // ✅ FIX: Rimuovi bordo rosso quando compili ambiente
+                        const selectEl = document.getElementById(`ambiente-select-${posId}`);
+                        const inputEl = document.getElementById(`ambiente-input-${posId}`);
+                        
+                        if (selectEl) {
+                            selectEl.classList.remove('border-red-500', 'bg-red-50');
+                            selectEl.classList.add('border-gray-300');
+                        }
+                        if (inputEl) {
+                            inputEl.classList.remove('border-red-500', 'bg-red-50');
+                            inputEl.classList.add('border-gray-300');
+                        }
+                    }
+                    
+                    // ✅ Rimuovi bordo rosso anche durante digitazione (senza cambiare ID)
+                    if (field === 'ambiente' && value && value.trim() !== '' && !shouldUpdateId) {
                         const selectEl = document.getElementById(`ambiente-select-${posId}`);
                         const inputEl = document.getElementById(`ambiente-input-${posId}`);
                         
