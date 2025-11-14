@@ -6986,6 +6986,11 @@
 
         // 🆕 CHAT 011 - Toggle Ambiente (Dropdown ↔ Free Text)
         function toggleAmbienteMode(projectId, posId) {
+            const project = state.projects.find(p => p.id === projectId);
+            const pos = project?.positions.find(p => p.id === posId);
+            
+            if (!pos) return;
+            
             const selectEl = document.getElementById(`ambiente-select-${posId}`);
             const inputEl = document.getElementById(`ambiente-input-${posId}`);
             const toggleBtn = document.getElementById(`ambiente-toggle-${posId}`);
@@ -7005,6 +7010,10 @@
                     } else {
                         selectEl.value = currentValue || ''; // Mantieni valore anche se non in lista
                     }
+                    
+                    // 🆕 Salva stato nella posizione
+                    pos.ambienteMode = 'select';
+                    saveState();
                 } else {
                     // Passa a FREE TEXT
                     selectEl.style.display = 'none';
@@ -7013,6 +7022,10 @@
                     toggleBtn.title = 'Torna alla tendina';
                     // Sincronizza valore: trasferisci dal dropdown all'input
                     inputEl.value = selectEl.value;
+                    
+                    // 🆕 Salva stato nella posizione
+                    pos.ambienteMode = 'input';
+                    saveState();
                 }
             }
         }
@@ -7443,6 +7456,7 @@
                     name: `Pos. ${newNum}`,
                     piano: project.clientData?.piano || '',
                     ambiente: '',
+                    ambienteMode: 'select',  // 🆕 Traccia modalità input: 'select' o 'input'
                     quantita: '1',
                     misure: {},
                     // 📋 AUTO-SYNC: Inizializza TUTTI i rilievi con valori globali
@@ -11786,33 +11800,33 @@
                                 Ambiente <span class="text-red-600 font-bold">*</span>
                             </label>
                             <div class="flex items-center gap-2 mt-1">
-                                <!-- DROPDOWN (default visibile) -->
+                                <!-- DROPDOWN -->
                                 <select id="ambiente-select-${pos.id}"
                                         onchange="updatePosition('${project.id}', '${pos.id}', 'ambiente', this.value)"
                                         class="flex-1 compact-input border rounded ${!pos.ambiente ? 'border-red-500 bg-red-50' : ''}"
-                                        style="display: block;">
+                                        style="display: ${(pos.ambienteMode || 'select') === 'select' ? 'block' : 'none'};">
                                     <option value="">⚠️ Seleziona ambiente...</option>
                                     ${['Sala', 'Soggiorno', 'Cucina', 'Camera', 'Stanza', 'Cameretta', 'Matrimoniale', 'Disimpegno', 'Studio', 'Ufficio', 'Bagno1', 'Bagno2', 'Ripostiglio', 'Lavanderia', 'Scala', 'Cantina', 'Garage'].map(amb => `
                                         <option value="${amb}" ${pos.ambiente === amb ? 'selected' : ''}>${amb}</option>
                                     `).join('')}
                                 </select>
                                 
-                                <!-- FREE TEXT INPUT (nascosto di default) -->
+                                <!-- FREE TEXT INPUT -->
                                 <input type="text" 
                                        id="ambiente-input-${pos.id}"
                                        value="${pos.ambiente || ''}"
                                        oninput="updatePosition('${project.id}', '${pos.id}', 'ambiente', this.value)"
                                        placeholder="Scrivi ambiente..."
                                        class="flex-1 compact-input border rounded ${!pos.ambiente ? 'border-red-500 bg-red-50' : ''}"
-                                       style="display: none;">
+                                       style="display: ${(pos.ambienteMode || 'select') === 'input' ? 'block' : 'none'};">
                                 
                                 <!-- BOTTONE TOGGLE -->
                                 <button type="button"
                                         id="ambiente-toggle-${pos.id}"
                                         onclick="toggleAmbienteMode('${project.id}', '${pos.id}')"
-                                        title="Passa a scrittura libera"
+                                        title="${(pos.ambienteMode || 'select') === 'select' ? 'Passa a scrittura libera' : 'Torna alla tendina'}"
                                         class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 whitespace-nowrap">
-                                    ✏️ Scrivi
+                                    ${(pos.ambienteMode || 'select') === 'select' ? '✏️ Scrivi' : '📋 Tendina'}
                                 </button>
                             </div>
                             ${!pos.ambiente ? `
@@ -17868,7 +17882,7 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                 if (state.projectMenuOpen) {
                     closeProjectMenu();
                 }
-                // Chiudi anche eventuali modalA
+                // Chiudi anche eventuali modal
                 const modals = document.querySelectorAll('.modal-overlay');
                 modals.forEach(modal => {
                     if (modal.style.display === 'flex') {
