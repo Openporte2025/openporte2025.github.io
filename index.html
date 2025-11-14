@@ -7652,7 +7652,7 @@
                     pos.tapparella = {
                         id: generateId(),
                         qta: '1',
-                        azienda: 'azienda-tapparelle-1',
+                        azienda: project.configTapparelle?.azienda || '',
                         tipo: project.configTapparelle?.tipo || '',
                         materiale: project.configTapparelle?.materiale || '',
                         colore: project.configTapparelle?.colore || '',
@@ -7673,7 +7673,7 @@
                     pos.zanzariera = {
                         id: generateId(),
                         qta: '1',
-                        azienda: 'azienda-zanzariere-1',
+                        azienda: project.configZanzariere?.azienda || '',
                         tipo: project.configZanzariere?.tipo || '',
                         colore: project.configZanzariere?.colore || '',
                         materiale: project.configZanzariere?.materiale || '',
@@ -7696,7 +7696,7 @@
                     pos.cassonetto = {
                         id: generateId(),
                         qta: '1',
-                        azienda: 'azienda-cassonetti-1',
+                        azienda: project.configCassonetti?.azienda || '',
                         tipo: project.configCassonetti?.tipo || '',
                         materiale: project.configCassonetti?.materiale || '',
                         finitura: project.configCassonetti?.finitura || '',
@@ -7858,7 +7858,7 @@
                     pos.tapparella = {
                         id: generateId(),
                         qta: '1',
-                        azienda: 'azienda-tapparelle-1',
+                        azienda: project.configTapparelle?.azienda || '',
                         tipo: project.configTapparelle?.tipo || '',
                         materiale: project.configTapparelle?.materiale || '',
                         colore: project.configTapparelle?.colore || '',
@@ -7888,7 +7888,7 @@
                     pos.zanzariera = {
                         id: generateId(),
                         qta: '1',
-                        azienda: 'palagina',
+                        azienda: project.configZanzariere?.azienda || '',
                         tipo: project.configZanzariere?.tipo || '',
                         coloreTelaio: project.configZanzariere?.coloreTelaio || '',
                         tipoRete: project.configZanzariere?.tipoRete || '',
@@ -7920,7 +7920,7 @@
                     pos.cassonetto = {
                         id: generateId(),
                         qta: '1',
-                        azienda: 'azienda-cassonetti-1',
+                        azienda: project.configCassonetti?.azienda || '',
                         tipo: project.configCassonetti?.tipo || '',
                         materiale: project.configCassonetti?.materiale || '',
                         finitura: project.configCassonetti?.finitura || '',
@@ -10958,7 +10958,37 @@
                     <div class="space-y-2">
                         <div class="grid md:grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-sm font-medium mb-1">1. Tipo Zanzariera</label>
+                                <label class="block text-sm font-medium mb-1">1. Azienda</label>
+                                ${(() => {
+                                    const options = ['Palagina', 'Finstral'];
+                                    const current = project.configZanzariere?.azienda || '';
+                                    const isCustom = current && !options.includes(current);
+                                    const selectId = `zanz-azienda-${project.id}`;
+                                    const inputId = `zanz-azienda-input-${project.id}`;
+                                    
+                                    return `
+                                        <select id="${selectId}" 
+                                                onchange="handleConfigSelectWithCustom('${project.id}', 'zanzariere', 'azienda', '${selectId}', '${inputId}', this.value)"
+                                                class="w-full px-3 py-2 border rounded-lg">
+                                            <option value="">Seleziona azienda...</option>
+                                            ${options.map(opt => `
+                                                <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
+                                            `).join('')}
+                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altra azienda...</option>
+                                        </select>
+                                        <input type="text" 
+                                               id="${inputId}"
+                                               value="${isCustom ? current : ''}"
+                                               onchange="updateConfigZanzariere('${project.id}', 'azienda', this.value)"
+                                               placeholder="Inserisci azienda personalizzata..."
+                                               style="display: ${isCustom ? 'block' : 'none'};"
+                                               class="w-full px-3 py-2 border rounded-lg mt-2">
+                                    `;
+                                })()}
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">2. Tipo Zanzariera</label>
                                 ${(() => {
                                     const options = ['Avvolgibile', 'Plissé', 'Battente', 'Scorrevole', 'Fissa'];
                                     const current = project.configZanzariere?.tipo || '';
@@ -10988,7 +11018,7 @@
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium mb-1">2. Colore Telaio</label>
+                                <label class="block text-sm font-medium mb-1">3. Colore Telaio</label>
                                 <input type="text" value="${project.configZanzariere?.coloreTelaio || ''}"
                                        onchange="updateConfigZanzariere('${project.id}', 'coloreTelaio', this.value)"
                                        placeholder="Es: Bianco, Marrone, RAL 9010"
@@ -10996,7 +11026,7 @@
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium mb-1">3. Tipo Rete</label>
+                                <label class="block text-sm font-medium mb-1">4. Tipo Rete</label>
                                 ${(() => {
                                     const options = ['Standard', 'Anti-polline', 'Pet-resistant', 'Micro-forata'];
                                     const current = project.configZanzariere?.tipoRete || '';
@@ -11048,7 +11078,37 @@
                     <div class="space-y-2 mt-4">
                         <div class="grid md:grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-sm font-medium mb-1">1. Tipo Cassonetto</label>
+                                <label class="block text-sm font-medium mb-1">1. Azienda</label>
+                                ${(() => {
+                                    const options = ['Finstral', 'Magò', 'Alpac'];
+                                    const current = project.configCassonetti?.azienda || '';
+                                    const isCustom = current && !options.includes(current);
+                                    const selectId = `cass-azienda-${project.id}`;
+                                    const inputId = `cass-azienda-input-${project.id}`;
+                                    
+                                    return `
+                                        <select id="${selectId}" 
+                                                onchange="handleConfigSelectWithCustom('${project.id}', 'cassonetti', 'azienda', '${selectId}', '${inputId}', this.value)"
+                                                class="w-full px-3 py-2 border rounded-lg">
+                                            <option value="">Seleziona azienda...</option>
+                                            ${options.map(opt => `
+                                                <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
+                                            `).join('')}
+                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altra azienda...</option>
+                                        </select>
+                                        <input type="text" 
+                                               id="${inputId}"
+                                               value="${isCustom ? current : ''}"
+                                               onchange="updateConfigCassonetti('${project.id}', 'azienda', this.value)"
+                                               placeholder="Inserisci azienda personalizzata..."
+                                               style="display: ${isCustom ? 'block' : 'none'};"
+                                               class="w-full px-3 py-2 border rounded-lg mt-2">
+                                    `;
+                                })()}
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">2. Tipo Cassonetto</label>
                                 ${(() => {
                                     const options = ['Esterno', 'Incasso', 'Sopra-finestra', 'Semi-incasso'];
                                     const current = project.configCassonetti?.tipo || '';
@@ -11078,7 +11138,7 @@
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium mb-1">2. Materiale</label>
+                                <label class="block text-sm font-medium mb-1">3. Materiale</label>
                                 ${(() => {
                                     const options = ['PVC', 'Alluminio', 'Alluminio Coibentato', 'Legno'];
                                     const current = project.configCassonetti?.materiale || '';
@@ -11108,7 +11168,7 @@
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium mb-1">3. Finitura/Colore</label>
+                                <label class="block text-sm font-medium mb-1">4. Finitura/Colore</label>
                                 <input type="text" value="${project.configCassonetti?.finitura || ''}"
                                        onchange="updateConfigCassonetti('${project.id}', 'finitura', this.value)"
                                        placeholder="Es: Bianco, RAL 9010, Legno"
@@ -11116,7 +11176,7 @@
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium mb-1">4. Coibentazione</label>
+                                <label class="block text-sm font-medium mb-1">5. Coibentazione</label>
                                 ${(() => {
                                     const options = ['Standard', 'Rinforzata', 'Acustica'];
                                     const current = project.configCassonetti?.coibentazione || '';
