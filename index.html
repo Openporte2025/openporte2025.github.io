@@ -697,6 +697,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Favicon inline per evitare errore 404 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
     <title>Open Porte v3.0 - FASE 13: Rilievo Preesistente Globale 📋✨🎯</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -15818,6 +15820,19 @@
                     if (field === 'ambiente' && value && value.trim() !== '') {
                         const newId = generatePositionId(value, project.positions);
                         pos.id = newId;
+                        
+                        // ✅ FIX: Rimuovi bordo rosso quando compili ambiente
+                        const selectEl = document.getElementById(`ambiente-select-${posId}`);
+                        const inputEl = document.getElementById(`ambiente-input-${posId}`);
+                        
+                        if (selectEl) {
+                            selectEl.classList.remove('border-red-500', 'bg-red-50');
+                            selectEl.classList.add('border-gray-300');
+                        }
+                        if (inputEl) {
+                            inputEl.classList.remove('border-red-500', 'bg-red-50');
+                            inputEl.classList.add('border-gray-300');
+                        }
                     }
                     
                     saveState();
