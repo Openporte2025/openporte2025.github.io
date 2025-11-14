@@ -1,5 +1,41 @@
 <!DOCTYPE html>
 <!--
+    Open Porte v4.10 - MENU UNIFICATO: Config Globale = Config Posizioni ✅
+    
+    ✨ MODIFICHE v4.10 MENU UNIFICATO (14 NOV 2025):
+    
+    🎯 UNIFICAZIONE MENU CONFIGURAZIONE:
+       - Menu Step 3 (Config Globale) ora identico al menu nelle Posizioni
+       - Tutti gli 11 campi Finstral disponibili sia in globale che in ogni posizione
+       - Ereditarietà automatica: posizioni partono da config globale
+       - Override locale: modifiche posizione protette da auto-sync
+    
+    🎨 COLORI SEMPLIFICATI E DINAMICI:
+       - PVC: 15 colori completi (Bianco, Beige, Verde, Blu, Grigio, Marrone)
+       - Alluminio: 14 effetti legno esclusivi (Winchester, Noce, Douglas, Larice, ecc.)
+       - Dropdown colori si aggiorna automaticamente in base a finitura selezionata
+       - Se PVC → mostra colori PVC | Se Alluminio → mostra solo legni
+    
+    📋 CAMPI MENU COMPLETO:
+       1. Azienda (finstral, essepi, schuco, + custom)
+       2. Tipo Anta (step/nova/slim/classic-line, + custom)
+       3. Finitura Interna (pvc, legno, alluminio, ceramica)
+       4. Finitura Esterna (pvc, alluminio, ceramica)
+       5. Colore Interno (dinamico: 15 PVC o 14 Alluminio)
+       6. Colore Esterno (dinamico: 15 PVC o 14 Alluminio)
+       7. Telaio (961, 965, 967, Z62, Z91, + custom)
+       8. Allarme (si/no)
+       9. Vetro (doppio, doppio-sat, triplo, triplo-sat)
+       10. Maniglia (standard, con-chiave, alzante-scorrevole, cremonese)
+       11. Colore Maniglia (bianco, bronzo, oro, nero, inox, satinato)
+    
+    🔧 FUNZIONI NUOVE:
+       - renderSelectColore(): Gestisce dropdown colori dinamici
+       - Aggiornamento automatico colori al cambio finitura
+       - Validazione opzioni in base a materiale selezionato
+    
+    ---
+    
     Open Porte v4.5 - AUTO-SYNC FIX: Sincronizzazione Automatica e Fix Campo Rilievo ✅
     
     ✨ MODIFICHE AUTO-SYNC + FIX (12 NOV 2025):
@@ -2874,6 +2910,50 @@
                     />
                 </div>
             `;
+        }
+
+        // 🎨 FASE 30024: Funzione per select colori dinamici (PVC vs Alluminio)
+        function renderSelectColore(fieldName, currentValue, finituraValue, projectId, posId, productType, label) {
+            // Colori PVC (tutti)
+            const coloriPVC = [
+                '01 - Bianco',
+                '42 - Bianco perla',
+                '45 - Grigio seta',
+                '06 - Grigio',
+                '07 - Nero',
+                '13 - Castagno decoro legno',
+                '19 - Rovere decoro legno',
+                '46 - Marrone chiaro',
+                '55 - Noce chiaro decoro legno'
+            ];
+            
+            // Colori Alluminio (SOLO effetti legno)
+            const coloriAlluminioLegno = [
+                'L13 - Castagno verniciato',
+                'L14 - Mogano verniciato',
+                'L16 - Douglas verniciato',
+                'L18 - Noce verniciato',
+                'L19 - Rovere verniciato',
+                'L55 - Noce chiaro verniciato',
+                'LX01 - Rovere naturale',
+                'LX02 - Ciliegio scuro',
+                'LX03 - Pino verniciato',
+                'LX04 - Rovere venato'
+            ];
+            
+            // Scelta opzioni in base a finitura
+            let opzioni = [];
+            if (finituraValue && finituraValue.toLowerCase().includes('pvc')) {
+                opzioni = coloriPVC;
+            } else if (finituraValue && finituraValue.toLowerCase().includes('alluminio')) {
+                opzioni = coloriAlluminioLegno;
+            } else {
+                // Se finitura non impostata o altro materiale, usa PVC come default
+                opzioni = coloriPVC;
+            }
+            
+            // Usa renderSelectWithCustom con opzioni dinamiche
+            return renderSelectWithCustom(fieldName, currentValue, opzioni, projectId, posId, productType, label);
         }
 
         // ═══════════════════════════════════════════════════════════════
@@ -10495,7 +10575,7 @@
                             ${renderSelectWithCustom(
                                 'tipoAnta',
                                 project.configInfissi?.tipoAnta || '',
-                                ['step-line', 'nova-line', 'slim-line', 'classic-line', 'step-line-door'],
+                                ['Classic-line', 'Slim-line', 'Slim-line Cristal', 'Slim-line Twin', 'Slim-line Cristal Twin', 'Step-line', 'Step-line Door', 'Nova-line', 'Nova-line Plus', 'Nova-line Twin', 'Nova-line Cristal Twin'],
                                 project.id,
                                 null,
                                 'infisso',
@@ -10525,24 +10605,26 @@
                             )}
 
                             <!-- 5. COLORE INTERNO -->
-                            <div>
-                                <label class="block text-base font-bold mb-1 text-gray-800">5. Colore Interno</label>
-                                <input type="text" 
-                                       placeholder="✏️ Es: Bianco, RAL 9010..."
-                                       value="${project.configInfissi?.coloreInt || ''}"
-                                       onchange="updateConfigInfissi('${project.id}', 'coloreInt', this.value)"
-                                       class="w-full px-3 py-2.5 border-2 rounded-lg text-base font-medium ${!project.configInfissi?.coloreInt ? 'border-orange-400 bg-orange-50' : 'border-gray-300 bg-white'} focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                            </div>
+                            ${renderSelectColore(
+                                'coloreInt',
+                                project.configInfissi?.coloreInt || '',
+                                project.configInfissi?.finituraInt || 'pvc',
+                                project.id,
+                                null,
+                                'infisso',
+                                '5. Colore Interno'
+                            )}
 
                             <!-- 6. COLORE ESTERNO -->
-                            <div>
-                                <label class="block text-base font-bold mb-1 text-gray-800">6. Colore Esterno</label>
-                                <input type="text" 
-                                       placeholder="✏️ Es: Marrone, RAL 8014..."
-                                       value="${project.configInfissi?.coloreEst || ''}"
-                                       onchange="updateConfigInfissi('${project.id}', 'coloreEst', this.value)"
-                                       class="w-full px-3 py-2.5 border-2 rounded-lg text-base font-medium ${!project.configInfissi?.coloreEst ? 'border-orange-400 bg-orange-50' : 'border-gray-300 bg-white'} focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                            </div>
+                            ${renderSelectColore(
+                                'coloreEst',
+                                project.configInfissi?.coloreEst || '',
+                                project.configInfissi?.finituraEst || 'pvc',
+                                project.id,
+                                null,
+                                'infisso',
+                                '6. Colore Esterno'
+                            )}
 
                             <!-- 7. TELAIO -->
                             ${renderSelectWithCustom(
@@ -12710,7 +12792,7 @@
                                     ${renderSelectWithCustom(
                                         'tipoAnta',
                                         inf.tipoAnta || '',
-                                        ['step-line', 'nova-line', 'slim-line', 'classic-line', 'step-line-door'],
+                                        ['Classic-line', 'Slim-line', 'Slim-line Cristal', 'Slim-line Twin', 'Slim-line Cristal Twin', 'Step-line', 'Step-line Door', 'Nova-line', 'Nova-line Plus', 'Nova-line Twin', 'Nova-line Cristal Twin'],
                                         project.id,
                                         pos.id,
                                         'infisso',
@@ -12740,28 +12822,32 @@
                                     )}
 
                                     <!-- COLORE INTERNO -->
-                                    <div>
-                                        <label class="text-xs font-medium">Colore Int</label>
-                                        <input type="text" value="${inf.coloreInt || ''}"
-                                               placeholder="42"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'coloreInt', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                    </div>
+                                    ${renderSelectColore(
+                                        'coloreInt',
+                                        inf.coloreInt || '',
+                                        inf.finituraInt || 'pvc',
+                                        project.id,
+                                        pos.id,
+                                        'infisso',
+                                        'Colore Interno'
+                                    )}
 
                                     <!-- COLORE ESTERNO -->
-                                    <div>
-                                        <label class="text-xs font-medium">Colore Est</label>
-                                        <input type="text" value="${inf.coloreEst || ''}"
-                                               placeholder="L55"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'coloreEst', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                    </div>
+                                    ${renderSelectColore(
+                                        'coloreEst',
+                                        inf.coloreEst || '',
+                                        inf.finituraEst || 'pvc',
+                                        project.id,
+                                        pos.id,
+                                        'infisso',
+                                        'Colore Esterno'
+                                    )}
 
                                     <!-- TELAIO -->
                                     ${renderSelectWithCustom(
                                         'telaio',
                                         inf.telaio || '',
-                                        ['961', '962', '966', '965'],
+                                        ['961', '965', '967', 'Z62', 'Z91', '962', '924', '951'],
                                         project.id,
                                         pos.id,
                                         'infisso',
@@ -12794,7 +12880,7 @@
                                     ${renderSelectWithCustom(
                                         'maniglia',
                                         inf.maniglia || '',
-                                        ['interna', 'esterna', 'bilaterale'],
+                                        ['standard', 'con-chiave', 'alzante-scorrevole', 'cremonese'],
                                         project.id,
                                         pos.id,
                                         'infisso',
