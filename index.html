@@ -12781,7 +12781,7 @@
                                     ${renderSelectWithCustom(
                                         'azienda',
                                         inf.azienda || '',
-                                        ['finstral', 'essepi', 'schuco', 'oknoplast', 'internorm'],
+                                        ['finstral', 'Essepi'],
                                         project.id,
                                         pos.id,
                                         'infisso',
@@ -13253,7 +13253,7 @@
                                     ${renderSelectWithCustom(
                                         'azienda',
                                         per.azienda || '',
-                                        ['p-persiane'],
+                                        ['P. Persiane'],
                                         project.id,
                                         pos.id,
                                         'persiana',
@@ -13588,15 +13588,17 @@
                                     ⚙️ Configurazione
                                 </h5>
                                 <div class="grid md:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="text-xs font-medium">Azienda</label>
-                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'azienda', this.value)"
-                                                class="w-full compact-input border rounded mt-1">
-                                            <option value="azienda-tapparelle-1" ${(tap.azienda || 'azienda-tapparelle-1') === 'azienda-tapparelle-1' ? 'selected' : ''}>Azienda Tapparelle 1</option>
-                                            <option value="azienda-tapparelle-2" ${tap.azienda === 'azienda-tapparelle-2' ? 'selected' : ''}>Azienda Tapparelle 2</option>
-                                            <option value="altro" ${tap.azienda === 'altro' ? 'selected' : ''}>Altro</option>
-                                        </select>
-                                    </div>
+                                    <!-- AZIENDA -->
+                                    ${renderSelectWithCustom(
+                                        'azienda',
+                                        tap.azienda || '',
+                                        ['Plasticino', 'New Solar', 'Estella'],
+                                        project.id,
+                                        pos.id,
+                                        'tapparella',
+                                        'Azienda'
+                                    )}
+
                                     <div>
                                         <label class="text-xs font-medium">Modello</label>
                                         <input type="text" value="${tap.modello || ''}"
@@ -14061,14 +14063,17 @@
                                             `).join('')}
                                         </select>
                                     </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Azienda</label>
-                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'zanzariera', 'azienda', this.value)"
-                                                class="w-full compact-input border rounded mt-1">
-                                            <option value="palagina" ${(zan.azienda || 'palagina') === 'palagina' ? 'selected' : ''}>Palagina</option>
-                                            <option value="altro" ${zan.azienda === 'altro' ? 'selected' : ''}>Altro</option>
-                                        </select>
-                                    </div>
+                                    <!-- AZIENDA -->
+                                    ${renderSelectWithCustom(
+                                        'azienda',
+                                        zan.azienda || '',
+                                        ['Palagina', 'Finstral'],
+                                        project.id,
+                                        pos.id,
+                                        'zanzariera',
+                                        'Azienda'
+                                    )}
+
                                     <div>
                                         <label class="text-xs font-medium">Tipo</label>
                                         <select onchange="updateProduct('${project.id}', '${pos.id}', 'zanzariera', 'tipo', this.value)"
@@ -14385,15 +14390,17 @@
                                             <option value="Cassonetto ispezionabile">
                                         </datalist>
                                     </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Azienda</label>
-                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'azienda', this.value)"
-                                                class="w-full compact-input border rounded mt-1">
-                                            <option value="azienda-cassonetti-1" ${(cas.azienda || 'azienda-cassonetti-1') === 'azienda-cassonetti-1' ? 'selected' : ''}>Azienda Cassonetti 1</option>
-                                            <option value="azienda-cassonetti-2" ${cas.azienda === 'azienda-cassonetti-2' ? 'selected' : ''}>Azienda Cassonetti 2</option>
-                                            <option value="altro" ${cas.azienda === 'altro' ? 'selected' : ''}>Altro</option>
-                                        </select>
-                                    </div>
+                                    <!-- AZIENDA -->
+                                    ${renderSelectWithCustom(
+                                        'azienda',
+                                        cas.azienda || '',
+                                        ['Finstral', 'Magò', 'Alpac'],
+                                        project.id,
+                                        pos.id,
+                                        'cassonetto',
+                                        'Azienda'
+                                    )}
+
                                     <div>
                                         <label class="text-xs font-medium">Colore</label>
                                         <input type="text" value="${cas.colore || ''}"
