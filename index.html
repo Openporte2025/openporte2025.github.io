@@ -10548,11 +10548,22 @@
                             ${renderSelectWithCustom(
                                 'telaio',
                                 project.configInfissi?.telaio || '',
-                                ['961', '962', '966', '965'],
+                                ['961', '965', '967', 'Z62', 'Z91', '962', '924', '951'],
                                 project.id,
                                 null,
                                 'infisso',
                                 '7. Telaio'
+                            )}
+
+                            <!-- 7B. MATERIALE TELAIO -->
+                            ${renderSelectWithCustom(
+                                'materialeTelaio',
+                                project.configInfissi?.materialeTelaio || '',
+                                ['PVC/PVC', 'PVC/Alluminio'],
+                                project.id,
+                                null,
+                                'infisso',
+                                '7B. Materiale Telaio'
                             )}
 
                             <!-- 8. ALLARME -->
