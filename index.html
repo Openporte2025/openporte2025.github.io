@@ -11801,7 +11801,7 @@
                                 <input type="text" 
                                        id="ambiente-input-${pos.id}"
                                        value="${pos.ambiente || ''}"
-                                       onchange="updatePosition('${project.id}', '${pos.id}', 'ambiente', this.value)"
+                                       oninput="updatePosition('${project.id}', '${pos.id}', 'ambiente', this.value)"
                                        placeholder="Scrivi ambiente..."
                                        class="flex-1 compact-input border rounded ${!pos.ambiente ? 'border-red-500 bg-red-50' : ''}"
                                        style="display: none;">
