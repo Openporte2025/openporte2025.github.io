@@ -14414,24 +14414,7 @@
                                         </select>
                                     </div>
 
-                                    <!-- FASE 11a: NUOVO CAMPO TIPO CASSONETTO -->
-                                    <div>
-                                        <label class="text-xs font-medium">📏 Tipo Cassonetto</label>
-                                        <input type="text" value="${cas.tipoCassonetto || ''}"
-                                               placeholder="LARGH_CASS"
-                                               list="tipoCass-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'tipoCassonetto', this.value)"
-                                               class="w-full compact-input border-2 border-yellow-400 rounded mt-1 font-semibold bg-yellow-50">
-                                        <datalist id="tipoCass-list-${pos.id}">
-                                            <option value="LARGH_CASS">
-                                            <option value="LS">
-                                            <option value="LVT">
-                                            <option value="TMV">
-                                            <option value="LP">
-                                            <option value="MIS_FIN_INF_L">
-                                            <option value="LS+SRDX+SRSX">
-                                        </datalist>
-                                    </div>
+                                    <!-- FASE 11a: CAMPO TIPO CASSONETTO ELIMINATO (ridondante con Cassonetto/Monoblocco) -->
 
                                     <div>
                                         <label class="text-xs font-medium">Cassonetto/Monoblocco</label>
@@ -16932,7 +16915,6 @@
                             posData.cassonetto = {
                                 quantita: pos.cassonetto.quantita || 1,
                                 tipo: pos.cassonetto.tipo || '',
-                                tipo_cassonetto: pos.cassonetto.tipoCassonetto || '',
                                 azienda: pos.cassonetto.azienda || '',
                                 colore: pos.cassonetto.colore || '',
                                 sovrappi_sostit: pos.cassonetto.sovrappiSostit || '',
