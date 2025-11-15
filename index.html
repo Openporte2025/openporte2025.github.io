@@ -11108,9 +11108,9 @@
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium mb-1">2. Tipo Cassonetto</label>
+                                <label class="block text-sm font-medium mb-1">2. Cassonetto/Monoblocco</label>
                                 ${(() => {
-                                    const options = ['Esterno', 'Incasso', 'Sopra-finestra', 'Semi-incasso'];
+                                    const options = ['Cassonetto', 'Isolamento', 'Monoblocco'];
                                     const current = project.configCassonetti?.tipo || '';
                                     const isCustom = current && !options.includes(current);
                                     const selectId = `cass-tipo-${project.id}`;
@@ -11120,11 +11120,11 @@
                                         <select id="${selectId}" 
                                                 onchange="handleConfigSelectWithCustom('${project.id}', 'cassonetti', 'tipo', '${selectId}', '${inputId}', this.value)"
                                                 class="w-full px-3 py-2 border rounded-lg">
-                                            <option value="">Seleziona tipo...</option>
+                                            <option value="">Seleziona...</option>
                                             ${options.map(opt => `
                                                 <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
                                             `).join('')}
-                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altro e scrivo...</option>
+                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altro...</option>
                                         </select>
                                         <input type="text" 
                                                id="${inputId}"
@@ -11138,9 +11138,9 @@
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium mb-1">3. Materiale</label>
+                                <label class="block text-sm font-medium mb-1">3. Ispezione</label>
                                 ${(() => {
-                                    const options = ['PVC', 'Alluminio', 'Alluminio Coibentato', 'Legno'];
+                                    const options = ['Frontale', 'Esterna'];
                                     const current = project.configCassonetti?.materiale || '';
                                     const isCustom = current && !options.includes(current);
                                     const selectId = `cass-materiale-${project.id}`;
@@ -11150,17 +11150,17 @@
                                         <select id="${selectId}" 
                                                 onchange="handleConfigSelectWithCustom('${project.id}', 'cassonetti', 'materiale', '${selectId}', '${inputId}', this.value)"
                                                 class="w-full px-3 py-2 border rounded-lg">
-                                            <option value="">Seleziona materiale...</option>
+                                            <option value="">Seleziona...</option>
                                             ${options.map(opt => `
                                                 <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
                                             `).join('')}
-                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altro e scrivo...</option>
+                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altro...</option>
                                         </select>
                                         <input type="text" 
                                                id="${inputId}"
                                                value="${isCustom ? current : ''}"
                                                onchange="updateConfigCassonetti('${project.id}', 'materiale', this.value)"
-                                               placeholder="Inserisci materiale personalizzato..."
+                                               placeholder="Inserisci tipo ispezione..."
                                                style="display: ${isCustom ? 'block' : 'none'};"
                                                class="w-full px-3 py-2 border rounded-lg mt-2">
                                     `;
@@ -11176,33 +11176,13 @@
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium mb-1">5. Coibentazione</label>
-                                ${(() => {
-                                    const options = ['Standard', 'Rinforzata', 'Acustica'];
-                                    const current = project.configCassonetti?.coibentazione || '';
-                                    const isCustom = current && !options.includes(current);
-                                    const selectId = `cass-coib-${project.id}`;
-                                    const inputId = `cass-coib-input-${project.id}`;
-                                    
-                                    return `
-                                        <select id="${selectId}" 
-                                                onchange="handleConfigSelectWithCustom('${project.id}', 'cassonetti', 'coibentazione', '${selectId}', '${inputId}', this.value)"
-                                                class="w-full px-3 py-2 border rounded-lg">
-                                            <option value="">Seleziona...</option>
-                                            ${options.map(opt => `
-                                                <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
-                                            `).join('')}
-                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altro e scrivo...</option>
-                                        </select>
-                                        <input type="text" 
-                                               id="${inputId}"
-                                               value="${isCustom ? current : ''}"
-                                               onchange="updateConfigCassonetti('${project.id}', 'coibentazione', this.value)"
-                                               placeholder="Inserisci coibentazione personalizzata..."
-                                               style="display: ${isCustom ? 'block' : 'none'};"
-                                               class="w-full px-3 py-2 border rounded-lg mt-2">
-                                    `;
-                                })()}
+                                <label class="block text-sm font-medium mb-1">5. Aggiungere isolamento Posaclima</label>
+                                <select onchange="updateConfigCassonetti('${project.id}', 'coibentazione', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona...</option>
+                                    <option value="SI" ${project.configCassonetti?.coibentazione === 'SI' ? 'selected' : ''}>SI</option>
+                                    <option value="NO" ${project.configCassonetti?.coibentazione === 'NO' ? 'selected' : ''}>NO</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -14438,7 +14418,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="text-xs font-medium">Tipo</label>
+                                        <label class="text-xs font-medium">Cassonetto/Monoblocco</label>
                                         <input type="text" value="${cas.tipo || ''}"
                                                placeholder="Cassonetto"
                                                list="tipo-cas-list-${pos.id}"
@@ -14446,8 +14426,8 @@
                                                class="w-full compact-input border rounded mt-1">
                                         <datalist id="tipo-cas-list-${pos.id}">
                                             <option value="Cassonetto">
-                                            <option value="Cassonetto termico">
-                                            <option value="Cassonetto ispezionabile">
+                                            <option value="Isolamento">
+                                            <option value="Monoblocco">
                                         </datalist>
                                     </div>
                                     <!-- AZIENDA -->
@@ -14460,6 +14440,29 @@
                                         'cassonetto',
                                         'Azienda'
                                     )}
+
+                                    <div>
+                                        <label class="text-xs font-medium">Ispezione</label>
+                                        <input type="text" value="${cas.materiale || ''}"
+                                               placeholder="Frontale"
+                                               list="ispezione-cas-list-${pos.id}"
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'materiale', this.value)"
+                                               class="w-full compact-input border rounded mt-1">
+                                        <datalist id="ispezione-cas-list-${pos.id}">
+                                            <option value="Frontale">
+                                            <option value="Esterna">
+                                        </datalist>
+                                    </div>
+
+                                    <div>
+                                        <label class="text-xs font-medium">Isolamento Posaclima</label>
+                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'coibentazione', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">--</option>
+                                            <option value="SI" ${cas.coibentazione === 'SI' ? 'selected' : ''}>SI</option>
+                                            <option value="NO" ${cas.coibentazione === 'NO' ? 'selected' : ''}>NO</option>
+                                        </select>
+                                    </div>
 
                                     <div>
                                         <label class="text-xs font-medium">Colore</label>
