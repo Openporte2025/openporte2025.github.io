@@ -4706,7 +4706,10 @@
                     configCassonetti: {
                         tipo: project.configCassonetti?.tipo || '',
                         azienda: project.configCassonetti?.azienda || '',
-                        colore: project.configCassonetti?.colore || ''
+                        materiale: project.configCassonetti?.materiale || '',
+                        finitura: project.configCassonetti?.finitura || '',
+                        coibentazione: project.configCassonetti?.coibentazione || '',
+                        aSoffitto: project.configCassonetti?.aSoffitto || ''
                     },
                     
                     // BRM CASSONETTI
@@ -7397,7 +7400,10 @@
                 configCassonetti: {
                     tipo: '',
                     azienda: '',
-                    colore: ''
+                    materiale: '',
+                    finitura: '',
+                    coibentazione: '',
+                    aSoffitto: ''
                 },
                 configTapparelle: {},
                 configZanzariere: {
@@ -11184,6 +11190,16 @@
                                     <option value="NO" ${project.configCassonetti?.coibentazione === 'NO' ? 'selected' : ''}>NO</option>
                                 </select>
                             </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">6. A Soffitto</label>
+                                <select onchange="updateConfigCassonetti('${project.id}', 'aSoffitto', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona...</option>
+                                    <option value="SI" ${project.configCassonetti?.aSoffitto === 'SI' ? 'selected' : ''}>SI</option>
+                                    <option value="NO" ${project.configCassonetti?.aSoffitto === 'NO' ? 'selected' : ''}>NO</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     
@@ -14493,15 +14509,12 @@
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium">A Soffitto</label>
-                                        <input type="text" value="${cas.aSoffitto || ''}"
-                                               placeholder="--"
-                                               list="aSoffitto-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'aSoffitto', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="aSoffitto-list-${pos.id}">
-                                            <option value="Sì">
-                                            <option value="No">
-                                        </datalist>
+                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'aSoffitto', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">--</option>
+                                            <option value="SI" ${cas.aSoffitto === 'SI' ? 'selected' : ''}>SI</option>
+                                            <option value="NO" ${cas.aSoffitto === 'NO' ? 'selected' : ''}>NO</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
