@@ -10315,6 +10315,8 @@
             const config = project[configKey] || { 
                 misuraBaseL: '', operazioneL: '-', valoreL: '0',
                 misuraBaseH: '', operazioneH: '-', valoreH: '0',
+                misuraBaseB: '', operazioneB: '-', valoreB: '0',
+                misuraBaseC: '', operazioneC: '-', valoreC: '0',
                 note: '' 
             };
             
@@ -10324,10 +10326,14 @@
             let misureLarghezzaPF = ['LPF', 'LVT', 'LVAR', 'TMV', 'LS'];
             let misureAltezzaPF = ['HPF', 'HVT', 'HVAR', 'HMT', 'HSoffitto', 'HParapettoSoffitto', 'HPavimentoParapetto'];
             
+            // Misure B e C (solo per cassonetti)
+            let misureB = ['Prof. Muro Int → MI', 'B'];
+            let misureC = ['Prof. Muro Int → MI', 'C'];
+            
             if (productType === 'cassonetti') {
-                // ✅ MISURE SPECIFICHE PER CASSONETTI
-                misureLarghezza = ['LARGH_CASS', 'SRDX', 'SRSX', 'LS', 'LVT', 'LF', 'TMV'];
-                misureAltezza = ['ALT_CASS', 'HF', 'HVT', 'HMT', 'PROFONDITA'];
+                // ✅ MISURE SPECIFICHE PER CASSONETTI (secondo schema)
+                misureLarghezza = ['(LS+SRSX+SRDX)', 'LVT', 'LF', 'TMV', 'BRM_L_INFISSO'];
+                misureAltezza = ['HCASS', 'H Soffitto', 'H Parapetto/Soffitto', 'BRM_H_INFISSO'];
             }
             
             // Decide se mostrare campi aggiuntivi per portafinestra
@@ -10519,6 +10525,82 @@
                                     </div>
                                     <div class="brm-result ${productType === 'zanzariere' ? 'text-xs' : ''}">
                                         ${config.misuraBaseH_PF ? `📏 BRM H PF = ${config.misuraBaseH_PF} ${config.operazioneH_PF || '-'} ${config.valoreH_PF || '0'}mm` : 'Seleziona misura'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- BRM B e C (solo per cassonetti) -->
+                    ${productType === 'cassonetti' ? `
+                        <div class="bg-purple-50 border-2 border-purple-300 rounded-lg p-3 mb-4">
+                            <h4 class="font-bold text-purple-800 mb-3">📦 BRM PROFONDITÀ CASSONETTO</h4>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <!-- BRM B -->
+                                <div class="bg-white p-3 rounded-lg border-2 border-purple-400">
+                                    <h5 class="font-semibold text-purple-800 mb-2">📐 BRM B (Profondità 1)</h5>
+                                    <div class="grid grid-cols-3 gap-2 mb-2">
+                                        <div>
+                                            <label class="text-xs font-medium text-purple-800 block mb-1">Misura</label>
+                                            <select onchange="updateBRMConfig('${project.id}', '${configKey}', 'misuraBaseB', this.value)"
+                                                    class="w-full px-2 py-1 border border-purple-500 rounded text-sm bg-white">
+                                                <option value="">-</option>
+                                                ${misureB.map(m => `
+                                                    <option value="${m}" ${config.misuraBaseB === m ? 'selected' : ''}>${m}</option>
+                                                `).join('')}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-medium text-purple-800 block mb-1">Op.</label>
+                                            <select onchange="updateBRMConfig('${project.id}', '${configKey}', 'operazioneB', this.value)"
+                                                    class="w-full px-2 py-1 border border-purple-500 rounded text-sm bg-white">
+                                                <option value="+" ${config.operazioneB === '+' ? 'selected' : ''}>+</option>
+                                                <option value="-" ${(config.operazioneB === '-' || !config.operazioneB) ? 'selected' : ''}>-</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-medium text-purple-800 block mb-1">mm</label>
+                                            <input type="number" value="${config.valoreB || '0'}"
+                                                   onchange="updateBRMConfig('${project.id}', '${configKey}', 'valoreB', this.value)"
+                                                   class="w-full px-2 py-1 border border-purple-500 rounded text-sm">
+                                        </div>
+                                    </div>
+                                    <div class="brm-result">
+                                        ${config.misuraBaseB ? `📏 BRM B = ${config.misuraBaseB} ${config.operazioneB || '-'} ${config.valoreB || '0'}mm` : 'Seleziona misura'}
+                                    </div>
+                                </div>
+                                
+                                <!-- BRM C -->
+                                <div class="bg-white p-3 rounded-lg border-2 border-purple-400">
+                                    <h5 class="font-semibold text-purple-800 mb-2">📐 BRM C (Profondità 2)</h5>
+                                    <div class="grid grid-cols-3 gap-2 mb-2">
+                                        <div>
+                                            <label class="text-xs font-medium text-purple-800 block mb-1">Misura</label>
+                                            <select onchange="updateBRMConfig('${project.id}', '${configKey}', 'misuraBaseC', this.value)"
+                                                    class="w-full px-2 py-1 border border-purple-500 rounded text-sm bg-white">
+                                                <option value="">-</option>
+                                                ${misureC.map(m => `
+                                                    <option value="${m}" ${config.misuraBaseC === m ? 'selected' : ''}>${m}</option>
+                                                `).join('')}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-medium text-purple-800 block mb-1">Op.</label>
+                                            <select onchange="updateBRMConfig('${project.id}', '${configKey}', 'operazioneC', this.value)"
+                                                    class="w-full px-2 py-1 border border-purple-500 rounded text-sm bg-white">
+                                                <option value="+" ${config.operazioneC === '+' ? 'selected' : ''}>+</option>
+                                                <option value="-" ${(config.operazioneC === '-' || !config.operazioneC) ? 'selected' : ''}>-</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-medium text-purple-800 block mb-1">mm</label>
+                                            <input type="number" value="${config.valoreC || '0'}"
+                                                   onchange="updateBRMConfig('${project.id}', '${configKey}', 'valoreC', this.value)"
+                                                   class="w-full px-2 py-1 border border-purple-500 rounded text-sm">
+                                        </div>
+                                    </div>
+                                    <div class="brm-result">
+                                        ${config.misuraBaseC ? `📏 BRM C = ${config.misuraBaseC} ${config.operazioneC || '-'} ${config.valoreC || '0'}mm` : 'Seleziona misura'}
                                     </div>
                                 </div>
                             </div>
@@ -14770,7 +14852,7 @@
                                                     <select id="brm-misuraBaseL-cassonetto-${pos.id}" onchange="updateBRMPersonalizzato('${project.id}', '${pos.id}', 'cassonetto', 'misuraBaseL', this.value)"
                                                             class="w-full px-2 py-1 border border-purple-500 rounded text-sm bg-white">
                                                         <option value="">-</option>
-                                                        ${['LARGH_CASS', 'SRDX', 'SRSX', 'LS', 'LVT', 'LF', 'TMV'].map(m => `
+                                                        ${['(LS+SRSX+SRDX)', 'LVT', 'LF', 'TMV', 'BRM_L_INFISSO'].map(m => `
                                                             <option value="${m}" ${cas.brmPersonalizzato?.misuraBaseL === m ? 'selected' : ''}>${m}</option>
                                                         `).join('')}
                                                     </select>
@@ -14804,7 +14886,7 @@
                                                     <select id="brm-misuraBaseH-cassonetto-${pos.id}" onchange="updateBRMPersonalizzato('${project.id}', '${pos.id}', 'cassonetto', 'misuraBaseH', this.value)"
                                                             class="w-full px-2 py-1 border border-purple-500 rounded text-sm bg-white">
                                                         <option value="">-</option>
-                                                        ${['ALT_CASS', 'HF', 'HVT', 'HMT', 'PROFONDITA'].map(m => `
+                                                        ${['HCASS', 'H Soffitto', 'H Parapetto/Soffitto', 'BRM_H_INFISSO'].map(m => `
                                                             <option value="${m}" ${cas.brmPersonalizzato?.misuraBaseH === m ? 'selected' : ''}>${m}</option>
                                                         `).join('')}
                                                     </select>
@@ -14838,7 +14920,7 @@
                                                     <select id="brm-misuraBaseC-cassonetto-${pos.id}" onchange="updateBRMPersonalizzato('${project.id}', '${pos.id}', 'cassonetto', 'misuraBaseC', this.value)"
                                                             class="w-full px-2 py-1 border border-purple-500 rounded text-sm bg-white">
                                                         <option value="">-</option>
-                                                        ${['C', 'B', 'HCASS', 'BSuperiore'].map(m => `
+                                                        ${['Prof. Muro Int → MI', 'C'].map(m => `
                                                             <option value="${m}" ${cas.brmPersonalizzato?.misuraBaseC === m ? 'selected' : ''}>${m}</option>
                                                         `).join('')}
                                                     </select>
@@ -14872,7 +14954,7 @@
                                                     <select id="brm-misuraBaseB-cassonetto-${pos.id}" onchange="updateBRMPersonalizzato('${project.id}', '${pos.id}', 'cassonetto', 'misuraBaseB', this.value)"
                                                             class="w-full px-2 py-1 border border-purple-500 rounded text-sm bg-white">
                                                         <option value="">-</option>
-                                                        ${['B', 'C', 'HCASS', 'BSuperiore'].map(m => `
+                                                        ${['Prof. Muro Int → MI', 'B'].map(m => `
                                                             <option value="${m}" ${cas.brmPersonalizzato?.misuraBaseB === m ? 'selected' : ''}>${m}</option>
                                                         `).join('')}
                                                     </select>
