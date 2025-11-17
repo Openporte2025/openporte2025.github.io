@@ -778,7 +778,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v3.0 - FASE 13: Rilievo Preesistente Globale 📋✨🎯</title>
+    <title>Open Porte v4.18 - Cliente Obbligatorio + ID ANNO_MESE_XXXX 🎯✨</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -2694,21 +2694,83 @@
             }
         }
 
+        // ============================================================================
+        // 🆕 GENERA ID PROGETTO - Formato: ANNO_MESE_XXXX (es: 2025_11_0001)
+        // ============================================================================
+        
+        /**
+         * Valida Step 1 - Nome Cliente obbligatorio
+         */
+        function validateStep1(project) {
+            if (!project.client || project.client.trim() === '') {
+                alert('⚠️ ATTENZIONE\n\nIl campo "Cliente" è obbligatorio.\n\nCompila il nome del cliente prima di procedere.');
+                return false;
+            }
+            return true;
+        }
+        
+        /**
+         * Cambia step con validazione
+         */
+        function changeSetupStep(newStep) {
+            const project = state.projects.find(p => p.id === state.currentProject);
+            if (!project) return;
+            
+            // Se sto passando da Step 1 a qualsiasi altro step, valida
+            if (state.setupStep === 1 && newStep > 1) {
+                if (!validateStep1(project)) {
+                    return; // Blocca cambio step
+                }
+            }
+            
+            // Cambio step OK
+            state.setupStep = newStep;
+            render();
+        }
+        
+        function generateProjectId() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0'); // 01-12
+            
+            // Chiave localStorage per contatore mensile
+            const counterKey = `project_counter_${year}_${month}`;
+            
+            // Leggi contatore attuale (default 0)
+            let counter = parseInt(localStorage.getItem(counterKey) || '0');
+            
+            // Incrementa contatore
+            counter++;
+            
+            // Salva nuovo contatore
+            localStorage.setItem(counterKey, counter.toString());
+            
+            // Genera ID: 2025_11_0001
+            const projectId = `${year}_${month}_${String(counter).padStart(4, '0')}`;
+            
+            console.log(`✅ Generated Project ID: ${projectId}`);
+            return projectId;
+        }
+        
+        // ============================================================================
+        // GENERA ID GENERICO (per elementi interni come prodotti)
+        // ============================================================================
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
         }
         
-        // 🆕 Genera ID sequenziale per posizione: projectId-01, projectId-02, ecc
+        // 🆕 Genera ID sequenziale per posizione: 2025_11_0001_01, 2025_11_0001_02, ecc
         function generateSequentialPositionId(projectId, positions) {
             const existingNumbers = positions
                 .map(p => {
-                    const match = p.id.match(new RegExp(`^${projectId}-(\\d+)$`));
+                    // Match formato: 2025_11_0001_01, 2025_11_0001_02, ecc.
+                    const match = p.id.match(new RegExp(`^${projectId.replace(/_/g, '\\_')}_(\\d+)$`));
                     return match ? parseInt(match[1]) : 0;
                 })
                 .filter(n => n > 0);
             
             const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
-            return `${projectId}-${String(nextNumber).padStart(2, '0')}`;
+            return `${projectId}_${String(nextNumber).padStart(2, '0')}`;
         }
         
         /**
@@ -7432,7 +7494,7 @@
         // Project Management
         function createProject(name, client) {
             const project = {
-                id: generateId(),
+                id: generateProjectId(),  // ✅ USA nuovo formato: 2025_11_0001
                 name,
                 client,
                 clientData: {},
@@ -9597,7 +9659,7 @@
                             steps.push({num: 9, label: 'Posizioni'});
                             
                             return steps.map((step, idx) => `
-                                <div class="flex flex-col items-center cursor-pointer flex-shrink-0" onclick="state.setupStep=${step.num}; render()">
+                                <div class="flex flex-col items-center cursor-pointer flex-shrink-0" onclick="changeSetupStep(${step.num})">
                                     <div class="step-indicator ${state.setupStep === step.num ? 'active' : state.setupStep > step.num ? 'completed' : 'bg-gray-200'}">
                                         ${state.setupStep > step.num ? '✓' : (idx + 1)}
                                     </div>
@@ -9648,10 +9710,13 @@
                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium mb-1">Cliente</label>
+                            <label class="block text-sm font-medium mb-1">
+                                Cliente <span style="color: #ef4444; font-weight: 700;">*</span>
+                            </label>
                             <input type="text" value="${project.client}" 
                                    onchange="updateProject('${project.id}', 'client', this.value)"
-                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                                   required>
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">Piano</label>
@@ -9728,6 +9793,33 @@
                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
                         </div>
                     </div>
+                    
+                    ${(() => {
+                        // ✅ Suggerimento se mancano dati opzionali
+                        const missingFields = [];
+                        if (!project.clientData?.telefono) missingFields.push('Telefono');
+                        if (!project.clientData?.email) missingFields.push('Email');
+                        if (!project.clientData?.via && !project.clientData?.citta) missingFields.push('Indirizzo');
+                        
+                        if (missingFields.length > 0) {
+                            return `
+                                <div style="margin-top: 1rem; padding: 1rem; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
+                                    <div style="display: flex; align-items: start; gap: 0.75rem;">
+                                        <span style="font-size: 1.5rem;">💡</span>
+                                        <div>
+                                            <div style="font-weight: 600; color: #92400e; margin-bottom: 0.25rem;">
+                                                Suggerimento
+                                            </div>
+                                            <div style="color: #78350f; font-size: 0.875rem;">
+                                                Compila <strong>${missingFields.join(', ')}</strong> per avere un report più completo
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        return '';
+                    })()}
                 </div>
             `;
         }
