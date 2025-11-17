@@ -1,5 +1,23 @@
 <!DOCTYPE html>
 <!--
+    Open Porte v4.21 - FIX BLOCCO NUOVO PROGETTO ✅
+    
+    🚨 FIX v4.21 (17 NOV 2025):
+    
+    ❌→✅ BLOCCO CREAZIONE NUOVO PROGETTO:
+       - PROBLEMA: Overlay menu rimaneva visibile dopo creazione progetto
+       - CAUSA: Menu chiusi DOPO hideModal() e render()
+       - SOLUZIONE: Chiusura menu PRIMA di createProject/hideModal/render
+       - ORDINE CORRETTO:
+         1. state.projectMenuOpen = false
+         2. state.mainMenuOpen = false  
+         3. createProject()
+         4. hideModal()
+         5. render()
+       - RISULTATO: App completamente funzionante ✅
+    
+    ---
+    
     Open Porte v4.20 FINAL - ID SEQUENZIALE + NAVIGAZIONE + FIX CRITICI ✅
     
     🚨 FIX CRITICI v4.20 (17 NOV 2025):
@@ -15343,12 +15361,13 @@
             // Se nome progetto non è inserito, usa il nome del cliente
             const projectName = name || client;
             
+            // 🆕 v4.21: Chiudi menu PRIMA di tutto (fix blocco overlay)
+            state.projectMenuOpen = false;
+            state.mainMenuOpen = false;
+            
             createProject(projectName, client);
             hideModal();
             state.screen = 'project';
-            // 🆕 v4.20: Chiudi tutti i menu quando crei nuovo progetto
-            state.projectMenuOpen = false;
-            state.mainMenuOpen = false;
             render();
         };
 
