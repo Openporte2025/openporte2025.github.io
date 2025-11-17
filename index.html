@@ -1,5 +1,26 @@
 <!DOCTYPE html>
 <!--
+    Open Porte v4.19 - LISTA PROGETTI ALL'AVVIO + FIX ADDPOSITION ✅
+    
+    ✨ MODIFICHE v4.19 (17 NOV 2025):
+    
+    🎯 APERTURA APP → LISTA PROGETTI:
+       - All'avvio dell'app, se non c'è currentProject → mostra lista progetti
+       - Logica aggiunta in loadState() dopo caricamento dati
+       - Migliore UX: utente vede subito i suoi progetti
+    
+    🔧 FIX AGGIUNTA POSIZIONE:
+       - PROBLEMA: saveState() chiamato PRIMA di impostare state.currentPosition/screen
+       - SOLUZIONE: Riordinato operazioni in addPosition():
+         1. updateProjectTimestamp()
+         2. state.currentPosition = pos.id
+         3. state.screen = 'position'
+         4. saveState() ← Ora salva stato completo
+         5. render()
+       - Ora la posizione si apre correttamente dopo la creazione
+    
+    ---
+    
     Open Porte v4.17 - SCELTA PRODOTTI: Pagina Iniziale con Pulsante o Checkbox ✅
     
     ✨ MODIFICHE v4.17 SCELTA PRODOTTI (18 NOV 2025):
@@ -778,7 +799,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.18 - Cliente Obbligatorio + ID ANNO_MESE_XXXX 🎯✨</title>
+    <title>Open Porte v4.19 - Lista Progetti + Fix AddPosition 🎯✨</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -2270,6 +2291,13 @@
             } else {
                 console.log('📭 localStorage vuoto - Prima apertura app');
                 console.log('💡 Usa il menu per creare un nuovo progetto o scarica da GitHub');
+            }
+            
+            // 🆕 FIX v4.19: APRI SEMPRE LISTA PROGETTI ALL'AVVIO
+            // Se non c'è un progetto corrente, mostra lista
+            if (!state.currentProject) {
+                state.screen = 'list';
+                console.log('📋 Apertura app → Lista progetti');
             }
             
             // 🔧 FIX CRITICO: Assicura che state.github esista SEMPRE
@@ -5783,7 +5811,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.18</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.19</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -7708,9 +7736,14 @@
                 
                 // ✅ SOLUZIONE C: Track modifica
                 updateProjectTimestamp(projectId, 'addPosition', `Aggiunta posizione: ${pos.name}`);
-                saveState();
+                
+                // 🆕 v4.19: Imposta stato PRIMA di salvare
                 state.currentPosition = pos.id;
                 state.screen = 'position'; // 🆕 Apri subito la posizione
+                
+                // Salva dopo aver impostato tutto lo stato
+                saveState();
+                
                 showNotification('Posizione aggiunta', 'success');
                 render();
             }
@@ -8813,7 +8846,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.18
+                                    Open Porte v4.19
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
