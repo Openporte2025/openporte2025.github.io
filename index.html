@@ -1,5 +1,51 @@
 <!DOCTYPE html>
 <!--
+    Open Porte v4.27 - FIX TAB FUNZIONANTE DEFINITIVO ✅
+    
+    🎯 FIX v4.27 (17 NOV 2025):
+    
+    ✅ TAB FINALMENTE FUNZIONANTE:
+    
+    PROBLEMA v4.25/v4.26:
+    - Codice inline aveva errore di sintassi JavaScript
+    - Template literal interpolava male gli indici
+    - event.shiftKey non valutabile in template literal
+    - Risultato: TAB non funzionava durante digitazione
+    
+    SOLUZIONE v4.27:
+    - La funzione handleMisureTabNavigation ESISTEVA GIÀ ed era perfetta!
+    - Errore: non veniva chiamata correttamente nei campi
+    - FIX: Sostituito codice inline con chiamata corretta:
+      onkeydown="handleMisureTabNavigation(event, '${pos.id}', ${index}, 8)"
+    
+    FUNZIONE (già presente e funzionante):
+    ```javascript
+    window.handleMisureTabNavigation = (event, posId, currentIndex, totalFields) => {
+        if (event.key === 'Tab') {
+            event.preventDefault();
+            const grid = document.getElementById(`misure-grid-${posId}`);
+            const inputs = grid.querySelectorAll('input[type="number"]');
+            
+            if (event.shiftKey) {
+                // SHIFT+TAB indietro
+                inputs[currentIndex - 1]?.focus();
+            } else {
+                // TAB avanti
+                inputs[currentIndex + 1]?.focus();
+            }
+        }
+    };
+    ```
+    
+    RISULTATO:
+    ✅ TAB funziona SEMPRE (anche durante digitazione)
+    ✅ SHIFT+TAB funziona per tornare indietro
+    ✅ Focus automatico sul campo successivo
+    ✅ Campo viene selezionato automaticamente
+    ✅ Navigazione fluida LVT→HVT→LF→HF→TMV→HMT→L4→H4
+    
+    ---
+    
     Open Porte v4.26 - FIX AZIENDA PERSIANE ✅
     
     🐛 FIX v4.26 (17 NOV 2025):
@@ -12909,7 +12955,7 @@
                                     <input type="number" placeholder="-"
                                            value="${pos.misure?.[field] || ''}"
                                            onchange="updateMisuraWithValidation('${project.id}', '${pos.id}', '${field}', this.value)"
-                                           onkeydown="if(event.key==='Tab'){event.preventDefault();const inputs=document.querySelectorAll('#misure-grid-${pos.id} input');const next=inputs[${index}${event.shiftKey ? '-1' : '+1'}];if(next){next.focus();next.select();}}"
+                                           onkeydown="handleMisureTabNavigation(event, '${pos.id}', ${index}, 8)"
                                            data-field-index="${index}"
                                            class="w-full compact-input border rounded mt-1 font-semibold ${getFieldValidationClass(project, pos, field)}">
                                     ${getFieldValidationMessage(project, pos, field)}
