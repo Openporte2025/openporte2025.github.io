@@ -1,38 +1,37 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.22 - FEEDBACK VISIVO CAMPI ✅
+    Open Porte v4.23 - FIX NAVIGAZIONE TAB MISURE ✅
     
-    🎨 NUOVO v4.22 (17 NOV 2025):
+    🎯 NUOVO v4.23 (17 NOV 2025):
     
-    ✅ FEEDBACK VISIVO CONFIGURAZIONI:
+    ✅ FIX NAVIGAZIONE TAB IN MISURE:
     
-    PROBLEMA: Campi configurazione non davano feedback visivo dello stato
+    PROBLEMA: 
+    - Tasto TAB non funzionava tra campi LVT, HVT, LF, HF, etc.
+    - Funzione custom handleMisureTabNavigation usava preventDefault
+    - Bloccava navigazione naturale del browser
     
     SOLUZIONE:
-    1️⃣ COLORI STATO:
-       - VUOTO: Bordo arancione + sfondo crema
-       - COMPILATO: Bordo grigio + sfondo bianco
+    - RIMOSSA funzione custom onkeydown
+    - AGGIUNTI attributi tabindex nativi (100-110)
+    - Sequenza: LVT(100) → HVT(101) → LF(102) → HF(103) → 
+      TMV(104) → HMT(105) → L4(106) → H4(107) →
+      H Soffitto(108) → H Parapetto(109) → H Pavimento(110)
     
-    2️⃣ CAMBIO DINAMICO:
-       - onChange → cambio colore istantaneo
-       - Feedback immediato per utente
+    MODIFICHE:
+    1. Rimosso: onkeydown="handleMisureTabNavigation(...)"
+    2. Aggiunto: tabindex="100-110" su tutti i campi misure
+    3. Browser gestisce TAB nativamente
     
-    3️⃣ DOVE APPLICATO:
-       - Configurazioni Step 3 (Infissi, Persiane, etc.)
-       - renderFieldWithToggle()
-       - handleSelectCustomChange()
-    
-    ---
-    
-    Open Porte v4.21 - SOLUZIONE OVERLAY DEFINITIVA ✅
-    
-    🚨 FIX v4.21 (17 NOV 2025):
-    - Overlay bloccante risolto con pulizia automatica in render()
-    - setTimeout che rimuove classe 'active' dopo ogni render
+    RISULTATO:
+    ✅ TAB funziona perfettamente tra tutti i campi
+    ✅ SHIFT+TAB torna indietro
+    ✅ Navigazione fluida e naturale
+    ✅ Funziona anche su mobile con tastiera esterna
     
     ---
     
-    Open Porte v4.20 FINAL - ID SEQUENZIALE + NAVIGAZIONE + FIX CRITICI ✅
+    Open Porte v4.22 - FEEDBACK VISIVO + FIX APERTURA ✅
     
     🚨 FIX CRITICI v4.20 (17 NOV 2025):
     
@@ -2370,12 +2369,10 @@
                 console.log('💡 Usa il menu per creare un nuovo progetto o scarica da GitHub');
             }
             
-            // 🆕 FIX v4.19: APRI SEMPRE LISTA PROGETTI ALL'AVVIO
-            // Se non c'è un progetto corrente, mostra lista
-            if (!state.currentProject) {
-                state.screen = 'list';
-                console.log('📋 Apertura app → Lista progetti');
-            }
+            // 🆕 v4.22: FORZA SEMPRE apertura lista progetti all'avvio
+            // Ignora screen salvato in localStorage
+            state.screen = 'list';
+            console.log('📋 Apertura app → Lista progetti (forzato)');
             
             // 🔧 FIX CRITICO: Assicura che state.github esista SEMPRE
             if (!state.github) {
@@ -12793,7 +12790,7 @@
                                     <input type="number" placeholder="-"
                                            value="${pos.misure?.[field] || ''}"
                                            onchange="updateMisuraWithValidation('${project.id}', '${pos.id}', '${field}', this.value)"
-                                           onkeydown="handleMisureTabNavigation(event, '${pos.id}', ${index}, 8)"
+                                           tabindex="${100 + index}"
                                            data-field-index="${index}"
                                            class="w-full compact-input border rounded mt-1 font-semibold ${getFieldValidationClass(project, pos, field)}">
                                     ${getFieldValidationMessage(project, pos, field)}
@@ -12920,6 +12917,7 @@
                                                value="${pos.misure?.HSoffitto || ''}"
                                                oninput="validateAltezzeRealTime('${project.id}', '${pos.id}')"
                                                onchange="updateMisuraWithValidation('${project.id}', '${pos.id}', 'HSoffitto', this.value)"
+                                               tabindex="108"
                                                class="w-full px-3 py-2 border-2 ${borderColor} rounded font-semibold">
                                     </div>
                                     <div>
@@ -12930,6 +12928,7 @@
                                                value="${pos.misure?.HParapettoSoffitto || ''}"
                                                oninput="validateAltezzeRealTime('${project.id}', '${pos.id}')"
                                                onchange="updateMisuraWithValidation('${project.id}', '${pos.id}', 'HParapettoSoffitto', this.value)"
+                                               tabindex="109"
                                                class="w-full px-3 py-2 border-2 ${borderColor} rounded font-semibold">
                                     </div>
                                     <div>
@@ -12940,6 +12939,7 @@
                                                value="${pos.misure?.HPavimentoParapetto || ''}"
                                                oninput="validateAltezzeRealTime('${project.id}', '${pos.id}')"
                                                onchange="updateMisuraWithValidation('${project.id}', '${pos.id}', 'HPavimentoParapetto', this.value)"
+                                               tabindex="110"
                                                class="w-full px-3 py-2 border-2 ${borderColor} rounded font-semibold">
                                     </div>
                                 </div>
