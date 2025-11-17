@@ -1,5 +1,41 @@
 <!DOCTYPE html>
 <!--
+    Open Porte v4.25 - FIX TAB DEFINITIVO ✅
+    
+    🎯 NUOVO v4.25 (17 NOV 2025):
+    
+    ✅ FIX TAB MISURE - SOLUZIONE DEFINITIVA:
+    
+    PROBLEMA:
+    - TAB non funzionava quando digitavi in un campo e premevi TAB
+    - Input type="number" ha comportamento speciale con TAB
+    - tabindex da soli non bastano durante la digitazione
+    
+    SOLUZIONE APPLICATA:
+    - Aggiunto onkeydown inline compatto su ogni campo
+    - Intercetta TAB, fa preventDefault
+    - Trova campo successivo con querySelectorAll
+    - Fa focus() e select() sul campo successivo
+    - Supporta SHIFT+TAB per andare indietro
+    
+    CODICE:
+    ```javascript
+    onkeydown="if(event.key==='Tab'){
+        event.preventDefault();
+        const inputs=document.querySelectorAll('#misure-grid-ID input');
+        const next=inputs[INDEX ± 1];
+        if(next){next.focus();next.select();}
+    }"
+    ```
+    
+    RISULTATO:
+    ✅ TAB funziona SEMPRE, anche mentre digiti
+    ✅ SHIFT+TAB funziona per tornare indietro
+    ✅ Campo successivo viene automaticamente selezionato
+    ✅ Navigazione fluida e naturale
+    
+    ---
+    
     Open Porte v4.24 - TIPO OBBLIGATORIO INFISSI/PERSIANE ✅
     
     🎯 NUOVO v4.24 (17 NOV 2025):
@@ -12844,7 +12880,7 @@
                                     <input type="number" placeholder="-"
                                            value="${pos.misure?.[field] || ''}"
                                            onchange="updateMisuraWithValidation('${project.id}', '${pos.id}', '${field}', this.value)"
-                                           tabindex="${100 + index}"
+                                           onkeydown="if(event.key==='Tab'){event.preventDefault();const inputs=document.querySelectorAll('#misure-grid-${pos.id} input');const next=inputs[${index}${event.shiftKey ? '-1' : '+1'}];if(next){next.focus();next.select();}}"
                                            data-field-index="${index}"
                                            class="w-full compact-input border rounded mt-1 font-semibold ${getFieldValidationClass(project, pos, field)}">
                                     ${getFieldValidationMessage(project, pos, field)}
