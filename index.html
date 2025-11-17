@@ -1,5 +1,46 @@
 <!DOCTYPE html>
 <!--
+    Open Porte v4.24 - TIPO OBBLIGATORIO INFISSI/PERSIANE ✅
+    
+    🎯 NUOVO v4.24 (17 NOV 2025):
+    
+    ✅ CAMPO TIPO OBBLIGATORIO:
+    
+    RICHIESTA UTENTE:
+    - Campo "Tipo" (F1/F2/PF1/PF2/etc.) deve essere obbligatorio
+    - Per INFISSI: F1, PF1, F2, PF2, F3, PF3, HST, FISSO
+    - Per PERSIANE: F1, PF1, F2, PF2, F3, PF3, SCORREVOLE
+    
+    IMPLEMENTAZIONE:
+    
+    1️⃣ FEEDBACK VISIVO:
+       - Campo VUOTO: Bordo arancione spesso + sfondo crema
+       - Campo COMPILATO: Bordo grigio normale + sfondo bianco
+       - Asterisco rosso (*) su label per indicare obbligatorietà
+    
+    2️⃣ CAMBIO DINAMICO:
+       - onChange → cambio colore istantaneo
+       - Select vuoto → border-2 border-orange-400 bg-orange-50
+       - Select compilato → border bg-white
+    
+    3️⃣ DOVE APPLICATO:
+       - Infissi in posizione: Campo "Tipo"
+       - Persiane in posizione: Campo "Tipo"
+       - Funzione handleProductSelectWithCustom aggiornata
+    
+    MODIFICHE TECNICHE:
+    - Riga ~13053: Infisso tipo + feedback visivo
+    - Riga ~13580: Persiana tipo + feedback visivo
+    - Riga 6537: handleProductSelectWithCustom con cambio colore
+    
+    RISULTATO:
+    ✅ Utente vede immediatamente se tipo manca (arancione)
+    ✅ Label con asterisco rosso (*) indica obbligatorietà
+    ✅ Compilazione più guidata e intuitiva
+    ✅ Coerente con sistema feedback visivo v4.22
+    
+    ---
+    
     Open Porte v4.23 - FIX NAVIGAZIONE TAB MISURE ✅
     
     🎯 NUOVO v4.23 (17 NOV 2025):
@@ -6540,6 +6581,19 @@
             
             if (!select || !input) return;
             
+            // 🆕 v4.24: Feedback visivo immediato per campo tipo obbligatorio
+            if (field === 'tipo' && (productType === 'infisso' || productType === 'persiana')) {
+                if (value === '' || value === '__ALTRO__') {
+                    // Vuoto o custom → arancione
+                    select.classList.remove('border', 'bg-white');
+                    select.classList.add('border-2', 'border-orange-400', 'bg-orange-50');
+                } else {
+                    // Compilato → bianco
+                    select.classList.remove('border-2', 'border-orange-400', 'bg-orange-50');
+                    select.classList.add('border', 'bg-white');
+                }
+            }
+            
             if (value === '__ALTRO__') {
                 // Mostra input personalizzato
                 input.style.display = 'block';
@@ -13050,19 +13104,22 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="text-xs font-medium">Tipo</label>
+                                        <label class="text-xs font-medium">Tipo <span class="text-red-600">*</span></label>
                                         ${(() => {
                                             const options = ['F1', 'PF1', 'F2', 'PF2', 'F3', 'PF3', 'HST', 'FISSO'];
                                             const current = inf.tipo || '';
                                             const isCustom = current && !options.includes(current);
                                             const selectId = `inf-tipo-${pos.id}`;
                                             const inputId = `inf-tipo-input-${pos.id}`;
+                                            // 🆕 v4.24: Campo obbligatorio - bordo arancione se vuoto
+                                            const isEmpty = !current || current === '';
+                                            const borderClass = isEmpty ? 'border-2 border-orange-400 bg-orange-50' : 'border';
                                             
                                             return `
                                                 <select id="${selectId}" 
                                                         onchange="handleProductSelectWithCustom('${project.id}', '${pos.id}', 'infisso', 'tipo', '${selectId}', '${inputId}', this.value)"
-                                                        class="w-full compact-input border rounded mt-1">
-                                                    <option value="">--</option>
+                                                        class="w-full compact-input ${borderClass} rounded mt-1">
+                                                    <option value="">-- Seleziona --</option>
                                                     ${options.map(opt => `
                                                         <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
                                                     `).join('')}
@@ -13574,19 +13631,22 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="text-xs font-medium">Tipo</label>
+                                        <label class="text-xs font-medium">Tipo <span class="text-red-600">*</span></label>
                                         ${(() => {
                                             const options = ['F1', 'PF1', 'F2', 'PF2', 'F3', 'PF3', 'SCORREVOLE'];
                                             const current = per.tipo || '';
                                             const isCustom = current && !options.includes(current);
                                             const selectId = `per-tipo-${pos.id}`;
                                             const inputId = `per-tipo-input-${pos.id}`;
+                                            // 🆕 v4.24: Campo obbligatorio - bordo arancione se vuoto
+                                            const isEmpty = !current || current === '';
+                                            const borderClass = isEmpty ? 'border-2 border-orange-400 bg-orange-50' : 'border';
                                             
                                             return `
                                                 <select id="${selectId}" 
                                                         onchange="handleProductSelectWithCustom('${project.id}', '${pos.id}', 'persiana', 'tipo', '${selectId}', '${inputId}', this.value)"
-                                                        class="w-full compact-input border rounded mt-1">
-                                                    <option value="">--</option>
+                                                        class="w-full compact-input ${borderClass} rounded mt-1">
+                                                    <option value="">-- Seleziona --</option>
                                                     ${options.map(opt => `
                                                         <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
                                                     `).join('')}
