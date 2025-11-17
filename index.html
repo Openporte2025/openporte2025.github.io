@@ -1,25 +1,31 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.20 - LISTA PROGETTI CON ID VISIBILE ✅
+    Open Porte v4.20 - LISTA PROGETTI CON ID VISIBILE + ID SEQUENZIALE ✅
     
     ✨ MODIFICHE v4.20 (17 NOV 2025):
     
+    🎯 ID SEQUENZIALE ANNOP001:
+       - Nuovo formato ID: ANNOP001 (esempio: 2025P001)
+       - Anno (4 cifre) + P + Numero sequenziale (3 cifre con padding)
+       - Supporta fino a 999 progetti per anno
+       - ID incrementale automatico basato su progetti esistenti
+       - Visualizzazione: #2025P001, #2025P002, etc.
+    
     🎯 LISTA PROGETTI CON ID:
-       - ID progetto visibile in alto nella card: #LM3K9X
-       - Formato: primi 6 caratteri dell'ID in maiuscolo
+       - ID progetto visibile in alto nella card: #2025P001
        - Layout migliorato: ID → Nome → Cliente → Info
        - Icone chiare: 👤 Cliente, 📋 Posizioni, 🗂️ Progetto
        - Freccia → indica che il nome è cliccabile
     
-    🔧 FUNZIONE NUOVA:
-       - formatProjectId(id): Converte ID lungo in formato leggibile
-       - Esempio: "lm3k9xabc123" → "#LM3K9X"
-       - Usato in ProjectsList() per mostrare ID compatto
+    🔧 FUNZIONI MODIFICATE:
+       - generateId(): Genera ID sequenziale ANNOP001
+       - formatProjectId(): Formatta ID per visualizzazione con #
+       - Compatibilità: vecchi ID casuali ancora supportati
     
     📋 UX MIGLIORATA:
-       - Facile identificare progetti per ID
-       - Utile per riferimenti esterni (Odoo, file, comunicazioni)
-       - Layout più professionale e organizzato
+       - ID facili da ricordare e comunicare
+       - Ordinamento cronologico automatico
+       - Riferimenti esterni semplificati
     
     ---
     
@@ -822,7 +828,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.20 - Lista Progetti con ID 🎯✨</title>
+    <title>Open Porte v4.20 - ID Sequenziale ANNOP001 🎯✨</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -2702,7 +2708,7 @@
                 state.metadata = {};
             }
             state.metadata.lastModified = Date.now();
-            state.metadata.appVersion = '3.5.027k';
+            state.metadata.appVersion = '4.20';
             
             // 📦 FASE 027K: Assicurati che github structure esista
             if (!state.github) {
@@ -2806,15 +2812,46 @@
         // ============================================================================
         // GENERA ID GENERICO (per elementi interni come prodotti)
         // ============================================================================
+        // 🆕 v4.20: Genera ID progetto sequenziale formato ANNOP001
+        // Esempi: 2025P001, 2025P002, 2025P003, ..., 2025P999
         function generateId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            const currentYear = new Date().getFullYear();
+            
+            // Trova tutti i progetti dell'anno corrente
+            const existingIds = (state.projects || [])
+                .map(p => p.id)
+                .filter(id => id && id.startsWith(currentYear + 'P'));
+            
+            // Estrai i numeri esistenti
+            const existingNumbers = existingIds
+                .map(id => {
+                    const match = id.match(/^(\d{4})P(\d{3})$/);
+                    return match ? parseInt(match[2]) : 0;
+                })
+                .filter(n => n > 0);
+            
+            // Trova il prossimo numero disponibile
+            const nextNumber = existingNumbers.length > 0 
+                ? Math.max(...existingNumbers) + 1 
+                : 1;
+            
+            // Formatta con padding (001, 002, 003, etc.)
+            const paddedNumber = String(nextNumber).padStart(3, '0');
+            
+            // Ritorna formato: 2025P001
+            return `${currentYear}P${paddedNumber}`;
         }
         
         // 🆕 v4.20: Formatta ID progetto per visualizzazione
-        // Converte ID lungo in formato compatto leggibile
-        // Esempio: "lm3k9xabc123" → "#LM3K9X"
+        // Il formato ANNOP001 si mostra direttamente con il prefisso #
+        // Esempio: "2025P001" → "#2025P001"
         function formatProjectId(id) {
             if (!id) return '#UNKNOWN';
+            // Se già in formato ANNOP001, mostra direttamente
+            if (/^\d{4}P\d{3}$/.test(id)) {
+                return '#' + id;
+            }
+            // Fallback per vecchi ID casuali (primi 6 caratteri)
             return '#' + id.substring(0, 6).toUpperCase();
         }
         
@@ -5842,7 +5879,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.19</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.20</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -8877,7 +8914,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.19
+                                    Open Porte v4.20
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
