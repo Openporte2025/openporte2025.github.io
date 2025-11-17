@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.20 - LISTA PROGETTI CON ID VISIBILE + ID SEQUENZIALE ✅
+    Open Porte v4.20 - ID SEQUENZIALE + NAVIGAZIONE MIGLIORATA ✅
     
     ✨ MODIFICHE v4.20 (17 NOV 2025):
     
@@ -11,21 +11,21 @@
        - ID incrementale automatico basato su progetti esistenti
        - Visualizzazione: #2025P001, #2025P002, etc.
     
+    🧭 NAVIGAZIONE POSIZIONI MIGLIORATA:
+       - Header a 2 righe: Navigazione principale + Comandi posizione
+       - Pulsante "🔧 Setup" per tornare a configurazioni globali
+       - Dropdown posizioni avanzato con:
+         • Icone stato: ✅ completo, ⚠️ parziale, ❌ incompleto, ⭕ vuoto
+         • Percentuale completamento per ogni posizione
+         • Indicatore ▶️ per posizione corrente
+         • Mostra nome + ambiente della posizione
+       - Layout responsive: si adatta a mobile/tablet/desktop
+       - Pulsanti ottimizzati: Config, + Nuova, 🗑️
+    
     🎯 LISTA PROGETTI CON ID:
        - ID progetto visibile in alto nella card: #2025P001
        - Layout migliorato: ID → Nome → Cliente → Info
        - Icone chiare: 👤 Cliente, 📋 Posizioni, 🗂️ Progetto
-       - Freccia → indica che il nome è cliccabile
-    
-    🔧 FUNZIONI MODIFICATE:
-       - generateId(): Genera ID sequenziale ANNOP001
-       - formatProjectId(): Formatta ID per visualizzazione con #
-       - Compatibilità: vecchi ID casuali ancora supportati
-    
-    📋 UX MIGLIORATA:
-       - ID facili da ricordare e comunicare
-       - Ordinamento cronologico automatico
-       - Riferimenti esterni semplificati
     
     ---
     
@@ -828,7 +828,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.20 - ID Sequenziale ANNOP001 🎯✨</title>
+    <title>Open Porte v4.20 - ID ANNOP001 + Navigazione Migliorata 🎯✨</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -12077,19 +12077,82 @@
                 ${renderTopNavbar()}
                 
                 <div class="max-w-7xl mx-auto p-4">
-                    <div class="bg-white rounded-lg shadow p-4 mb-4">
-                        <div class="flex justify-between items-center">
+                    <!-- 🆕 v4.20: HEADER POSIZIONI A 2 RIGHE RESPONSIVE -->
+                    <div class="bg-white rounded-lg shadow mb-4">
+                        
+                        <!-- RIGA 1: Navigazione principale -->
+                        <div class="flex items-center justify-between p-3 border-b border-gray-200">
                             <div class="flex items-center gap-3 flex-1">
                                 <input type="text" value="${pos.name}"
                                        onchange="updatePosition('${project.id}', '${pos.id}', 'name', this.value)"
-                                       class="text-xl font-bold border-b-2 border-transparent focus:border-purple-500 outline-none">
+                                       class="text-lg font-bold border-b-2 border-transparent focus:border-purple-500 outline-none max-w-xs"
+                                       placeholder="Nome posizione">
+                                <button onclick="state.screen = 'project-detail'; state.setupStep = 1; render();"
+                                        class="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 transition flex items-center gap-1"
+                                        title="Torna alle configurazioni">
+                                    🔧 Setup
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- RIGA 2: Dropdown posizione + azioni -->
+                        <div class="p-3">
+                            <div class="flex flex-wrap items-center gap-2">
+                                
+                                <!-- DROPDOWN POSIZIONI AVANZATO -->
                                 <select onchange="switchPosition(this.value)"
-                                        class="px-3 py-1 border rounded-lg">
-                                    ${project.positions.map(p => `
-                                        <option value="${p.id}" ${p.id === pos.id ? 'selected' : ''}>${p.name}</option>
-                                    `).join('')}
+                                        class="flex-1 min-w-[200px] px-4 py-2 border-2 border-purple-300 rounded-lg text-base font-medium bg-white hover:border-purple-500 focus:border-purple-600 focus:ring-2 focus:ring-purple-200 transition-all"
+                                        style="font-size: 16px;">
+                                    ${project.positions.map(p => {
+                                        // Calcola completamento posizione
+                                        const completion = (() => {
+                                            let total = 0, completed = 0;
+                                            if (p.name) { total += 20; completed += 20; }
+                                            if (p.ambiente) { total += 20; completed += 20; }
+                                            
+                                            const prodottiAbilitati = Object.keys(project.prodotti || {}).filter(k => project.prodotti[k]);
+                                            if (prodottiAbilitati.length > 0) {
+                                                total += 30;
+                                                const prodottiPresenti = prodottiAbilitati.filter(prod => {
+                                                    const hasProdotto = p[prod] && Object.keys(p[prod]).length > 0;
+                                                    const isAssente = p.prodottiAssenti?.includes(prod);
+                                                    return hasProdotto || isAssente;
+                                                }).length;
+                                                completed += Math.round((prodottiPresenti / prodottiAbilitati.length) * 30);
+                                            }
+                                            
+                                            if (p.misure && (p.misure.LF || p.misure.HF)) {
+                                                total += 30;
+                                                const campiMisure = ['LF', 'HF', 'LP', 'HP', 'LPF', 'HPF'];
+                                                const misureCompilate = campiMisure.filter(k => p.misure[k] && p.misure[k] !== '').length;
+                                                completed += Math.round((misureCompilate / campiMisure.length) * 30);
+                                            }
+                                            
+                                            return total > 0 ? Math.round((completed / total) * 100) : 0;
+                                        })();
+                                        
+                                        // Icona stato basata su completamento
+                                        const icon = completion === 100 ? '✅' : 
+                                                     completion >= 50 ? '⚠️' : 
+                                                     completion > 0 ? '❌' : '⭕';
+                                        
+                                        // Indicatore posizione corrente
+                                        const current = p.id === pos.id ? '▶️ ' : '';
+                                        
+                                        // Testo con ambiente se presente
+                                        const displayText = p.ambiente 
+                                            ? `${p.name} - ${p.ambiente}` 
+                                            : p.name;
+                                        
+                                        return `
+                                            <option value="${p.id}" ${p.id === pos.id ? 'selected' : ''}>
+                                                ${current}${icon} ${displayText} (${completion}%)
+                                            </option>
+                                        `;
+                                    }).join('')}
                                 </select>
                                 
+                                <!-- PULSANTE CONFIG (solo se tab attivo ha config) -->
                                 ${(() => {
                                     const tab = pos.activeTab || 'misure';
                                     const configMap = {
@@ -12103,25 +12166,27 @@
                                     if (config && project.prodotti?.[tab]) {
                                         return `
                                             <button onclick="state.screen = 'project-detail'; state.setupStep = ${config.step}; render();"
-                                                    class="px-3 py-1.5 ${config.btnClass} text-white rounded-lg font-medium text-sm transition">
+                                                    class="px-3 py-2 ${config.btnClass} text-white rounded-lg font-medium text-sm transition whitespace-nowrap">
                                                 ${config.label}
                                             </button>
                                         `;
                                     }
                                     return '';
                                 })()}
-                            </div>
-                            <div class="flex gap-2">
-                                ${project.positions.length > 1 ? `
-                                <button onclick="deletePosition('${project.id}', '${pos.id}')"
-                                        class="px-3 py-1.5 bg-red-600 text-white rounded-lg font-medium text-sm">
-                                    🗑️ Elimina
-                                </button>
-                                ` : ''}
-                                <button onclick="addPosition('${project.id}')"
-                                        class="px-4 py-1.5 bg-green-600 text-white rounded-lg font-medium text-sm">
-                                    + Nuova Posizione
-                                </button>
+                                
+                                <!-- AZIONI POSIZIONE -->
+                                <div class="flex gap-2">
+                                    <button onclick="addPosition('${project.id}')"
+                                            class="px-3 py-2 bg-green-600 text-white rounded-lg font-medium text-sm hover:bg-green-700 transition whitespace-nowrap">
+                                        + Nuova
+                                    </button>
+                                    ${project.positions.length > 1 ? `
+                                    <button onclick="deletePosition('${project.id}', '${pos.id}')"
+                                            class="px-3 py-2 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700 transition">
+                                        🗑️
+                                    </button>
+                                    ` : ''}
+                                </div>
                             </div>
                         </div>
                     </div>
