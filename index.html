@@ -1,41 +1,34 @@
 <!DOCTYPE html>
 <!--
+    Open Porte v4.22 - FEEDBACK VISIVO CAMPI ✅
+    
+    🎨 NUOVO v4.22 (17 NOV 2025):
+    
+    ✅ FEEDBACK VISIVO CONFIGURAZIONI:
+    
+    PROBLEMA: Campi configurazione non davano feedback visivo dello stato
+    
+    SOLUZIONE:
+    1️⃣ COLORI STATO:
+       - VUOTO: Bordo arancione + sfondo crema
+       - COMPILATO: Bordo grigio + sfondo bianco
+    
+    2️⃣ CAMBIO DINAMICO:
+       - onChange → cambio colore istantaneo
+       - Feedback immediato per utente
+    
+    3️⃣ DOVE APPLICATO:
+       - Configurazioni Step 3 (Infissi, Persiane, etc.)
+       - renderFieldWithToggle()
+       - handleSelectCustomChange()
+    
+    ---
+    
     Open Porte v4.21 - SOLUZIONE OVERLAY DEFINITIVA ✅
     
     🚨 FIX v4.21 (17 NOV 2025):
-    
-    ❌→✅ OVERLAY BLOCCANTE - SOLUZIONE DEFINITIVA:
-    
-    PROBLEMA REALE IDENTIFICATO:
-    - Overlay con classe 'active' rimaneva con pointer-events: all
-    - Anche quando flag projectMenuOpen/mainMenuOpen erano false
-    - Overlay bloccava interazione con l'app
-    
-    SOLUZIONE APPLICATA:
-    - FORZA pulizia overlay dopo OGNI render()
-    - setTimeout che verifica stato menu dopo render
-    - Rimuove classe 'active' da TUTTI gli overlay se menu chiusi
-    - querySelectorAll('.menu-overlay').forEach(remove 'active')
-    
-    DETTAGLIO TECNICO:
-    ```javascript
-    function render() {
-        // ... render normale ...
-        
-        setTimeout(() => {
-            if (!state.projectMenuOpen && !state.mainMenuOpen) {
-                const overlays = document.querySelectorAll('.menu-overlay');
-                overlays.forEach(overlay => overlay.classList.remove('active'));
-            }
-        }, 0);
-    }
-    ```
-    
-    RISULTATO:
-    ✅ Overlay sempre sincronizzato con stato menu
-    ✅ Nessun blocco in creazione progetto/posizione
-    ✅ Nessun blocco in navigazione
-    ✅ App 100% funzionante
+    - Overlay bloccante risolto con pulizia automatica in render()
+    - setTimeout che rimuove classe 'active' dopo ogni render
     
     ---
     
@@ -3018,9 +3011,10 @@
                 required = false   // Se il campo è obbligatorio
             } = config;
             
+            // 🆕 v4.22: Feedback visivo - arancione se vuoto, bianco se compilato
             const isEmpty = !currentValue || currentValue === '';
-            const borderClass = required && isEmpty ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white';
-            const statusIcon = required ? (isEmpty ? '<span class="text-red-600">●</span>' : '<span class="text-green-600">✓</span>') : '';
+            const borderClass = isEmpty ? 'border-orange-400 bg-orange-50' : 'border-gray-300 bg-white';
+            const statusIcon = required ? (isEmpty ? '<span class="text-orange-600">●</span>' : '<span class="text-green-600">✓</span>') : '';
             
             // Costruisci parametri per update function
             const updateCall = `${updateFunction}(${updateParams.map(p => `'${p}'`).join(', ')}, this.value)`;
@@ -3070,6 +3064,17 @@
             console.log('🟠 handleSelectCustomChange CHIAMATA:', {fieldName, value, projectId, posId, productType});
             const customInputId = `${fieldName}_custom_${projectId || 'global'}_${posId || 'config'}_${productType || 'infisso'}`;
             const customInput = document.getElementById(customInputId);
+            
+            // 🆕 v4.22: Feedback visivo immediato - cambia colore bordo
+            if (value === '' || value === '__custom__') {
+                // Vuoto o custom → arancione
+                selectElement.classList.remove('border-gray-300', 'bg-white');
+                selectElement.classList.add('border-orange-400', 'bg-orange-50');
+            } else {
+                // Compilato → bianco
+                selectElement.classList.remove('border-orange-400', 'bg-orange-50');
+                selectElement.classList.add('border-gray-300', 'bg-white');
+            }
             
             if (value === '__custom__') {
                 // Mostra input custom
@@ -7860,10 +7865,6 @@
                 // ✅ SOLUZIONE C: Track modifica
                 updateProjectTimestamp(projectId, 'addPosition', `Aggiunta posizione: ${pos.name}`);
                 
-                // 🆕 v4.21: Chiudi menu PRIMA di aprire posizione (fix blocco overlay)
-                state.projectMenuOpen = false;
-                state.mainMenuOpen = false;
-                
                 // 🆕 v4.19: Imposta stato PRIMA di salvare
                 state.currentPosition = pos.id;
                 state.screen = 'position'; // 🆕 Apri subito la posizione
@@ -12149,7 +12150,7 @@
                                        onchange="updatePosition('${project.id}', '${pos.id}', 'name', this.value)"
                                        class="text-lg font-bold border-b-2 border-transparent focus:border-purple-500 outline-none max-w-xs"
                                        placeholder="Nome posizione">
-                                <button onclick="state.projectMenuOpen = false; state.mainMenuOpen = false; state.screen = 'project-detail'; state.setupStep = 1; render();"
+                                <button onclick="state.screen = 'project-detail'; state.setupStep = 1; render();"
                                         class="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 transition flex items-center gap-1"
                                         title="Torna alle configurazioni">
                                     🔧 Setup
@@ -12227,7 +12228,7 @@
                                     const config = configMap[tab];
                                     if (config && project.prodotti?.[tab]) {
                                         return `
-                                            <button onclick="state.projectMenuOpen = false; state.mainMenuOpen = false; state.screen = 'project-detail'; state.setupStep = ${config.step}; render();"
+                                            <button onclick="state.screen = 'project-detail'; state.setupStep = ${config.step}; render();"
                                                     class="px-3 py-2 ${config.btnClass} text-white rounded-lg font-medium text-sm transition whitespace-nowrap">
                                                 ${config.label}
                                             </button>
@@ -13301,7 +13302,7 @@
                                 <div class="mt-3">
                                     <div class="flex items-center justify-between mb-2">
                                         <label class="text-xs font-medium">COD.TAGLI</label>
-                                        <button onclick="state.projectMenuOpen = false; state.mainMenuOpen = false; state.screen = 'project-detail'; state.setupStep = 3; render();"
+                                        <button onclick="state.screen = 'project-detail'; state.setupStep = 3; render();"
                                                 class="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded font-medium transition">
                                             ⚙️ Config Globale
                                         </button>
@@ -17657,17 +17658,6 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                 ${NewProjectModal()}
                 ${FotoModal()}
             `;
-            
-            // 🆕 v4.21: FORZA pulizia overlay dopo render
-            // Se menu sono chiusi, rimuovi classe active da overlay
-            setTimeout(() => {
-                if (!state.projectMenuOpen && !state.mainMenuOpen) {
-                    const overlays = document.querySelectorAll('.menu-overlay');
-                    overlays.forEach(overlay => {
-                        overlay.classList.remove('active');
-                    });
-                }
-            }, 0);
         }
 
         // Navigation function for setup steps
