@@ -1,5 +1,34 @@
 <!DOCTYPE html>
 <!--
+    Open Porte v4.26 - FIX AZIENDA PERSIANE ✅
+    
+    🐛 FIX v4.26 (17 NOV 2025):
+    
+    ✅ RISOLTO: Campo Azienda persiane mostrava input custom
+    
+    PROBLEMA:
+    - Config globale usava: "p-persiane" (minuscolo, trattino)
+    - Posizione cercava: "P. Persiane" (maiuscolo, punto, spazio)
+    - Mismatch → sistema trattava come valore custom
+    - Dropdown mostrava "✏️ Scrivi manualmente" invece del valore
+    
+    SOLUZIONE:
+    - Sostituito "p-persiane" con "P. Persiane" in config globale
+    - Ora config globale e posizione usano STESSO formato
+    - Dropdown mostra correttamente "P. Persiane"
+    - Input custom resta nascosto (come altri campi)
+    
+    MODIFICHE:
+    - Riga 11123: ['p-persiane'] → ['P. Persiane']
+    
+    RISULTATO:
+    ✅ Campo Azienda persiane funziona come gli altri
+    ✅ Dropdown mostra valore corretto
+    ✅ Nessun input custom visibile se non necessario
+    ✅ Coerenza tra config globale e posizioni
+    
+    ---
+    
     Open Porte v4.25 - FIX TAB DEFINITIVO ✅
     
     🎯 NUOVO v4.25 (17 NOV 2025):
@@ -11120,7 +11149,7 @@
                             ${renderSelectWithCustom(
                                 'azienda',
                                 project.configPersiane?.azienda || '',
-                                ['p-persiane'],
+                                ['P. Persiane'],
                                 project.id,
                                 null,
                                 'persiana',
