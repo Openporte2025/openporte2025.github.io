@@ -1,31 +1,47 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.20 - ID SEQUENZIALE + NAVIGAZIONE MIGLIORATA ✅
+    Open Porte v4.20 FINAL - ID SEQUENZIALE + NAVIGAZIONE + FIX CRITICI ✅
+    
+    🚨 FIX CRITICI v4.20 (17 NOV 2025):
+    
+    ❌→✅ OVERLAY MENU BLOCCATO:
+       - PROBLEMA: Overlay menu rimaneva attivo e bloccava interfaccia
+       - SOLUZIONE: Aggiunta chiusura menu in tutte funzioni navigazione:
+         • openProject(), openPosition(), goBack(), showProjectsList()
+         • createProject callback
+       - RISULTATO: Overlay si chiude automaticamente, app utilizzabile
+    
+    ❌→✅ ID ANNOP001 NON FUNZIONAVA:
+       - PROBLEMA: createProject() usava vecchia funzione generateProjectId()
+       - VECCHIO: 2025_11_0001 (anno_mese_numero)
+       - NUOVO: 2025P001 (ANNOP001)
+       - SOLUZIONE: Sostituito generateProjectId() con generateId()
+       - RISULTATO: ID sequenziale corretto #2025P001, #2025P002, etc.
+    
+    ---
     
     ✨ MODIFICHE v4.20 (17 NOV 2025):
     
     🎯 ID SEQUENZIALE ANNOP001:
-       - Nuovo formato ID: ANNOP001 (esempio: 2025P001)
-       - Anno (4 cifre) + P + Numero sequenziale (3 cifre con padding)
+       - Formato: ANNOP001 (esempio: 2025P001)
+       - Anno (4 cifre) + P + Numero sequenziale (3 cifre)
        - Supporta fino a 999 progetti per anno
-       - ID incrementale automatico basato su progetti esistenti
        - Visualizzazione: #2025P001, #2025P002, etc.
     
     🧭 NAVIGAZIONE POSIZIONI MIGLIORATA:
        - Header a 2 righe: Navigazione principale + Comandi posizione
        - Pulsante "🔧 Setup" per tornare a configurazioni globali
        - Dropdown posizioni avanzato con:
-         • Icone stato: ✅ completo, ⚠️ parziale, ❌ incompleto, ⭕ vuoto
+         • Icone stato: ✅ completo, ⚠️ parziale, ❌ incompleto
          • Percentuale completamento per ogni posizione
          • Indicatore ▶️ per posizione corrente
-         • Mostra nome + ambiente della posizione
-       - Layout responsive: si adatta a mobile/tablet/desktop
-       - Pulsanti ottimizzati: Config, + Nuova, 🗑️
+         • Mostra nome + ambiente
+       - Layout responsive mobile/tablet/desktop
     
     🎯 LISTA PROGETTI CON ID:
-       - ID progetto visibile in alto nella card: #2025P001
-       - Layout migliorato: ID → Nome → Cliente → Info
-       - Icone chiare: 👤 Cliente, 📋 Posizioni, 🗂️ Progetto
+       - ID visibile in card: #2025P001
+       - Layout: ID → Nome → Cliente → Info
+       - Icone: 👤 Cliente, 📋 Posizioni, 🗂️ Progetto
     
     ---
     
@@ -7591,7 +7607,7 @@
         // Project Management
         function createProject(name, client) {
             const project = {
-                id: generateProjectId(),  // ✅ USA nuovo formato: 2025_11_0001
+                id: generateId(),  // 🆕 v4.20: USA formato ANNOP001 (2025P001)
                 name,
                 client,
                 clientData: {},
@@ -9436,6 +9452,9 @@
         // Funzioni per le voci del menu
         function showProjectsList() {
             state.screen = 'list';
+            // 🆕 v4.20: Chiudi tutti i menu quando torni alla lista
+            state.projectMenuOpen = false;
+            state.mainMenuOpen = false;
             render();
         }
         
@@ -15327,6 +15346,9 @@
             createProject(projectName, client);
             hideModal();
             state.screen = 'project';
+            // 🆕 v4.20: Chiudi tutti i menu quando crei nuovo progetto
+            state.projectMenuOpen = false;
+            state.mainMenuOpen = false;
             render();
         };
 
@@ -15336,12 +15358,18 @@
             } else {
                 state.screen = 'list';
             }
+            // 🆕 v4.20: Chiudi tutti i menu durante navigazione
+            state.projectMenuOpen = false;
+            state.mainMenuOpen = false;
             render();
         };
 
         window.openProject = (id) => {
             state.currentProject = id;
             state.screen = 'project';
+            // 🆕 v4.20: Chiudi tutti i menu quando apri progetto
+            state.projectMenuOpen = false;
+            state.mainMenuOpen = false;
             render();
         };
 
@@ -15360,6 +15388,9 @@
             state.currentPosition = id;
             state.screen = 'position';
             state.showRiepilogoRilievi = false;  // Reset flag riepilogo
+            // 🆕 v4.20: Chiudi tutti i menu quando apri posizione
+            state.projectMenuOpen = false;
+            state.mainMenuOpen = false;
             render();
         };
 
