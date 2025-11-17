@@ -1,5 +1,35 @@
 <!DOCTYPE html>
 <!--
+    Open Porte v4.17 - INIT UNIVERSALE: Tutti i 5 Prodotti Sempre Inizializzati ✅
+    
+    ✨ MODIFICHE v4.17 INIT UNIVERSALE (15 NOV 2025):
+    
+    🎯 INIZIALIZZAZIONE UNIVERSALE PRODOTTI:
+       - TUTTE le nuove posizioni hanno SEMPRE tutti i 5 prodotti inizializzati
+       - Ogni prodotto riceve un ID univoco anche se non abilitato nel progetto
+       - Flag `notPresent`: true per prodotti non abilitati, false per abilitati
+       - Struttura dati completa e coerente in ogni posizione
+    
+    📦 STATO PRODOTTI IN POSIZIONE:
+       - notPresent = true → Prodotto dichiarato assente (checkbox "Non presente" attiva)
+       - notPresent = false + config vuota → Prodotto da configurare
+       - notPresent = false + config piena → Prodotto configurato
+    
+    🔧 LOGICA AUTO-COPIA CONFIG GLOBALE:
+       - Se prodotto ABILITATO (project.prodotti?.tipo) → copia config globale
+       - Se prodotto NON abilitato → crea struttura vuota con solo ID e notPresent
+       - Spread operator (...) per copiare solo se necessario
+    
+    ✅ VANTAGGI:
+       - Zero prodotti "dimenticati" o non inizializzati
+       - Uniformità: ogni posizione ha SEMPRE tutti i 5 prodotti
+       - Tracciabilità: si sa sempre quali prodotti sono assenti vs da configurare
+       - Flessibilità: posso abilitare/disabilitare prodotti per posizione singola
+    
+    🚀 PROSSIMO: Rendering UI prodotti (stati: assente, da configurare, configurato)
+    
+    ---
+    
     Open Porte v4.10 - MENU UNIFICATO: Config Globale = Config Posizioni ✅
     
     ✨ MODIFICHE v4.10 MENU UNIFICATO (14 NOV 2025):
@@ -7590,15 +7620,16 @@
                 };
                 project.positions.push(pos);
                 
-                // 🆕 AUTO-CREAZIONE PRODOTTI: Aggiungi automaticamente i prodotti abilitati
-                console.log('🆕 NUOVA POSIZIONE - Auto-creazione prodotti abilitati...');
+                // 🆕 INIZIALIZZAZIONE UNIVERSALE: Crea SEMPRE tutti i 5 prodotti
+                console.log('🆕 NUOVA POSIZIONE - Inizializzazione TUTTI i prodotti (presenti + assenti)...');
                 
-                // INFISSI
-                if (project.prodotti?.infissi) {
-                    console.log('  ✅ Creando infisso con config globali...');
-                    pos.infisso = {
-                        id: generateId(),
-                        qta: '1',
+                // INFISSI - Sempre creato
+                pos.infisso = {
+                    id: generateId(),
+                    qta: '1',
+                    notPresent: !project.prodotti?.infissi,  // Flag: prodotto dichiarato assente
+                    // Se abilitato → copia config globale
+                    ...(project.prodotti?.infissi ? {
                         azienda: project.configInfissi?.azienda || '',
                         finituraInt: project.configInfissi?.finituraInt || '',
                         finituraEst: project.configInfissi?.finituraEst || '',
@@ -7614,113 +7645,121 @@
                         maniglia: project.configInfissi?.maniglia || '',
                         coloreManiglia: project.configInfissi?.coloreManiglia || '',
                         motoreAzienda: project.configInfissi?.motoreAzienda || '',
-                        motoreModello: project.configInfissi?.motoreModello || '',
-                        BRM_L: '0',  // Sarà calcolato quando inserisci misure
-                        BRM_H: '0',  // Sarà calcolato quando inserisci misure
-                        note: '',
-                        foto: []
-                    };
-                    console.log('  ✅ Infisso creato:', pos.infisso.azienda || '(vuoto)', pos.infisso.telaio || '(vuoto)');
-                }
+                        motoreModello: project.configInfissi?.motoreModello || ''
+                    } : {}),
+                    BRM_L: '0',
+                    BRM_H: '0',
+                    note: '',
+                    foto: []
+                };
+                console.log(project.prodotti?.infissi 
+                    ? '  ✅ Infisso abilitato e configurato' 
+                    : '  ⚠️ Infisso inizializzato come NON presente');
                 
-                // PERSIANE
-                if (project.prodotti?.persiane) {
-                    console.log('  ✅ Creando persiana con config globali...');
-                    pos.persiana = {
-                        id: generateId(),
-                        qta: '1',
+                // PERSIANE - Sempre creata
+                pos.persiana = {
+                    id: generateId(),
+                    qta: '1',
+                    notPresent: !project.prodotti?.persiane,
+                    ...(project.prodotti?.persiane ? {
                         azienda: project.configPersiane?.azienda || '',
                         modello: project.configPersiane?.modello || '',
                         fissaggio: project.configPersiane?.fissaggio || '',
                         tipoTelaio: (project.configPersiane?.fissaggio === 'TELAIO') 
-                                    ? (project.configPersiane?.tipoTelaio || '') 
-                                    : '',
+                                    ? (project.configPersiane?.tipoTelaio || '') : '',
                         coloreTelaio: (project.configPersiane?.fissaggio === 'TELAIO')
-                                      ? (project.configPersiane?.coloreTelaio || '')
-                                      : '',
+                                      ? (project.configPersiane?.coloreTelaio || '') : '',
                         battuta: project.configPersiane?.battuta || '',
                         colorePersiana: project.configPersiane?.colorePersiana || '',
                         tipo: project.configPersiane?.tipo || '',
                         materiale: project.configPersiane?.materiale || '',
                         colore: project.configPersiane?.colore || '',
-                        apertura: project.configPersiane?.apertura || '',
-                        BRM_L: '0',  // Sarà calcolato quando inserisci misure
-                        BRM_H: '0',  // Sarà calcolato quando inserisci misure
-                        note: '',
-                        foto: []
-                    };
-                    console.log('  ✅ Persiana creata:', pos.persiana.azienda || '(vuoto)', pos.persiana.modello || '(vuoto)');
-                }
+                        apertura: project.configPersiane?.apertura || ''
+                    } : {}),
+                    BRM_L: '0',
+                    BRM_H: '0',
+                    note: '',
+                    foto: []
+                };
+                console.log(project.prodotti?.persiane 
+                    ? '  ✅ Persiana abilitata e configurata' 
+                    : '  ⚠️ Persiana inizializzata come NON presente');
                 
-                // TAPPARELLE
-                if (project.prodotti?.tapparelle) {
-                    console.log('  ✅ Creando tapparella con config globali...');
-                    pos.tapparella = {
-                        id: generateId(),
-                        qta: '1',
+                // TAPPARELLE - Sempre creata
+                pos.tapparella = {
+                    id: generateId(),
+                    qta: '1',
+                    notPresent: !project.prodotti?.tapparelle,
+                    ...(project.prodotti?.tapparelle ? {
                         azienda: project.configTapparelle?.azienda || '',
                         tipo: project.configTapparelle?.tipo || '',
                         materiale: project.configTapparelle?.materiale || '',
                         colore: project.configTapparelle?.colore || '',
                         comando: project.configTapparelle?.comando || '',
                         motoreAzienda: project.configTapparelle?.motoreAzienda || '',
-                        motoreModello: project.configTapparelle?.motoreModello || '',
-                        BRM_L: '0',  // Sarà calcolato quando inserisci misure
-                        BRM_H: '0',  // Sarà calcolato quando inserisci misure
-                        note: '',
-                        foto: []
-                    };
-                    console.log('  ✅ Tapparella creata:', pos.tapparella.tipo || '(vuoto)');
-                }
+                        motoreModello: project.configTapparelle?.motoreModello || ''
+                    } : {}),
+                    BRM_L: '0',
+                    BRM_H: '0',
+                    note: '',
+                    foto: []
+                };
+                console.log(project.prodotti?.tapparelle 
+                    ? '  ✅ Tapparella abilitata e configurata' 
+                    : '  ⚠️ Tapparella inizializzata come NON presente');
                 
-                // ZANZARIERE
-                if (project.prodotti?.zanzariere) {
-                    console.log('  ✅ Creando zanzariera con config globali...');
-                    pos.zanzariera = {
-                        id: generateId(),
-                        qta: '1',
+                // ZANZARIERE - Sempre creata
+                pos.zanzariera = {
+                    id: generateId(),
+                    qta: '1',
+                    notPresent: !project.prodotti?.zanzariere,
+                    ...(project.prodotti?.zanzariere ? {
                         azienda: project.configZanzariere?.azienda || '',
                         tipo: project.configZanzariere?.tipo || '',
                         colore: project.configZanzariere?.colore || '',
-                        materiale: project.configZanzariere?.materiale || '',
-                        BRM_L: '0',  // Sarà calcolato quando inserisci misure
-                        BRM_H: '0',  // Sarà calcolato quando inserisci misure
-                        note: '',
-                        foto: []
-                    };
-                    console.log('  ✅ Zanzariera creata:', pos.zanzariera.tipo || '(vuoto)');
-                }
+                        materiale: project.configZanzariere?.materiale || ''
+                    } : {}),
+                    BRM_L: '0',
+                    BRM_H: '0',
+                    note: '',
+                    foto: []
+                };
+                console.log(project.prodotti?.zanzariere 
+                    ? '  ✅ Zanzariera abilitata e configurata' 
+                    : '  ⚠️ Zanzariera inizializzata come NON presente');
                 
-                // CASSONETTI
-                if (project.prodotti?.cassonetti) {
-                    console.log('  ✅ Creando cassonetto con config globali...');
-                    const cm = pos.overrideCaratteristiche && pos.caratteristicheMuroOverride 
-                        ? pos.caratteristicheMuroOverride 
-                        : project.caratteristicheMuro || {};
-                    const bSuperioreDefault = cm.battutaSuperioreTapparella || '0';
-                    
-                    pos.cassonetto = {
-                        id: generateId(),
-                        qta: '1',
+                // CASSONETTI - Sempre creato
+                const cm = pos.overrideCaratteristiche && pos.caratteristicheMuroOverride 
+                    ? pos.caratteristicheMuroOverride 
+                    : project.caratteristicheMuro || {};
+                const bSuperioreDefault = cm.battutaSuperioreTapparella || '0';
+                
+                pos.cassonetto = {
+                    id: generateId(),
+                    qta: '1',
+                    notPresent: !project.prodotti?.cassonetti,
+                    ...(project.prodotti?.cassonetti ? {
                         azienda: project.configCassonetti?.azienda || '',
                         tipo: project.configCassonetti?.tipo || '',
                         materiale: project.configCassonetti?.materiale || '',
                         finitura: project.configCassonetti?.finitura || '',
-                        coibentazione: project.configCassonetti?.coibentazione || '',
-                        LS: '0',
-                        SRSX: '0',
-                        ZSX: '0',
-                        SRDX: '0',
-                        ZDX: '0',
-                        HCASS: '0',
-                        BSuperiore: bSuperioreDefault,
-                        note: '',
-                        foto: []
-                    };
-                    console.log('  ✅ Cassonetto creato:', pos.cassonetto.tipo || '(vuoto)');
-                }
+                        coibentazione: project.configCassonetti?.coibentazione || ''
+                    } : {}),
+                    LS: '0',
+                    SRSX: '0',
+                    ZSX: '0',
+                    SRDX: '0',
+                    ZDX: '0',
+                    HCASS: '0',
+                    BSuperiore: bSuperioreDefault,
+                    note: '',
+                    foto: []
+                };
+                console.log(project.prodotti?.cassonetti 
+                    ? '  ✅ Cassonetto abilitato e configurato' 
+                    : '  ⚠️ Cassonetto inizializzato come NON presente');
                 
-                console.log('✅ NUOVA POSIZIONE COMPLETA con tutti i prodotti abilitati');
+                console.log('✅ TUTTI I 5 PRODOTTI INIZIALIZZATI (presenti + assenti)');
                 
                 // ✅ SOLUZIONE C: Track modifica
                 updateProjectTimestamp(projectId, 'addPosition', `Aggiunta posizione: ${pos.name}`);
@@ -8806,6 +8845,128 @@
                     // Non fare render completo per mantenere il focus
                 }
             }
+        };
+
+        // 🆕 v4.17: FUNZIONI HELPER PER GESTIONE PRODOTTI NELLE POSIZIONI
+        
+        /**
+         * Toggle presenza/assenza prodotto in posizione
+         * Gestisce checkbox "⚠️ Non presente in questa posizione"
+         */
+        window.toggleProductPresence = (productKey, projectId, posId) => {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) {
+                console.error('❌ Progetto non trovato:', projectId);
+                return;
+            }
+            
+            const pos = project.positions.find(p => p.id === posId);
+            if (!pos) {
+                console.error('❌ Posizione non trovata:', posId);
+                return;
+            }
+            
+            // Mappa chiavi prodotto
+            const productMap = {
+                'infisso': 'infisso',
+                'persiana': 'persiana',
+                'tapparella': 'tapparella',
+                'zanzariera': 'zanzariera',
+                'cassonetto': 'cassonetto'
+            };
+            
+            const prod = pos[productMap[productKey]];
+            if (!prod) {
+                console.error('❌ Prodotto non trovato:', productKey);
+                return;
+            }
+            
+            // Toggle flag notPresent
+            prod.notPresent = !prod.notPresent;
+            
+            console.log(`📍 ${productKey} - notPresent: ${prod.notPresent ? 'SÌ (assente)' : 'NO (presente)'}`);
+            
+            if (prod.notPresent) {
+                showNotification(`${productKey} marcato come NON presente`, 'info');
+            } else {
+                showNotification(`${productKey} marcato come PRESENTE`, 'success');
+            }
+            
+            saveState();
+            render();
+        };
+        
+        /**
+         * Abilita prodotto assente: rimuove flag notPresent e copia config globale
+         * Usato dal pulsante "+ Aggiungi Prodotto"
+         */
+        window.enableProduct = (productKey, projectId, posId) => {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) {
+                console.error('❌ Progetto non trovato:', projectId);
+                return;
+            }
+            
+            const pos = project.positions.find(p => p.id === posId);
+            if (!pos) {
+                console.error('❌ Posizione non trovata:', posId);
+                return;
+            }
+            
+            const productMap = {
+                'infisso': 'infisso',
+                'persiana': 'persiana',
+                'tapparella': 'tapparella',
+                'zanzariera': 'zanzariera',
+                'cassonetto': 'cassonetto'
+            };
+            
+            const prod = pos[productMap[productKey]];
+            if (!prod) {
+                console.error('❌ Prodotto non trovato:', productKey);
+                return;
+            }
+            
+            // Rimuovi flag "non presente"
+            prod.notPresent = false;
+            
+            // Copia config globale se non è già configurato
+            const configMap = {
+                'infisso': 'configInfissi',
+                'persiana': 'configPersiane',
+                'tapparella': 'configTapparelle',
+                'zanzariera': 'configZanzariere',
+                'cassonetto': 'configCassonetti'
+            };
+            
+            const globalConfig = project[configMap[productKey]];
+            if (globalConfig && Object.keys(globalConfig).length > 0) {
+                console.log(`📋 Copiando config globale per ${productKey}...`);
+                
+                // Salva l'ID originale del prodotto
+                const originalId = prod.id;
+                
+                // Copia tutti i campi dalla config globale (eccetto array che vanno clonati)
+                for (const [key, value] of Object.entries(globalConfig)) {
+                    if (Array.isArray(value)) {
+                        prod[key] = [...value];  // Clone array
+                    } else {
+                        prod[key] = value;
+                    }
+                }
+                
+                // Ripristina ID originale (non deve essere sovrascritto)
+                prod.id = originalId;
+                
+                console.log(`✅ Config globale copiata:`, prod);
+                showNotification(`${productKey} abilitato e configurato`, 'success');
+            } else {
+                console.log(`⚠️ Config globale ${productKey} vuota - prodotto abilitato ma da configurare`);
+                showNotification(`${productKey} abilitato - configura i campi`, 'info');
+            }
+            
+            saveState();
+            render();
         };
 
         // MAIN COMPONENTS
@@ -12724,20 +12885,30 @@
             return `
                 <div class="space-y-4">
                     ${!inf ? `
+                        <!-- LEGACY: Non dovrebbe mai accadere (retrocompatibilità vecchi progetti) -->
                         <div class="text-center py-8 bg-gray-50 rounded-lg">
-                            <p class="text-gray-600 mb-4">Nessun infisso configurato</p>
+                            <p class="text-gray-600 mb-4">⚠️ Errore: Infisso non inizializzato</p>
+                            <button onclick="addInfisso('${project.id}', '${pos.id}')"
+                                    class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
+                                + Aggiungi Infisso
+                            </button>
+                        </div>
+                    ` : inf.notPresent ? `
+                        <!-- 🆕 v4.17: STATO 1 - PRODOTTO DICHIARATO ASSENTE -->
+                        <div class="text-center py-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                            <p class="text-gray-700 mb-4 font-medium text-lg">⚠️ Nessun Infisso configurato</p>
                             <div class="flex flex-col items-center gap-3">
-                                <button onclick="addInfisso('${project.id}', '${pos.id}')"
-                                        class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
+                                <label class="flex items-center gap-2 cursor-pointer text-sm bg-white px-4 py-2 rounded-lg border-2 border-yellow-400 shadow-sm hover:shadow-md transition-shadow">
+                                    <input type="checkbox" 
+                                           checked
+                                           onchange="toggleProductPresence('infisso', '${project.id}', '${pos.id}')"
+                                           class="w-4 h-4">
+                                    <span class="text-gray-700 font-medium">⚠️ Non presente in questa posizione</span>
+                                </label>
+                                <button onclick="enableProduct('infisso', '${project.id}', '${pos.id}')"
+                                        class="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 shadow-sm hover:shadow-md transition-all">
                                     + Aggiungi Infisso
                                 </button>
-                                <label class="flex items-center gap-2 cursor-pointer text-sm">
-                                    <input type="checkbox" 
-                                           ${pos.prodottiAssenti?.includes('infisso') ? 'checked' : ''}
-                                           onchange="toggleProdottoAssente('${project.id}', '${pos.id}', 'infissi')"
-                                           class="w-4 h-4">
-                                    <span class="text-gray-700">⚠️ Non presente in questa posizione</span>
-                                </label>
                             </div>
                         </div>
                     ` : (parseInt(inf.qta) === 0 || inf.qta === '0' || inf.qta === 0) ? `
@@ -13245,20 +13416,30 @@
             return `
                 <div class="space-y-4">
                     ${!per ? `
+                        <!-- LEGACY: Non dovrebbe mai accadere (retrocompatibilità vecchi progetti) -->
                         <div class="text-center py-8 bg-gray-50 rounded-lg">
-                            <p class="text-gray-600 mb-4">Nessuna persiana configurata</p>
+                            <p class="text-gray-600 mb-4">⚠️ Errore: Persiana non inizializzata</p>
+                            <button onclick="addPersiana('${project.id}', '${pos.id}')"
+                                    class="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700">
+                                + Aggiungi Persiana
+                            </button>
+                        </div>
+                    ` : per.notPresent ? `
+                        <!-- 🆕 v4.17: STATO 1 - PRODOTTO DICHIARATO ASSENTE -->
+                        <div class="text-center py-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                            <p class="text-gray-700 mb-4 font-medium text-lg">⚠️ Nessuna Persiana configurata</p>
                             <div class="flex flex-col items-center gap-3">
-                                <button onclick="addPersiana('${project.id}', '${pos.id}')"
-                                        class="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700">
+                                <label class="flex items-center gap-2 cursor-pointer text-sm bg-white px-4 py-2 rounded-lg border-2 border-yellow-400 shadow-sm hover:shadow-md transition-shadow">
+                                    <input type="checkbox" 
+                                           checked
+                                           onchange="toggleProductPresence('persiana', '${project.id}', '${pos.id}')"
+                                           class="w-4 h-4">
+                                    <span class="text-gray-700 font-medium">⚠️ Non presente in questa posizione</span>
+                                </label>
+                                <button onclick="enableProduct('persiana', '${project.id}', '${pos.id}')"
+                                        class="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 shadow-sm hover:shadow-md transition-all">
                                     + Aggiungi Persiana
                                 </button>
-                                <label class="flex items-center gap-2 cursor-pointer text-sm">
-                                    <input type="checkbox" 
-                                           ${pos.prodottiAssenti?.includes('persiana') ? 'checked' : ''}
-                                           onchange="toggleProdottoAssente('${project.id}', '${pos.id}', 'persiane')"
-                                           class="w-4 h-4">
-                                    <span class="text-gray-700">⚠️ Non presente in questa posizione</span>
-                                </label>
                             </div>
                         </div>
                     ` : (parseInt(per.qta) === 0 || per.qta === '0' || per.qta === 0) ? `
@@ -13649,20 +13830,30 @@
             return `
                 <div class="space-y-4">
                     ${!tap ? `
+                        <!-- LEGACY: Non dovrebbe mai accadere (retrocompatibilità vecchi progetti) -->
                         <div class="text-center py-8 bg-gray-50 rounded-lg">
-                            <p class="text-gray-600 mb-4">Nessuna tapparella configurata</p>
+                            <p class="text-gray-600 mb-4">⚠️ Errore: Tapparella non inizializzata</p>
+                            <button onclick="addTapparella('${project.id}', '${pos.id}')"
+                                    class="px-6 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700">
+                                + Aggiungi Tapparella
+                            </button>
+                        </div>
+                    ` : tap.notPresent ? `
+                        <!-- 🆕 v4.17: STATO 1 - PRODOTTO DICHIARATO ASSENTE -->
+                        <div class="text-center py-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                            <p class="text-gray-700 mb-4 font-medium text-lg">⚠️ Nessuna Tapparella configurata</p>
                             <div class="flex flex-col items-center gap-3">
-                                <button onclick="addTapparella('${project.id}', '${pos.id}')"
-                                        class="px-6 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700">
+                                <label class="flex items-center gap-2 cursor-pointer text-sm bg-white px-4 py-2 rounded-lg border-2 border-yellow-400 shadow-sm hover:shadow-md transition-shadow">
+                                    <input type="checkbox" 
+                                           checked
+                                           onchange="toggleProductPresence('tapparella', '${project.id}', '${pos.id}')"
+                                           class="w-4 h-4">
+                                    <span class="text-gray-700 font-medium">⚠️ Non presente in questa posizione</span>
+                                </label>
+                                <button onclick="enableProduct('tapparella', '${project.id}', '${pos.id}')"
+                                        class="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 shadow-sm hover:shadow-md transition-all">
                                     + Aggiungi Tapparella
                                 </button>
-                                <label class="flex items-center gap-2 cursor-pointer text-sm">
-                                    <input type="checkbox" 
-                                           ${pos.prodottiAssenti?.includes('tapparella') ? 'checked' : ''}
-                                           onchange="toggleProdottoAssente('${project.id}', '${pos.id}', 'tapparelle')"
-                                           class="w-4 h-4">
-                                    <span class="text-gray-700">⚠️ Non presente in questa posizione</span>
-                                </label>
                             </div>
                         </div>
                     ` : (parseInt(tap.qta) === 0 || tap.qta === '0' || tap.qta === 0) ? `
@@ -14100,20 +14291,30 @@
             return `
                 <div class="space-y-4">
                     ${!zan ? `
+                        <!-- LEGACY: Non dovrebbe mai accadere (retrocompatibilità vecchi progetti) -->
                         <div class="text-center py-8 bg-gray-50 rounded-lg">
-                            <p class="text-gray-600 mb-4">Nessuna zanzariera configurata</p>
+                            <p class="text-gray-600 mb-4">⚠️ Errore: Zanzariera non inizializzata</p>
+                            <button onclick="addZanzariera('${project.id}', '${pos.id}')"
+                                    class="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700">
+                                + Aggiungi Zanzariera
+                            </button>
+                        </div>
+                    ` : zan.notPresent ? `
+                        <!-- 🆕 v4.17: STATO 1 - PRODOTTO DICHIARATO ASSENTE -->
+                        <div class="text-center py-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                            <p class="text-gray-700 mb-4 font-medium text-lg">⚠️ Nessuna Zanzariera configurata</p>
                             <div class="flex flex-col items-center gap-3">
-                                <button onclick="addZanzariera('${project.id}', '${pos.id}')"
-                                        class="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700">
+                                <label class="flex items-center gap-2 cursor-pointer text-sm bg-white px-4 py-2 rounded-lg border-2 border-yellow-400 shadow-sm hover:shadow-md transition-shadow">
+                                    <input type="checkbox" 
+                                           checked
+                                           onchange="toggleProductPresence('zanzariera', '${project.id}', '${pos.id}')"
+                                           class="w-4 h-4">
+                                    <span class="text-gray-700 font-medium">⚠️ Non presente in questa posizione</span>
+                                </label>
+                                <button onclick="enableProduct('zanzariera', '${project.id}', '${pos.id}')"
+                                        class="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 shadow-sm hover:shadow-md transition-all">
                                     + Aggiungi Zanzariera
                                 </button>
-                                <label class="flex items-center gap-2 cursor-pointer text-sm">
-                                    <input type="checkbox" 
-                                           ${pos.prodottiAssenti?.includes('zanzariera') ? 'checked' : ''}
-                                           onchange="toggleProdottoAssente('${project.id}', '${pos.id}', 'zanzariere')"
-                                           class="w-4 h-4">
-                                    <span class="text-gray-700">⚠️ Non presente in questa posizione</span>
-                                </label>
                             </div>
                         </div>
                     ` : (parseInt(zan.qta) === 0 || zan.qta === '0' || zan.qta === 0) ? `
@@ -14427,20 +14628,30 @@
             return `
                 <div class="space-y-4">
                     ${!cas ? `
+                        <!-- LEGACY: Non dovrebbe mai accadere (retrocompatibilità vecchi progetti) -->
                         <div class="text-center py-8 bg-gray-50 rounded-lg">
-                            <p class="text-gray-600 mb-4">Nessun cassonetto configurato</p>
+                            <p class="text-gray-600 mb-4">⚠️ Errore: Cassonetto non inizializzato</p>
+                            <button onclick="addCassonetto('${project.id}', '${pos.id}')"
+                                    class="px-6 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700">
+                                + Aggiungi Cassonetto
+                            </button>
+                        </div>
+                    ` : cas.notPresent ? `
+                        <!-- 🆕 v4.17: STATO 1 - PRODOTTO DICHIARATO ASSENTE -->
+                        <div class="text-center py-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                            <p class="text-gray-700 mb-4 font-medium text-lg">⚠️ Nessun Cassonetto configurato</p>
                             <div class="flex flex-col items-center gap-3">
-                                <button onclick="addCassonetto('${project.id}', '${pos.id}')"
-                                        class="px-6 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700">
+                                <label class="flex items-center gap-2 cursor-pointer text-sm bg-white px-4 py-2 rounded-lg border-2 border-yellow-400 shadow-sm hover:shadow-md transition-shadow">
+                                    <input type="checkbox" 
+                                           checked
+                                           onchange="toggleProductPresence('cassonetto', '${project.id}', '${pos.id}')"
+                                           class="w-4 h-4">
+                                    <span class="text-gray-700 font-medium">⚠️ Non presente in questa posizione</span>
+                                </label>
+                                <button onclick="enableProduct('cassonetto', '${project.id}', '${pos.id}')"
+                                        class="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 shadow-sm hover:shadow-md transition-all">
                                     + Aggiungi Cassonetto
                                 </button>
-                                <label class="flex items-center gap-2 cursor-pointer text-sm">
-                                    <input type="checkbox" 
-                                           ${pos.prodottiAssenti?.includes('cassonetto') ? 'checked' : ''}
-                                           onchange="toggleProdottoAssente('${project.id}', '${pos.id}', 'cassonetti')"
-                                           class="w-4 h-4">
-                                    <span class="text-gray-700">⚠️ Non presente in questa posizione</span>
-                                </label>
                             </div>
                         </div>
                     ` : (parseInt(cas.qta) === 0 || cas.qta === '0' || cas.qta === 0) ? `
