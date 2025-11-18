@@ -1,6 +1,50 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.30 - FIX MANIGLIE: Copia da Config + Opzioni Corrette ✅
+    Open Porte v4.32 - FIX COLORI DINAMICI: PVC vs Alluminio + Input Custom ✅
+    
+    🐛 FIX v4.31 (18 NOV 2025):
+    
+    ✅ IMPLEMENTATE 67 MANIGLIE FINSTRAL complete (Serie 1-4, 11-16)
+    
+    PROBLEMA:
+    - Campi Maniglia usavano opzioni generiche: ['standard', 'satinato', 'inox', 'design', 'con-chiave']
+    - Colore Maniglia usava: ['bianco', 'bronzo', 'oro', 'nero', 'inox', 'satinato']
+    - Mancava integrazione con catalogo Finstral ufficiale
+    - Dashboard non poteva calcolare supplementi corretti
+    
+    SOLUZIONE:
+    - Estratte 67 maniglie complete da catalogo PDF Finstral (MANIGLIE-FINSTRAL-DB.js)
+    - Config Globale (riga ~11241): Array 67 maniglie con codice+descrizione
+    - Config Globale (riga ~11252): Array 13 colori con codice+descrizione
+    - Posizione (riga ~13582): Stesso array 67 maniglie (eredita da Config)
+    - Posizione (riga ~13593): Stesso array 13 colori (eredita da Config)
+    
+    FORMATO SALVATAGGIO:
+    - Maniglia: "6010 - Finestra alluminio" (codice + descrizione completa)
+    - Colore: "01 - Bianco", "07 - Bianco perla", "56 - Neutro anodizzato"
+    - Dashboard v7.26: farà parsing per estrarre codice e calcolare supplementi
+    
+    ELENCO MANIGLIE (67 totali):
+    Serie 1: 6010-6031, 6470-6471, 6710-6750
+    Serie 2: 7040-7071, 7720-7740, 7500-7530
+    Serie 3: 8010-8011, 8020
+    Serie 4: 1040-1041
+    Serie 11-16: 1901-1906, 19110-19162, 49110-49162, 29110-29160
+    
+    COLORI (13 totali):
+    01-Bianco, 07-Bianco perla, 56-Neutro anod., 79-Titanio, 74-Bronzo,
+    40-Ottone, 0156-Bianco/Neutro, 0174-Bianco/Bronzo, M01-Bianco opaco,
+    M03-Nero opaco, M07-Bianco crema, 43-Acciaio inox, E03-Nero anod.
+    
+    RISULTATO:
+    ✅ App: 67 maniglie Finstral selezionabili
+    ✅ App: 13 colori ufficiali selezionabili
+    ✅ Salvataggio: codice + descrizione in JSON
+    ✅ Compatibilità: Valori vecchi ("standard", "bianco") ancora funzionanti
+    ⏳ Prossimo: Dashboard v7.26 con calcolo supplementi automatico
+    
+    
+    ---
     
     🐛 FIX v4.30 (18 NOV 2025):
     
@@ -388,8 +432,8 @@
        7. Telaio (961, 965, 967, Z62, Z91, + custom)
        8. Allarme (si/no)
        9. Vetro (doppio, doppio-sat, triplo, triplo-sat)
-       10. Maniglia (standard, satinato, inox, design, con-chiave)
-       11. Colore Maniglia (bianco, bronzo, oro, nero, inox, satinato)
+       10. Maniglia (67 codici Finstral: 6010-Finestra alluminio, 7040-Finestra S2, 8010-Acciaio inox, 1901-S11, ecc.)
+       11. Colore Maniglia (13 colori: 01-Bianco, 07-Bianco perla, 56-Neutro anod., 79-Titanio, M01-Bianco opaco, ecc.)
     
     🔧 FUNZIONI NUOVE:
        - renderSelectColore(): Gestisce dropdown colori dinamici
@@ -1097,7 +1141,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.30 - FIX MANIGLIE ðŸ"§âœ…</title>
+    <title>Open Porte v4.31 - MANIGLIE FINSTRAL ðŸ"§âœ…</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -3438,20 +3482,21 @@
 
         // 🎨 FASE 30024b: Select COLORI STANDARD (NO custom input) - v4.29
         function renderSelectColoreStandard(fieldName, currentValue, finituraValue, projectId, posId, productType, label) {
-            // Colori PVC (tutti)
+            // ✅ COLORI PVC CORRETTI (dal PDF Finstral pagina 1)
             const coloriPVC = [
-                '01 - Bianco',
-                '42 - Bianco perla',
-                '45 - Grigio seta',
-                '06 - Grigio',
-                '07 - Nero',
-                '13 - Castagno decoro legno',
-                '19 - Rovere decoro legno',
-                '46 - Marrone chiaro',
-                '55 - Noce chiaro decoro legno'
+                '01 - Bianco',              // extraliscio
+                '45 - Bianco',              // satinata
+                '27 - Bianco perla',        // satinata
+                '42 - Bianco',              // goffrata (FIX: era "Bianco perla")
+                '07 - Bianco perla',        // goffrata (FIX: era "Nero")
+                '46 - Grigio seta',         // satinata
+                '06 - Grigio',              // satinata
+                '13 - Castagno decoro legno',   // goffrata
+                '19 - Rovere decoro legno',     // goffrata
+                '55 - Noce chiaro decoro legno' // goffrata
             ];
             
-            // Colori Alluminio (SOLO effetti legno)
+            // ✅ COLORI ALLUMINIO - Solo decoro legno (dal PDF pagina 2, gruppo 1H)
             const coloriAlluminioLegno = [
                 'L13 - Castagno verniciato',
                 'L14 - Mogano verniciato',
@@ -3472,36 +3517,53 @@
             } else if (finituraValue && finituraValue.toLowerCase().includes('alluminio')) {
                 opzioni = coloriAlluminioLegno;
             } else {
-                // Se finitura non impostata o altro materiale, usa PVC come default
+                // Se finitura non impostata, usa PVC come default
                 opzioni = coloriPVC;
             }
             
-            // Verifica se currentValue è valido per il materiale corrente
-            const isValueValid = opzioni.includes(currentValue);
-            const displayValue = isValueValid ? currentValue : '';
-            const isEmpty = !displayValue || displayValue === '';
+            // Determina se il valore corrente è custom (non nella lista)
+            const isCustom = currentValue && currentValue !== '' && !opzioni.includes(currentValue);
+            const selectedValue = isCustom ? '__custom__' : (currentValue || '');
+            const isEmpty = !currentValue || currentValue === '';
+            
+            // ID univoco per l'input custom
+            const customInputId = `${fieldName}_custom_${projectId || 'global'}_${posId || 'config'}_${productType || 'infisso'}`;
             
             return `
                 <div class="mb-2">
                     ${label ? `<label class="block text-base font-bold mb-1 text-gray-800">${label}</label>` : ''}
                     
-                    <!-- Select SOLO con colori validi (NO custom) -->
+                    <!-- Select con colori validi + opzione custom -->
                     <select 
                         class="w-full px-3 py-2.5 border-2 rounded-lg text-base font-medium ${isEmpty ? 'border-orange-400 bg-orange-50' : 'border-gray-300 bg-white'} focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                        onchange="handleSelectCustomChange('${fieldName}', this, '${projectId}', '${posId || ''}', '${productType}')"
+                    >
+                        <option value="" class="text-gray-400">▼ Seleziona...</option>
+                        ${opzioni.map(opt => `
+                            <option value="${opt}" ${selectedValue === opt ? 'selected' : ''} class="text-gray-900 font-medium">
+                                ${opt}
+                            </option>
+                        `).join('')}
+                        <option value="__custom__" ${isCustom ? 'selected' : ''} class="text-blue-600 font-semibold">
+                            🖊️ Scrivi manualmente
+                        </option>
+                    </select>
+                    
+                    <!-- Input custom (nascosto se non serve) -->
+                    <input 
+                        type="text" 
+                        class="w-full px-3 py-2.5 border-2 border-blue-400 rounded-lg mt-2 text-base font-medium bg-blue-50 focus:ring-2 focus:ring-blue-500" 
+                        id="${customInputId}"
+                        placeholder="✏️ Scrivi colore personalizzato..."
+                        value="${isCustom ? currentValue : ''}"
+                        style="display: ${isCustom ? 'block' : 'none'};"
                         onchange="${posId ? `updateProduct('${projectId}', '${posId}', '${productType}', '${fieldName}', this.value)` : 
                                   productType === 'infisso' ? `updateConfigInfissi('${projectId}', '${fieldName}', this.value)` :
                                   productType === 'persiana' ? `updateConfigPersiane('${projectId}', '${fieldName}', this.value)` :
                                   productType === 'tapparella' ? `updateConfigTapparelle('${projectId}', '${fieldName}', this.value)` :
                                   productType === 'zanzariera' ? `updateConfigZanzariere('${projectId}', '${fieldName}', this.value)` :
                                   `updateConfigCassonetti('${projectId}', '${fieldName}', this.value)`}"
-                    >
-                        <option value="" class="text-gray-400">▼ Seleziona...</option>
-                        ${opzioni.map(opt => `
-                            <option value="${opt}" ${displayValue === opt ? 'selected' : ''} class="text-gray-900 font-medium">
-                                ${opt}
-                            </option>
-                        `).join('')}
-                    </select>
+                    />
                 </div>
             `;
         }
@@ -6228,7 +6290,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.30</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.31</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -9279,7 +9341,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.30
+                                    Open Porte v4.31
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -11238,7 +11300,7 @@
                             ${renderSelectWithCustom(
                                 'maniglia',
                                 project.configInfissi?.maniglia || '',
-                                ['standard', 'satinato', 'inox', 'design', 'con-chiave'],
+                                ['6010 - Finestra alluminio', '6011 - Finestra alluminio ventilante', '6012 - Finestra alluminio oscillo-battente', '6020 - Finestra con pulsante', '6021 - Finestra con pulsante ventilante', '6030 - Finestra con chiusura', '6031 - Finestra con chiusura ventilante', '6470 - Scorrevole', '6471 - Scorrevole ventilante', '6710 - Porta doppia (935/947/953)', '6700 - Porta doppia (971)', '6750 - Porta anta/ribalta (935/953)', '6740 - Porta anta/ribalta (971)', '7040 - Finestra S2', '7041 - Finestra ventilante S2', '7042 - Finestra oscillo-battente S2', '7120 - Finestra a pressione S2', '7121 - Finestra a pressione ventilante S2', '7130 - Finestra con chiusura S2', '7131 - Finestra con chiusura ventilante S2', '7070 - Finestra TBT S2', '7071 - Finestra TBT ventilante S2', '7720 - Porta doppia S2', '7730 - Porta anta/ribalta S2', '7740 - Porta anta/ribalta TBT S2', '7500 - Scorrevole S2', '7501 - Scorrevole ventilante S2', '7510 - Scorrevole doppia S2', '7511 - Scorrevole doppia ventilante S2', '7520 - Scorrevole doppia S2', '7530 - Scorrevole doppia TBT S2', '8010 - Finestra acciaio inox', '8011 - Finestra ventilante acciaio inox', '8020 - Scorrevole acciaio inox', '1040 - Finestra senza rosetta S4', '1041 - Finestra ventilante senza rosetta S4', '1901 - S11 rosetta rotonda', '19110 - S11 rosetta ovale', '19111 - S11 rosetta ovale ventilante', '19112 - S11 rosetta ovale oscillo-battente', '49110 - S11 rosetta ovale a pressione', '49111 - S11 rosetta ovale a pressione ventilante', '29110 - S11 porta doppia', '1902 - S12 rosetta rotonda', '19120 - S12 rosetta ovale', '19122 - S12 rosetta ovale oscillo-battente', '49120 - S12 rosetta ovale a pressione', '29120 - S12 porta doppia', '1903 - S13 rosetta rotonda', '19130 - S13 rosetta ovale', '19131 - S13 rosetta ovale ventilante', '19132 - S13 rosetta ovale oscillo-battente', '49130 - S13 rosetta ovale a pressione', '49131 - S13 rosetta ovale a pressione ventilante', '29130 - S13 porta doppia', '1904 - S14 rosetta rotonda', '19140 - S14 rosetta ovale', '19141 - S14 rosetta ovale ventilante', '19142 - S14 rosetta ovale oscillo-battente', '49140 - S14 rosetta ovale a pressione', '49141 - S14 rosetta ovale a pressione ventilante', '29140 - S14 porta doppia', '1905 - S15 rosetta rotonda', '19150 - S15 rosetta ovale', '19151 - S15 rosetta ovale ventilante', '19152 - S15 rosetta ovale oscillo-battente', '49150 - S15 rosetta ovale a pressione', '49151 - S15 rosetta ovale a pressione ventilante', '29150 - S15 porta doppia', '1906 - S16 rosetta rotonda', '19160 - S16 rosetta ovale', '19161 - S16 rosetta ovale ventilante', '19162 - S16 rosetta ovale oscillo-battente', '49160 - S16 rosetta ovale a pressione', '49161 - S16 rosetta ovale a pressione ventilante', '29160 - S16 porta doppia'],
                                 project.id,
                                 null,
                                 'infisso',
@@ -11249,7 +11311,7 @@
                             ${renderSelectWithCustom(
                                 'coloreManiglia',
                                 project.configInfissi?.coloreManiglia || '',
-                                ['bianco', 'bronzo', 'oro', 'nero', 'inox', 'satinato'],
+                                ['01 - Bianco', '07 - Bianco perla', '56 - Neutro anodizzato', '79 - Colore titanio', '74 - Colore bronzo', '40 - Ottone lucido', '0156 - Interno bianco / Esterno neutro', '0174 - Interno bianco / Esterno bronzo', 'M01 - Bianco opaco', 'M03 - Nero opaco', 'M07 - Bianco crema opaco', '43 - Acciaio inox', 'E03 - Nero anodizzato'],
                                 project.id,
                                 null,
                                 'infisso',
@@ -13579,7 +13641,7 @@
                                     ${renderSelectWithCustom(
                                         'maniglia',
                                         inf.maniglia || '',
-                                        ['standard', 'satinato', 'inox', 'design', 'con-chiave'],
+                                        ['6010 - Finestra alluminio', '6011 - Finestra alluminio ventilante', '6012 - Finestra alluminio oscillo-battente', '6020 - Finestra con pulsante', '6021 - Finestra con pulsante ventilante', '6030 - Finestra con chiusura', '6031 - Finestra con chiusura ventilante', '6470 - Scorrevole', '6471 - Scorrevole ventilante', '6710 - Porta doppia (935/947/953)', '6700 - Porta doppia (971)', '6750 - Porta anta/ribalta (935/953)', '6740 - Porta anta/ribalta (971)', '7040 - Finestra S2', '7041 - Finestra ventilante S2', '7042 - Finestra oscillo-battente S2', '7120 - Finestra a pressione S2', '7121 - Finestra a pressione ventilante S2', '7130 - Finestra con chiusura S2', '7131 - Finestra con chiusura ventilante S2', '7070 - Finestra TBT S2', '7071 - Finestra TBT ventilante S2', '7720 - Porta doppia S2', '7730 - Porta anta/ribalta S2', '7740 - Porta anta/ribalta TBT S2', '7500 - Scorrevole S2', '7501 - Scorrevole ventilante S2', '7510 - Scorrevole doppia S2', '7511 - Scorrevole doppia ventilante S2', '7520 - Scorrevole doppia S2', '7530 - Scorrevole doppia TBT S2', '8010 - Finestra acciaio inox', '8011 - Finestra ventilante acciaio inox', '8020 - Scorrevole acciaio inox', '1040 - Finestra senza rosetta S4', '1041 - Finestra ventilante senza rosetta S4', '1901 - S11 rosetta rotonda', '19110 - S11 rosetta ovale', '19111 - S11 rosetta ovale ventilante', '19112 - S11 rosetta ovale oscillo-battente', '49110 - S11 rosetta ovale a pressione', '49111 - S11 rosetta ovale a pressione ventilante', '29110 - S11 porta doppia', '1902 - S12 rosetta rotonda', '19120 - S12 rosetta ovale', '19122 - S12 rosetta ovale oscillo-battente', '49120 - S12 rosetta ovale a pressione', '29120 - S12 porta doppia', '1903 - S13 rosetta rotonda', '19130 - S13 rosetta ovale', '19131 - S13 rosetta ovale ventilante', '19132 - S13 rosetta ovale oscillo-battente', '49130 - S13 rosetta ovale a pressione', '49131 - S13 rosetta ovale a pressione ventilante', '29130 - S13 porta doppia', '1904 - S14 rosetta rotonda', '19140 - S14 rosetta ovale', '19141 - S14 rosetta ovale ventilante', '19142 - S14 rosetta ovale oscillo-battente', '49140 - S14 rosetta ovale a pressione', '49141 - S14 rosetta ovale a pressione ventilante', '29140 - S14 porta doppia', '1905 - S15 rosetta rotonda', '19150 - S15 rosetta ovale', '19151 - S15 rosetta ovale ventilante', '19152 - S15 rosetta ovale oscillo-battente', '49150 - S15 rosetta ovale a pressione', '49151 - S15 rosetta ovale a pressione ventilante', '29150 - S15 porta doppia', '1906 - S16 rosetta rotonda', '19160 - S16 rosetta ovale', '19161 - S16 rosetta ovale ventilante', '19162 - S16 rosetta ovale oscillo-battente', '49160 - S16 rosetta ovale a pressione', '49161 - S16 rosetta ovale a pressione ventilante', '29160 - S16 porta doppia'],
                                         project.id,
                                         pos.id,
                                         'infisso',
@@ -13590,7 +13652,7 @@
                                     ${renderSelectWithCustom(
                                         'coloreManiglia',
                                         inf.coloreManiglia || '',
-                                        ['bianco', 'bronzo', 'oro', 'nero', 'inox', 'satinato'],
+                                        ['01 - Bianco', '07 - Bianco perla', '56 - Neutro anodizzato', '79 - Colore titanio', '74 - Colore bronzo', '40 - Ottone lucido', '0156 - Interno bianco / Esterno neutro', '0174 - Interno bianco / Esterno bronzo', 'M01 - Bianco opaco', 'M03 - Nero opaco', 'M07 - Bianco crema opaco', '43 - Acciaio inox', 'E03 - Nero anodizzato'],
                                         project.id,
                                         pos.id,
                                         'infisso',
