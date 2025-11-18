@@ -1,5 +1,40 @@
 <!DOCTYPE html>
 <!--
+    Open Porte v4.28 - FIX TAGLI TELAIO + COLORE ESTERNO ✅
+    
+    🐛 FIX v4.28 (18 NOV 2025):
+    
+    ✅ RISOLTO: Tagli Telaio mostrava "nessuno" come input custom
+    
+    PROBLEMA:
+    - Config globale aveva opzione: "nessuno"
+    - Posizione infisso NON aveva "nessuno" nelle opzioni
+    - Quando config globale salvava "nessuno", posizione non trovava
+    - Risultato: dropdown mostrava "✏️ Scrivi manualmente" + input "nessuno"
+    
+    SOLUZIONE:
+    - Aggiunto "nessuno" alle opzioni di Tagli Telaio in posizione
+    - Ora config globale e posizione hanno STESSE opzioni:
+      ['nessuno', 'sopra', 'sotto', 'sopra-sotto', 'dx', 'sx', 
+       'dx-sx', '4-lati', 'sopra-laterali', 'sotto-laterali']
+    
+    MODIFICHE:
+    - Riga 13461: Aggiunto 'nessuno' all'inizio array opzioni
+    
+    RISULTATO:
+    ✅ Campo "Tagli Telaio" mostra "nessuno" nel dropdown
+    ✅ Input custom nascosto quando selezionato "nessuno"
+    ✅ Coerenza tra config globale e posizioni
+    
+    NOTE COLORE ESTERNO:
+    - Se persiste problema, potrebbe essere:
+      • Spazi extra nel valore salvato
+      • Caratteri invisibili nel database
+      • Problema nel confronto includes()
+    - Monitorare comportamento
+    
+    ---
+    
     Open Porte v4.27 - FIX TAB FUNZIONANTE DEFINITIVO ✅
     
     🎯 FIX v4.27 (17 NOV 2025):
@@ -6088,7 +6123,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.20</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.28</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -13458,7 +13493,7 @@
                                     ${renderSelectWithCustom(
                                         'tagliTelaio',
                                         inf.tagliTelaio || '',
-                                        ['sopra', 'sotto', 'sopra-sotto', 'dx', 'sx', 'dx-sx', '4-lati', 'sopra-laterali', 'sotto-laterali'],
+                                        ['nessuno', 'sopra', 'sotto', 'sopra-sotto', 'dx', 'sx', 'dx-sx', '4-lati', 'sopra-laterali', 'sotto-laterali'],
                                         project.id,
                                         pos.id,
                                         'infisso',
