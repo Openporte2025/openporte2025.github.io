@@ -2,6 +2,49 @@
 <!--
     Open Porte v4.32 - FIX COLORI DINAMICI: PVC vs Alluminio + Input Custom ✅
     
+    🐛 FIX v4.32 (18 NOV 2025):
+    
+    ✅ CORRETTI COLORI DINAMICI PVC vs ALLUMINIO + Aggiunto Input Custom
+    
+    PROBLEMA (rilevato da screenshot utente):
+    - Finitura Interna: "alluminio" → Colore Interno mostrava: "55 - Noce chiaro decoro legno" (colore PVC!) ❌
+    - Finitura Esterna: "pvc" → Colore Esterno dropdown mostrava correttamente colori alluminio ✅
+    - Array colori PVC errati nel codice:
+      • '42 - Bianco perla' → doveva essere '42 - Bianco'
+      • '07 - Nero' → doveva essere '07 - Bianco perla'
+    - Mancava opzione "Scrivi manualmente" per colori non standard
+    
+    SOLUZIONE:
+    - Funzione renderSelectColoreStandard() (riga ~3484): COMPLETAMENTE RISCRITTA
+    - Array PVC corretti da PDF Finstral pagina 1 (10 colori totali)
+    - Array Alluminio decoro legno da PDF pagina 2 gruppo 1H (10 colori)
+    - Aggiunta opzione "🖊️ Scrivi manualmente" con input custom
+    - Logica identica a renderSelectWithCustom() per consistency
+    
+    COLORI PVC CORRETTI (dal PDF):
+    01-Bianco, 45-Bianco, 27-Bianco perla, 42-Bianco, 07-Bianco perla,
+    46-Grigio seta, 06-Grigio, 13-Castagno legno, 19-Rovere legno, 55-Noce chiaro legno
+    
+    COLORI ALLUMINIO DECORO LEGNO (dal PDF):
+    L13-Castagno, L14-Mogano, L16-Douglas, L18-Noce, L19-Rovere,
+    L55-Noce chiaro, LX01-Rovere naturale, LX02-Ciliegio, LX03-Pino, LX04-Rovere venato
+    
+    MODIFICHE TECNICHE:
+    - Riga 3484-3564: renderSelectColoreStandard() con custom input
+    - Array PVC: 42="Bianco" (FIX), 07="Bianco perla" (FIX)
+    - Aggiunti: custom input + gestione __custom__ value
+    - NO modifiche Config/Posizioni: usano già renderSelectColoreStandard() ✅
+    
+    RISULTATO:
+    ✅ Finitura PVC → mostra SOLO colori PVC
+    ✅ Finitura Alluminio → mostra SOLO colori alluminio decoro legno
+    ✅ Opzione "Scrivi manualmente" → utente può inserire colori custom (es: RAL speciali)
+    ✅ Dashboard: riconoscerà colori standard E custom
+    ✅ 4 campi aggiornati: Config Int/Est + Posizione Int/Est
+    
+    
+    ---
+    
     🐛 FIX v4.31 (18 NOV 2025):
     
     ✅ IMPLEMENTATE 67 MANIGLIE FINSTRAL complete (Serie 1-4, 11-16)
@@ -1141,7 +1184,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.31 - MANIGLIE FINSTRAL ðŸ"§âœ…</title>
+    <title>Open Porte v4.32 - COLORI DINAMICI ðŸ"§âœ…</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -6290,7 +6333,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.31</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.32</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -9341,7 +9384,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.31
+                                    Open Porte v4.32
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
