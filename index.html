@@ -1,6 +1,35 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.34 - FIX EVENT LISTENER COLORI: Intercetta SEMPRE cambiamenti finitura ✅
+    Open Porte v4.35 - FIX CRITICO: getProjectFromStorage → state.projects.find ✅
+    
+    🐛 FIX v4.35 (18 NOV 2025):
+    
+    ERRORE CRITICO RILEVATO:
+    - Console: "Uncaught ReferenceError: getProjectFromStorage is not defined"
+    - Riga 3833 chiamava funzione inesistente
+    - App crashava al caricamento
+    
+    CAUSA:
+    - v4.34 usava getProjectFromStorage(projectId) che NON esiste nel codice
+    - La funzione era un residuo da implementazione precedente
+    - Tutte le altre parti del codice usano: state.projects.find(p => p.id === projectId)
+    
+    SOLUZIONE:
+    - Riga 3833: Sostituito getProjectFromStorage con state.projects.find
+    - Allineato con pattern esistente nel resto del codice
+    - Funzione aggiornaColoriAllPositions ora funziona correttamente
+    
+    MODIFICHE TECNICHE:
+    - Riga 3833: const project = state.projects.find(p => p.id === projectId);
+    - Nessun'altra modifica necessaria
+    
+    RISULTATO:
+    ✅ Zero errori in console
+    ✅ Auto-sync colori funzionante
+    ✅ App carica correttamente
+    
+    
+    ---
     
     🐛 FIX v4.34 (18 NOV 2025):
     
@@ -3830,7 +3859,8 @@
         function aggiornaColoriAllPositions(projectId) {
             console.log(`🔄 Auto-aggiornamento colori per progetto ${projectId}...`);
             
-            const project = getProjectFromStorage(projectId);
+            // 🔧 FIX v4.35: Usa state.projects.find invece di getProjectFromStorage
+            const project = state.projects.find(p => p.id === projectId);
             if (!project) {
                 console.warn(`⚠️ Progetto ${projectId} non trovato`);
                 return;
