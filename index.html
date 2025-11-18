@@ -1,6 +1,46 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.32 - FIX COLORI DINAMICI: PVC vs Alluminio + Input Custom ✅
+    Open Porte v4.33 - FIX COLORI DINAMICI REAL-TIME: Cambio Finitura = Aggiornamento Colori ✅
+    
+    🐛 FIX v4.33 (18 NOV 2025):
+    
+    ✅ COLORI SI AGGIORNANO IN TEMPO REALE quando cambi Finitura!
+    
+    PROBLEMA (screenshot utente):
+    - Finitura Esterna: "alluminio" ✅
+    - Colore Esterno dropdown: mostrava colori PVC ❌ (dovevano essere colori alluminio!)
+    - Causa: renderSelectColoreStandard() generava HTML STATICO al caricamento
+    - Quando utente cambiava finitura da PVC → Alluminio, dropdown NON si aggiornava
+    
+    SOLUZIONE:
+    - Funzione aggiornaColoriPerFinitura() (riga ~3670): Rigenera dropdown colori dinamicamente
+    - Event listener globale (riga ~3730): Intercetta cambiamenti campi finitura
+    - ID univoci select colori: Per identificare quale dropdown aggiornare
+    - Logica automatica: Cambi finitura → Colori si aggiornano dopo 100ms
+    
+    FUNZIONALITÀ:
+    - Cambio "Finitura Interna" da PVC → Alluminio → "Colore Interno" si aggiorna automaticamente
+    - Cambio "Finitura Esterna" da Alluminio → PVC → "Colore Esterno" si aggiorna automaticamente
+    - Funziona in Config Globale E nelle Posizioni
+    - Se colore selezionato non valido per nuova finitura → viene resettato
+    - Esempio: Finitura=PVC, Colore="L19 - Rovere verniciato" → cambio a Alluminio → L19 mantenuto ✅
+    - Esempio: Finitura=PVC, Colore="42 - Bianco" → cambio a Alluminio → resettat → "▼ Seleziona..." ⚠️
+    
+    MODIFICHE TECNICHE:
+    - Riga 3527-3620: renderSelectColoreStandard() con ID univoco select
+    - Riga 3622-3710: Funzione aggiornaColoriPerFinitura()
+    - Riga 3712-3760: Event listener globale document.addEventListener('change')
+    - Console log: "🎨 Aggiorno colori per finitura" quando rileva cambio
+    
+    RISULTATO:
+    ✅ Finitura PVC → mostra colori PVC in tempo reale
+    ✅ Finitura Alluminio → mostra colori alluminio in tempo reale
+    ✅ Cambio finitura → dropdown aggiornato immediatamente
+    ✅ Colore incompatibile → resettato automaticamente
+    ✅ Funziona senza reload pagina
+    
+    
+    ---
     
     🐛 FIX v4.32 (18 NOV 2025):
     
@@ -1184,7 +1224,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.32 - COLORI DINAMICI ðŸ"§âœ…</title>
+    <title>Open Porte v4.33 - COLORI REAL-TIME ðŸ"§âœ…</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -3572,12 +3612,16 @@
             // ID univoco per l'input custom
             const customInputId = `${fieldName}_custom_${projectId || 'global'}_${posId || 'config'}_${productType || 'infisso'}`;
             
+            // ID univoco per il select (per update dinamico)
+            const selectId = `${fieldName}_select_${projectId || 'global'}_${posId || 'config'}_${productType || 'infisso'}`;
+            
             return `
                 <div class="mb-2">
                     ${label ? `<label class="block text-base font-bold mb-1 text-gray-800">${label}</label>` : ''}
                     
                     <!-- Select con colori validi + opzione custom -->
                     <select 
+                        id="${selectId}"
                         class="w-full px-3 py-2.5 border-2 rounded-lg text-base font-medium ${isEmpty ? 'border-orange-400 bg-orange-50' : 'border-gray-300 bg-white'} focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
                         onchange="handleSelectCustomChange('${fieldName}', this, '${projectId}', '${posId || ''}', '${productType}')"
                     >
@@ -3610,6 +3654,141 @@
                 </div>
             `;
         }
+        
+        // 🔄 FUNZIONE DINAMICA: Aggiorna dropdown colori quando cambia finitura - v4.33
+        window.aggiornaColoriPerFinitura = (finituraField, projectId, posId, productType) => {
+            console.log(`🎨 Aggiorno colori per finitura: ${finituraField}`);
+            
+            // Trova valore finitura attuale
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            let finituraValue = '';
+            let coloreField = '';
+            
+            // Determina quale finitura è cambiata e quale colore aggiornare
+            if (finituraField === 'finituraInt') {
+                finituraValue = posId ? 
+                    project.positions.find(p => p.id === posId)?.infisso?.finituraInt :
+                    project.configInfissi?.finituraInt || 'pvc';
+                coloreField = 'coloreInt';
+            } else if (finituraField === 'finituraEst') {
+                finituraValue = posId ? 
+                    project.positions.find(p => p.id === posId)?.infisso?.finituraEst :
+                    project.configInfissi?.finituraEst || 'pvc';
+                coloreField = 'coloreEst';
+            }
+            
+            console.log(`   Finitura: ${finituraValue}, Campo colore: ${coloreField}`);
+            
+            // Array colori
+            const coloriPVC = [
+                '01 - Bianco', '45 - Bianco', '27 - Bianco perla', '42 - Bianco', 
+                '07 - Bianco perla', '46 - Grigio seta', '06 - Grigio',
+                '13 - Castagno decoro legno', '19 - Rovere decoro legno', '55 - Noce chiaro decoro legno'
+            ];
+            
+            const coloriAlluminio = [
+                'L13 - Castagno verniciato', 'L14 - Mogano verniciato', 'L16 - Douglas verniciato',
+                'L18 - Noce verniciato', 'L19 - Rovere verniciato', 'L55 - Noce chiaro verniciato',
+                'LX01 - Rovere naturale', 'LX02 - Ciliegio scuro', 'LX03 - Pino verniciato', 'LX04 - Rovere venato'
+            ];
+            
+            // Scelta opzioni
+            let opzioni = [];
+            if (finituraValue && finituraValue.toLowerCase().includes('pvc')) {
+                opzioni = coloriPVC;
+            } else if (finituraValue && finituraValue.toLowerCase().includes('alluminio')) {
+                opzioni = coloriAlluminio;
+            } else {
+                opzioni = coloriPVC;
+            }
+            
+            // Trova select colore da aggiornare
+            const selectId = `${coloreField}_select_${projectId || 'global'}_${posId || 'config'}_${productType || 'infisso'}`;
+            const selectElement = document.getElementById(selectId);
+            
+            if (!selectElement) {
+                console.warn(`⚠️ Select non trovato: ${selectId}`);
+                return;
+            }
+            
+            // Salva valore corrente (se compatibile con nuove opzioni)
+            const currentValue = selectElement.value;
+            const keepValue = opzioni.includes(currentValue);
+            
+            // Rigenera opzioni
+            selectElement.innerHTML = `
+                <option value="" class="text-gray-400">▼ Seleziona...</option>
+                ${opzioni.map(opt => `
+                    <option value="${opt}" ${keepValue && currentValue === opt ? 'selected' : ''} class="text-gray-900 font-medium">
+                        ${opt}
+                    </option>
+                `).join('')}
+                <option value="__custom__" class="text-blue-600 font-semibold">🖊️ Scrivi manualmente</option>
+            `;
+            
+            // Se valore non compatibile, resetta
+            if (!keepValue && currentValue) {
+                console.log(`   ⚠️ Colore "${currentValue}" non valido per ${finituraValue}, resettato`);
+                selectElement.value = '';
+                // Salva anche il reset
+                if (posId) {
+                    updateProduct(projectId, posId, productType, coloreField, '');
+                } else {
+                    if (productType === 'infisso') updateConfigInfissi(projectId, coloreField, '');
+                }
+            }
+            
+            console.log(`   ✅ Colori aggiornati: ${opzioni.length} opzioni (${finituraValue})`);
+        };
+        
+        // 🔄 EVENT LISTENER GLOBALE: Intercetta cambiamenti finitura e aggiorna colori - v4.33
+        document.addEventListener('change', (event) => {
+            const target = event.target;
+            
+            // Intercetta SOLO select (non input custom)
+            if (target.tagName !== 'SELECT') return;
+            
+            // Ottieni onChange value per identificare campo
+            const onchangeAttr = target.getAttribute('onchange');
+            if (!onchangeAttr) return;
+            
+            // Verifica se è un campo finitura (finituraInt o finituraEst)
+            if (!onchangeAttr.includes('finituraInt') && !onchangeAttr.includes('finituraEst')) return;
+            
+            console.log('🔄 Rilevato cambio finitura, aggiorno colori...');
+            
+            // Estrai parametri dall'attributo onchange
+            // Formato: updateConfigInfissi('proj-xxx', 'finituraInt', this.value) o updateProduct(...)
+            const isConfig = onchangeAttr.includes('updateConfigInfissi');
+            const isPosition = onchangeAttr.includes('updateProduct');
+            
+            // Estrai projectId
+            const projectIdMatch = onchangeAttr.match(/'([^']+)'/);
+            const projectId = projectIdMatch ? projectIdMatch[1] : null;
+            
+            // Estrai field name
+            const fieldMatch = isConfig ? 
+                onchangeAttr.match(/updateConfigInfissi\('[^']*',\s*'([^']*)'/) :
+                onchangeAttr.match(/updateProduct\('[^']*',\s*'[^']*',\s*'[^']*',\s*'([^']*)'/);
+            const fieldName = fieldMatch ? fieldMatch[1] : null;
+            
+            // Estrai posId (solo per posizioni)
+            const posIdMatch = isPosition ? onchangeAttr.match(/updateProduct\('[^']*',\s*'([^']*)'/): null;
+            const posId = posIdMatch ? posIdMatch[1] : null;
+            
+            // Estrai productType
+            const productTypeMatch = onchangeAttr.match(/'(infisso|persiana|tapparella|zanzariera|cassonetto)'/);
+            const productType = productTypeMatch ? productTypeMatch[1] : 'infisso';
+            
+            if (projectId && fieldName) {
+                // Attendi 100ms per permettere al valore di aggiornarsi
+                setTimeout(() => {
+                    aggiornaColoriPerFinitura(fieldName, projectId, posId, productType);
+                }, 100);
+            }
+        });
 
         // ═══════════════════════════════════════════════════════════════
         // 🎯 SOLUZIONE C: SISTEMA ANTI-DUPLICATI ENTERPRISE (Chat 010)
@@ -6333,7 +6512,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.32</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.33</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -9384,7 +9563,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.32
+                                    Open Porte v4.33
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
