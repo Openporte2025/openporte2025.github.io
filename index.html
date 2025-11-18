@@ -1,71 +1,7 @@
+    
 <!DOCTYPE html>
 <!--
-    Open Porte v4.35 - FIX CRITICO: getProjectFromStorage → state.projects.find ✅
-    
-    🐛 FIX v4.35 (18 NOV 2025):
-    
-    ERRORE CRITICO RILEVATO:
-    - Console: "Uncaught ReferenceError: getProjectFromStorage is not defined"
-    - Riga 3833 chiamava funzione inesistente
-    - App crashava al caricamento
-    
-    CAUSA:
-    - v4.34 usava getProjectFromStorage(projectId) che NON esiste nel codice
-    - La funzione era un residuo da implementazione precedente
-    - Tutte le altre parti del codice usano: state.projects.find(p => p.id === projectId)
-    
-    SOLUZIONE:
-    - Riga 3833: Sostituito getProjectFromStorage con state.projects.find
-    - Allineato con pattern esistente nel resto del codice
-    - Funzione aggiornaColoriAllPositions ora funziona correttamente
-    
-    MODIFICHE TECNICHE:
-    - Riga 3833: const project = state.projects.find(p => p.id === projectId);
-    - Nessun'altra modifica necessaria
-    
-    RISULTATO:
-    ✅ Zero errori in console
-    ✅ Auto-sync colori funzionante
-    ✅ App carica correttamente
-    
-    
-    ---
-    
-    🐛 FIX v4.34 (18 NOV 2025):
-    
-    PROBLEMA RILEVATO (screenshot utente):
-    - Finitura Esterna: "pvc"
-    - Colore Esterno dropdown: mostra colori ALLUMINIO (L13, L14, L16, LX01, LX02...) ❌
-    - Doveva mostrare colori PVC (01, 42, 45, 46...)
-    
-    CAUSA:
-    - Event listener (riga 3747) NON intercettava tutti i cambiamenti finitura
-    - Logica troppo rigida: controllava solo select.tagName === 'SELECT'
-    - Se utente caricava progetto da GitHub con Finitura="pvc" → dropdown colori NON si aggiornava
-    - Mancava auto-refresh colori al caricamento posizione
-    
-    SOLUZIONE:
-    - Funzione aggiornaColoriAllPositions(): Aggiorna TUTTI i colori di un progetto (Config + Posizioni)
-    - Chiamata automatica dopo loadProjectFromGitHub() e dopo renderProject()
-    - Fix event listener: Aggiunto log debug più dettagliato
-    - Double-check: Verifica coerenza colori-finitura ogni volta
-    
-    MODIFICHE TECNICHE:
-    - Riga ~3850: Funzione aggiornaColoriAllPositions(projectId)
-    - Riga ~9100: Chiamata aggiornaColoriAllPositions dopo loadProjectFromGitHub
-    - Riga ~10850: Chiamata aggiornaColoriAllPositions dopo renderProject
-    - Console log: "🔄 Auto-aggiornamento colori per coerenza finitura"
-    
-    RISULTATO:
-    ✅ Caricamento progetto → Colori si sincronizzano automaticamente
-    ✅ Cambio finitura → Colori si aggiornano immediatamente
-    ✅ Finitura PVC → mostra SOLO colori PVC
-    ✅ Finitura Alluminio → mostra SOLO colori alluminio
-    ✅ Funziona in Config Globale E Posizioni
-    ✅ Zero bug di visualizzazione
-    
-    
-    ---
+    Open Porte v4.33 - FIX COLORI DINAMICI REAL-TIME: Cambio Finitura = Aggiornamento Colori ✅
     
     🐛 FIX v4.33 (18 NOV 2025):
     
@@ -3855,47 +3791,6 @@
             }
         });
 
-        // 🆕 FUNZIONE GLOBALE: Aggiorna TUTTI i colori di un progetto (Config + Posizioni) - v4.34
-        function aggiornaColoriAllPositions(projectId) {
-            console.log(`🔄 Auto-aggiornamento colori per progetto ${projectId}...`);
-            
-            // 🔧 FIX v4.35: Usa state.projects.find invece di getProjectFromStorage
-            const project = state.projects.find(p => p.id === projectId);
-            if (!project) {
-                console.warn(`⚠️ Progetto ${projectId} non trovato`);
-                return;
-            }
-            
-            // 1. Aggiorna Config Globale Infissi
-            if (project.configInfissi) {
-                if (project.configInfissi.finituraInt) {
-                    aggiornaColoriPerFinitura('finituraInt', projectId, null, 'infisso');
-                }
-                if (project.configInfissi.finituraEst) {
-                    aggiornaColoriPerFinitura('finituraEst', projectId, null, 'infisso');
-                }
-            }
-            
-            // 2. Aggiorna tutte le Posizioni
-            if (project.positions && project.positions.length > 0) {
-                project.positions.forEach(pos => {
-                    // Infissi
-                    if (pos.infisso) {
-                        if (pos.infisso.finituraInt) {
-                            aggiornaColoriPerFinitura('finituraInt', projectId, pos.id, 'infisso');
-                        }
-                        if (pos.infisso.finituraEst) {
-                            aggiornaColoriPerFinitura('finituraEst', projectId, pos.id, 'infisso');
-                        }
-                    }
-                    
-                    // TODO: Aggiungere altri prodotti (persiane, tapparelle, ecc) se necessario
-                });
-            }
-            
-            console.log(`✅ Aggiornamento colori completato per ${project.positions?.length || 0} posizioni`);
-        }
-
         // ═══════════════════════════════════════════════════════════════
         // 🎯 SOLUZIONE C: SISTEMA ANTI-DUPLICATI ENTERPRISE (Chat 010)
         // ═══════════════════════════════════════════════════════════════
@@ -5308,14 +5203,6 @@
                 // Re-render SEMPRE dopo download
                 render();
                 console.log('🔄 Render forzato dopo download GitHub');
-                
-                // 🆕 v4.34: Auto-aggiorna colori per tutti i progetti scaricati
-                state.projects.forEach(project => {
-                    if (project.id) {
-                        aggiornaColoriAllPositions(project.id);
-                    }
-                });
-                console.log('🎨 Auto-aggiornamento colori completato per tutti i progetti');
                 
                 return true;
                 
@@ -18400,15 +18287,6 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
         try {
             console.log('Inizializzazione app...');
             loadState();
-            
-            // 🆕 v4.34: Auto-aggiorna colori per garantire coerenza finitura-colori
-            if (state.currentProject) {
-                setTimeout(() => {
-                    aggiornaColoriAllPositions(state.currentProject);
-                    console.log('🎨 Auto-sync colori al caricamento pagina');
-                }, 200);
-            }
-            
             render();
             console.log('App inizializzata correttamente');
             
