@@ -1,6 +1,35 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.38 - FIX RENDERING CSS: Rimosso Google Fonts ✅
+    Open Porte v4.39 - FIX COLORI + MANIGLIE SEMPLIFICATE ✅
+    
+    🔧 AGGIORNAMENTI v4.39 (18 NOV 2025):
+    
+    1. COLORI PVC/ALLUMINIO - Uniformata logica:
+       - aggiornaColoriPerFinitura() ora usa stessa logica di renderSelectColoreStandard()
+       - Priorità: Se contiene "alluminio" → colori alluminio, ALTRIMENTI → colori PVC
+       - Fix incoerenza tra le due funzioni
+    
+    2. MANIGLIE SEMPLIFICATE (4 opzioni):
+       - STANDARD → 601
+       - A PRESSIONE → 712
+       - DOPPIA ANTA/RIBALTA → 773
+       - DOPPIA ANTA → 772
+       (Sempre possibile scrivere manualmente altri codici)
+    
+    3. COLORI MANIGLIA SEMPLIFICATI (4 opzioni):
+       - BIANCO → M01
+       - TITANIO → 59
+       - NERO → M03
+       - BIANCO CREMA → M07
+       (Sempre possibile scrivere manualmente altri colori)
+    
+    4. VERSIONE aggiornata ovunque:
+       - Tag <title>: Open Porte v4.39
+       - Titolo interfaccia
+       - Tutti i riferimenti
+    
+    
+    ---
     
     🐛 FIX v4.38 (18 NOV 2025):
     
@@ -1301,7 +1330,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.33 - COLORI REAL-TIME ðŸ"§âœ…</title>
+    <title>Open Porte v4.39 - FIX COLORI + MANIGLIE SEMPLIFICATE ðŸ"§âœ…</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2513,6 +2542,17 @@
                 syncNotifications: true
             }
         };
+
+        // 🚨 LOG VERSIONE v4.39 - MOLTO EVIDENTE
+        console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   🚪 OPEN PORTE v4.39 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   FIX: Colori PVC/Alluminio + Maniglie      ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c🔧 Modifiche v4.39:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
+        console.log('  ✅ Logica colori uniformata (prima alluminio, poi PVC)');
+        console.log('  ✅ Maniglie semplificate: 4 opzioni base');
+        console.log('  ✅ Colori maniglia semplificati: 4 opzioni base');
+        console.log(' ');
 
         // 📦 FASE 027K: Configurazione GitHub Sync
         const GITHUB_CONFIG = {
@@ -3779,14 +3819,20 @@
                 'LX01 - Rovere naturale', 'LX02 - Ciliegio scuro', 'LX03 - Pino verniciato', 'LX04 - Rovere venato'
             ];
             
-            // Scelta opzioni
+            // Scelta opzioni - FIX v4.39: Logica uniformata a renderSelectColoreStandard
+            // Normalizza valore finitura
+            const finituraNormalized = (finituraValue || '').toString().trim().toLowerCase();
+            
             let opzioni = [];
-            if (finituraValue && finituraValue.toLowerCase().includes('pvc')) {
-                opzioni = coloriPVC;
-            } else if (finituraValue && finituraValue.toLowerCase().includes('alluminio')) {
+            // Priorità: Se contiene "alluminio" → usa colori alluminio
+            if (finituraNormalized.includes('alluminio') || finituraNormalized.includes('aluminio')) {
                 opzioni = coloriAlluminio;
-            } else {
+                console.log(`   ✅ Finitura contiene "alluminio" → ${coloriAlluminio.length} colori alluminio`);
+            } 
+            // Altrimenti: usa colori PVC (default sicuro)
+            else {
                 opzioni = coloriPVC;
+                console.log(`   ✅ Finitura PVC o vuota → ${coloriPVC.length} colori PVC`);
             }
             
             // Trova select colore da aggiornare
@@ -11603,22 +11649,22 @@
                                 '9. Vetro'
                             )}
 
-                            <!-- 10. MANIGLIA -->
+                            <!-- 10. MANIGLIA - SEMPLIFICATO v4.39 -->
                             ${renderSelectWithCustom(
                                 'maniglia',
                                 project.configInfissi?.maniglia || '',
-                                ['6010 - Finestra alluminio', '6011 - Finestra alluminio ventilante', '6012 - Finestra alluminio oscillo-battente', '6020 - Finestra con pulsante', '6021 - Finestra con pulsante ventilante', '6030 - Finestra con chiusura', '6031 - Finestra con chiusura ventilante', '6470 - Scorrevole', '6471 - Scorrevole ventilante', '6710 - Porta doppia (935/947/953)', '6700 - Porta doppia (971)', '6750 - Porta anta/ribalta (935/953)', '6740 - Porta anta/ribalta (971)', '7040 - Finestra S2', '7041 - Finestra ventilante S2', '7042 - Finestra oscillo-battente S2', '7120 - Finestra a pressione S2', '7121 - Finestra a pressione ventilante S2', '7130 - Finestra con chiusura S2', '7131 - Finestra con chiusura ventilante S2', '7070 - Finestra TBT S2', '7071 - Finestra TBT ventilante S2', '7720 - Porta doppia S2', '7730 - Porta anta/ribalta S2', '7740 - Porta anta/ribalta TBT S2', '7500 - Scorrevole S2', '7501 - Scorrevole ventilante S2', '7510 - Scorrevole doppia S2', '7511 - Scorrevole doppia ventilante S2', '7520 - Scorrevole doppia S2', '7530 - Scorrevole doppia TBT S2', '8010 - Finestra acciaio inox', '8011 - Finestra ventilante acciaio inox', '8020 - Scorrevole acciaio inox', '1040 - Finestra senza rosetta S4', '1041 - Finestra ventilante senza rosetta S4', '1901 - S11 rosetta rotonda', '19110 - S11 rosetta ovale', '19111 - S11 rosetta ovale ventilante', '19112 - S11 rosetta ovale oscillo-battente', '49110 - S11 rosetta ovale a pressione', '49111 - S11 rosetta ovale a pressione ventilante', '29110 - S11 porta doppia', '1902 - S12 rosetta rotonda', '19120 - S12 rosetta ovale', '19122 - S12 rosetta ovale oscillo-battente', '49120 - S12 rosetta ovale a pressione', '29120 - S12 porta doppia', '1903 - S13 rosetta rotonda', '19130 - S13 rosetta ovale', '19131 - S13 rosetta ovale ventilante', '19132 - S13 rosetta ovale oscillo-battente', '49130 - S13 rosetta ovale a pressione', '49131 - S13 rosetta ovale a pressione ventilante', '29130 - S13 porta doppia', '1904 - S14 rosetta rotonda', '19140 - S14 rosetta ovale', '19141 - S14 rosetta ovale ventilante', '19142 - S14 rosetta ovale oscillo-battente', '49140 - S14 rosetta ovale a pressione', '49141 - S14 rosetta ovale a pressione ventilante', '29140 - S14 porta doppia', '1905 - S15 rosetta rotonda', '19150 - S15 rosetta ovale', '19151 - S15 rosetta ovale ventilante', '19152 - S15 rosetta ovale oscillo-battente', '49150 - S15 rosetta ovale a pressione', '49151 - S15 rosetta ovale a pressione ventilante', '29150 - S15 porta doppia', '1906 - S16 rosetta rotonda', '19160 - S16 rosetta ovale', '19161 - S16 rosetta ovale ventilante', '19162 - S16 rosetta ovale oscillo-battente', '49160 - S16 rosetta ovale a pressione', '49161 - S16 rosetta ovale a pressione ventilante', '29160 - S16 porta doppia'],
+                                ['601 - STANDARD', '712 - A PRESSIONE', '773 - DOPPIA ANTA/RIBALTA', '772 - DOPPIA ANTA'],
                                 project.id,
                                 null,
                                 'infisso',
                                 '10. Maniglia'
                             )}
 
-                            <!-- 11. COLORE MANIGLIA -->
+                            <!-- 11. COLORE MANIGLIA - SEMPLIFICATO v4.39 -->
                             ${renderSelectWithCustom(
                                 'coloreManiglia',
                                 project.configInfissi?.coloreManiglia || '',
-                                ['01 - Bianco', '07 - Bianco perla', '56 - Neutro anodizzato', '79 - Colore titanio', '74 - Colore bronzo', '40 - Ottone lucido', '0156 - Interno bianco / Esterno neutro', '0174 - Interno bianco / Esterno bronzo', 'M01 - Bianco opaco', 'M03 - Nero opaco', 'M07 - Bianco crema opaco', '43 - Acciaio inox', 'E03 - Nero anodizzato'],
+                                ['M01 - BIANCO', '59 - TITANIO', 'M03 - NERO', 'M07 - BIANCO CREMA'],
                                 project.id,
                                 null,
                                 'infisso',
@@ -13944,22 +13990,22 @@
                                         'Vetro'
                                     )}
 
-                                    <!-- MANIGLIA -->
+                                    <!-- MANIGLIA - SEMPLIFICATO v4.39 -->
                                     ${renderSelectWithCustom(
                                         'maniglia',
                                         inf.maniglia || '',
-                                        ['6010 - Finestra alluminio', '6011 - Finestra alluminio ventilante', '6012 - Finestra alluminio oscillo-battente', '6020 - Finestra con pulsante', '6021 - Finestra con pulsante ventilante', '6030 - Finestra con chiusura', '6031 - Finestra con chiusura ventilante', '6470 - Scorrevole', '6471 - Scorrevole ventilante', '6710 - Porta doppia (935/947/953)', '6700 - Porta doppia (971)', '6750 - Porta anta/ribalta (935/953)', '6740 - Porta anta/ribalta (971)', '7040 - Finestra S2', '7041 - Finestra ventilante S2', '7042 - Finestra oscillo-battente S2', '7120 - Finestra a pressione S2', '7121 - Finestra a pressione ventilante S2', '7130 - Finestra con chiusura S2', '7131 - Finestra con chiusura ventilante S2', '7070 - Finestra TBT S2', '7071 - Finestra TBT ventilante S2', '7720 - Porta doppia S2', '7730 - Porta anta/ribalta S2', '7740 - Porta anta/ribalta TBT S2', '7500 - Scorrevole S2', '7501 - Scorrevole ventilante S2', '7510 - Scorrevole doppia S2', '7511 - Scorrevole doppia ventilante S2', '7520 - Scorrevole doppia S2', '7530 - Scorrevole doppia TBT S2', '8010 - Finestra acciaio inox', '8011 - Finestra ventilante acciaio inox', '8020 - Scorrevole acciaio inox', '1040 - Finestra senza rosetta S4', '1041 - Finestra ventilante senza rosetta S4', '1901 - S11 rosetta rotonda', '19110 - S11 rosetta ovale', '19111 - S11 rosetta ovale ventilante', '19112 - S11 rosetta ovale oscillo-battente', '49110 - S11 rosetta ovale a pressione', '49111 - S11 rosetta ovale a pressione ventilante', '29110 - S11 porta doppia', '1902 - S12 rosetta rotonda', '19120 - S12 rosetta ovale', '19122 - S12 rosetta ovale oscillo-battente', '49120 - S12 rosetta ovale a pressione', '29120 - S12 porta doppia', '1903 - S13 rosetta rotonda', '19130 - S13 rosetta ovale', '19131 - S13 rosetta ovale ventilante', '19132 - S13 rosetta ovale oscillo-battente', '49130 - S13 rosetta ovale a pressione', '49131 - S13 rosetta ovale a pressione ventilante', '29130 - S13 porta doppia', '1904 - S14 rosetta rotonda', '19140 - S14 rosetta ovale', '19141 - S14 rosetta ovale ventilante', '19142 - S14 rosetta ovale oscillo-battente', '49140 - S14 rosetta ovale a pressione', '49141 - S14 rosetta ovale a pressione ventilante', '29140 - S14 porta doppia', '1905 - S15 rosetta rotonda', '19150 - S15 rosetta ovale', '19151 - S15 rosetta ovale ventilante', '19152 - S15 rosetta ovale oscillo-battente', '49150 - S15 rosetta ovale a pressione', '49151 - S15 rosetta ovale a pressione ventilante', '29150 - S15 porta doppia', '1906 - S16 rosetta rotonda', '19160 - S16 rosetta ovale', '19161 - S16 rosetta ovale ventilante', '19162 - S16 rosetta ovale oscillo-battente', '49160 - S16 rosetta ovale a pressione', '49161 - S16 rosetta ovale a pressione ventilante', '29160 - S16 porta doppia'],
+                                        ['601 - STANDARD', '712 - A PRESSIONE', '773 - DOPPIA ANTA/RIBALTA', '772 - DOPPIA ANTA'],
                                         project.id,
                                         pos.id,
                                         'infisso',
                                         'Maniglia'
                                     )}
 
-                                    <!-- COLORE MANIGLIA -->
+                                    <!-- COLORE MANIGLIA - SEMPLIFICATO v4.39 -->
                                     ${renderSelectWithCustom(
                                         'coloreManiglia',
                                         inf.coloreManiglia || '',
-                                        ['01 - Bianco', '07 - Bianco perla', '56 - Neutro anodizzato', '79 - Colore titanio', '74 - Colore bronzo', '40 - Ottone lucido', '0156 - Interno bianco / Esterno neutro', '0174 - Interno bianco / Esterno bronzo', 'M01 - Bianco opaco', 'M03 - Nero opaco', 'M07 - Bianco crema opaco', '43 - Acciaio inox', 'E03 - Nero anodizzato'],
+                                        ['M01 - BIANCO', '59 - TITANIO', 'M03 - NERO', 'M07 - BIANCO CREMA'],
                                         project.id,
                                         pos.id,
                                         'infisso',
@@ -19080,7 +19126,11 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                     }
                 });
             }
-        });
+        });\n        
+        // 🚨 NOTIFICA VISIVA VERSIONE v4.39
+        setTimeout(() => {
+            showNotification('🚪 Open Porte v4.39 caricato ✅ | Fix: Colori PVC/Alluminio + Maniglie semplificate', 'success', 5000);
+        }, 1000);
         
         // Aggiungi animazioni CSS
         const style = document.createElement('style');
