@@ -1,37 +1,38 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.28 - FIX TAGLI TELAIO + COLORE ESTERNO ✅
+    Open Porte v4.29 - FIX COLORI STANDARD (NO CUSTOM INPUT) ✅
     
-    🐛 FIX v4.28 (18 NOV 2025):
+    🐛 FIX v4.29 (18 NOV 2025):
     
-    ✅ RISOLTO: Tagli Telaio mostrava "nessuno" come input custom
+    ✅ RISOLTO: Colori Interno/Esterno non devono avere opzione "Scrivi manualmente"
     
     PROBLEMA:
-    - Config globale aveva opzione: "nessuno"
-    - Posizione infisso NON aveva "nessuno" nelle opzioni
-    - Quando config globale salvava "nessuno", posizione non trovava
-    - Risultato: dropdown mostrava "✏️ Scrivi manualmente" + input "nessuno"
+    - Colore Esterno mostrava "🖊️ Scrivi manualmente" + input custom
+    - Se config globale: Finitura=PVC, Colore="19 - Rovere"
+    - Ma posizione aveva: Finitura=alluminio
+    - Sistema vedeva "19 - Rovere" non in lista alluminio → trattava come custom
+    - Risultato: dropdown "Scrivi manualmente" invece di select normale
     
     SOLUZIONE:
-    - Aggiunto "nessuno" alle opzioni di Tagli Telaio in posizione
-    - Ora config globale e posizione hanno STESSE opzioni:
-      ['nessuno', 'sopra', 'sotto', 'sopra-sotto', 'dx', 'sx', 
-       'dx-sx', '4-lati', 'sopra-laterali', 'sotto-laterali']
+    - Creata funzione renderSelectColoreStandard() (riga ~3405)
+    - Select SOLO con colori validi per materiale corrente (PVC o Alluminio)
+    - NO opzione "Scrivi manualmente"
+    - NO input custom
+    - Se valore non valido per materiale → campo vuoto (selezionabile)
     
     MODIFICHE:
-    - Riga 13461: Aggiunto 'nessuno' all'inizio array opzioni
+    - Riga 3405: Nuova funzione renderSelectColoreStandard()
+    - Riga 11145: Config globale Colore Interno usa renderSelectColoreStandard
+    - Riga 11156: Config globale Colore Esterno usa renderSelectColoreStandard
+    - Riga 13486: Posizione Colore Interno usa renderSelectColoreStandard
+    - Riga 13497: Posizione Colore Esterno usa renderSelectColoreStandard
     
     RISULTATO:
-    ✅ Campo "Tagli Telaio" mostra "nessuno" nel dropdown
-    ✅ Input custom nascosto quando selezionato "nessuno"
-    ✅ Coerenza tra config globale e posizioni
+    ✅ Campi colore mostrano SOLO dropdown standard
+    ✅ Opzioni dinamiche basate su Finitura (PVC/Alluminio)
+    ✅ Completamente modificabili tramite select
+    ✅ NO più input custom per colori
     
-    NOTE COLORE ESTERNO:
-    - Se persiste problema, potrebbe essere:
-      • Spazi extra nel valore salvato
-      • Caratteri invisibili nel database
-      • Problema nel confronto includes()
-    - Monitorare comportamento
     
     ---
     
@@ -1062,7 +1063,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.20 - ID ANNOP001 + Navigazione Migliorata 🎯✨</title>
+    <title>Open Porte v4.29 - FIX COLORI STANDARD 🎨✅</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -3399,6 +3400,76 @@
             
             // Usa renderSelectWithCustom con opzioni dinamiche
             return renderSelectWithCustom(fieldName, currentValue, opzioni, projectId, posId, productType, label);
+        }
+
+        // 🎨 FASE 30024b: Select COLORI STANDARD (NO custom input) - v4.29
+        function renderSelectColoreStandard(fieldName, currentValue, finituraValue, projectId, posId, productType, label) {
+            // Colori PVC (tutti)
+            const coloriPVC = [
+                '01 - Bianco',
+                '42 - Bianco perla',
+                '45 - Grigio seta',
+                '06 - Grigio',
+                '07 - Nero',
+                '13 - Castagno decoro legno',
+                '19 - Rovere decoro legno',
+                '46 - Marrone chiaro',
+                '55 - Noce chiaro decoro legno'
+            ];
+            
+            // Colori Alluminio (SOLO effetti legno)
+            const coloriAlluminioLegno = [
+                'L13 - Castagno verniciato',
+                'L14 - Mogano verniciato',
+                'L16 - Douglas verniciato',
+                'L18 - Noce verniciato',
+                'L19 - Rovere verniciato',
+                'L55 - Noce chiaro verniciato',
+                'LX01 - Rovere naturale',
+                'LX02 - Ciliegio scuro',
+                'LX03 - Pino verniciato',
+                'LX04 - Rovere venato'
+            ];
+            
+            // Scelta opzioni in base a finitura
+            let opzioni = [];
+            if (finituraValue && finituraValue.toLowerCase().includes('pvc')) {
+                opzioni = coloriPVC;
+            } else if (finituraValue && finituraValue.toLowerCase().includes('alluminio')) {
+                opzioni = coloriAlluminioLegno;
+            } else {
+                // Se finitura non impostata o altro materiale, usa PVC come default
+                opzioni = coloriPVC;
+            }
+            
+            // Verifica se currentValue è valido per il materiale corrente
+            const isValueValid = opzioni.includes(currentValue);
+            const displayValue = isValueValid ? currentValue : '';
+            const isEmpty = !displayValue || displayValue === '';
+            
+            return `
+                <div class="mb-2">
+                    ${label ? `<label class="block text-base font-bold mb-1 text-gray-800">${label}</label>` : ''}
+                    
+                    <!-- Select SOLO con colori validi (NO custom) -->
+                    <select 
+                        class="w-full px-3 py-2.5 border-2 rounded-lg text-base font-medium ${isEmpty ? 'border-orange-400 bg-orange-50' : 'border-gray-300 bg-white'} focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                        onchange="${posId ? `updateProduct('${projectId}', '${posId}', '${productType}', '${fieldName}', this.value)` : 
+                                  productType === 'infisso' ? `updateConfigInfissi('${projectId}', '${fieldName}', this.value)` :
+                                  productType === 'persiana' ? `updateConfigPersiane('${projectId}', '${fieldName}', this.value)` :
+                                  productType === 'tapparella' ? `updateConfigTapparelle('${projectId}', '${fieldName}', this.value)` :
+                                  productType === 'zanzariera' ? `updateConfigZanzariere('${projectId}', '${fieldName}', this.value)` :
+                                  `updateConfigCassonetti('${projectId}', '${fieldName}', this.value)`}"
+                    >
+                        <option value="" class="text-gray-400">▼ Seleziona...</option>
+                        ${opzioni.map(opt => `
+                            <option value="${opt}" ${displayValue === opt ? 'selected' : ''} class="text-gray-900 font-medium">
+                                ${opt}
+                            </option>
+                        `).join('')}
+                    </select>
+                </div>
+            `;
         }
 
         // ═══════════════════════════════════════════════════════════════
@@ -6123,7 +6194,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.28</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.29</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -9171,7 +9242,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.20
+                                    Open Porte v4.29
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -11072,7 +11143,7 @@
                             )}
 
                             <!-- 5. COLORE INTERNO -->
-                            ${renderSelectColore(
+                            ${renderSelectColoreStandard(
                                 'coloreInt',
                                 project.configInfissi?.coloreInt || '',
                                 project.configInfissi?.finituraInt || 'pvc',
@@ -11083,7 +11154,7 @@
                             )}
 
                             <!-- 6. COLORE ESTERNO -->
-                            ${renderSelectColore(
+                            ${renderSelectColoreStandard(
                                 'coloreEst',
                                 project.configInfissi?.coloreEst || '',
                                 project.configInfissi?.finituraEst || 'pvc',
@@ -13413,7 +13484,7 @@
                                     )}
 
                                     <!-- COLORE INTERNO -->
-                                    ${renderSelectColore(
+                                    ${renderSelectColoreStandard(
                                         'coloreInt',
                                         inf.coloreInt || '',
                                         inf.finituraInt || 'pvc',
@@ -13424,7 +13495,7 @@
                                     )}
 
                                     <!-- COLORE ESTERNO -->
-                                    ${renderSelectColore(
+                                    ${renderSelectColoreStandard(
                                         'coloreEst',
                                         inf.coloreEst || '',
                                         inf.finituraEst || 'pvc',
