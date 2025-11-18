@@ -1,57 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.40 - FIX COLORI REAL-TIME ✅
-    
-    🔧 AGGIORNAMENTI v4.40 (18 NOV 2025):
-    
-    ⚡ FIX CRITICO: Colori PVC/Alluminio cambiano IMMEDIATAMENTE
-       - Prima: Bisognava uscire e rientrare dal progetto
-       - Ora: Cambio finitura → Colori si aggiornano ISTANTANEAMENTE
-       - Trigger diretto in handleSelectCustomChange
-       - Funziona sia per Config Globale che Posizioni
-       - Funziona anche con input custom
-    
-    Implementazione:
-    - handleSelectCustomChange chiama aggiornaColoriPerFinitura dopo 150ms
-    - Input custom finitura chiama aggiornaColoriPerFinitura direttamente
-    - Log console mostra "TRIGGER DIRETTO" per debug
-    
-    
-    ---
-    
-    🔧 AGGIORNAMENTI v4.39 (18 NOV 2025):
-    
-    1. COLORI PVC/ALLUMINIO - Uniformata logica:
-       - aggiornaColoriPerFinitura() ora usa stessa logica di renderSelectColoreStandard()
-       - Priorità: Se contiene "alluminio" → colori alluminio, ALTRIMENTI → colori PVC
-       - Fix incoerenza tra le due funzioni
-    
-    2. MANIGLIE SEMPLIFICATE (4 opzioni):
-       - STANDARD → 601
-       - A PRESSIONE → 712
-       - DOPPIA ANTA/RIBALTA → 773
-       - DOPPIA ANTA → 772
-       (Sempre possibile scrivere manualmente altri codici)
-    
-    3. COLORI MANIGLIA (9 opzioni complete):
-       - 01 - BIANCO
-       - 07 - PERLA
-       - 56 - NEUTRO ANODIZZATO
-       - 74 - BRONZO
-       - 40 - OTTONE LUCIDO
-       - 79 - TITANIO
-       - M01 - BIANCO
-       - M03 - NERO
-       - M07 - BIANCO CREMA
-       (Sempre possibile scrivere manualmente altri colori)
-    
-    4. VERSIONE aggiornata ovunque:
-       - Tag <title>: Open Porte v4.39
-       - Titolo interfaccia
-       - Tutti i riferimenti
-    
-    
-    ---
+    Open Porte v4.40 - FIX COLORI REAL-TIME + MANIGLIE ✅
     
     🐛 FIX v4.38 (18 NOV 2025):
     
@@ -2565,20 +2514,6 @@
             }
         };
 
-        // 🚨 LOG VERSIONE v4.40 - MOLTO EVIDENTE
-        console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   🚪 OPEN PORTE v4.40 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   FIX CRITICO: Colori real-time!            ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c🔧 v4.40:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
-        console.log('  ⚡ Colori PVC/Alluminio cambiano IMMEDIATAMENTE');
-        console.log('  ⚡ Non serve più uscire e rientrare dal progetto');
-        console.log('%c🔧 v4.39:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
-        console.log('  ✅ Logica colori uniformata');
-        console.log('  ✅ Maniglie semplificate: 4 opzioni');
-        console.log('  ✅ Colori maniglia: 9 opzioni complete');
-        console.log(' ');
-
         // 📦 FASE 027K: Configurazione GitHub Sync
         const GITHUB_CONFIG = {
             enabled: true,
@@ -3609,12 +3544,11 @@
                         }
                     }, 50); // 50ms di delay
                     
-                    // 🎨 v4.40: Se campo finitura, aggiorna colori IMMEDIATAMENTE
+                    // v4.40: Trigger colori real-time per finitura
                     if (fieldName === 'finituraInt' || fieldName === 'finituraEst') {
                         setTimeout(() => {
-                            console.log(`🎨 TRIGGER DIRETTO: Aggiorno colori per ${fieldName}`);
                             aggiornaColoriPerFinitura(fieldName, projectId, posId, productType);
-                        }, 150); // 150ms per dare tempo al salvataggio
+                        }, 150);
                     }
                 }
             }
@@ -3813,7 +3747,7 @@
             `;
         }
         
-        // 🔄 FUNZIONE DINAMICA: Aggiorna dropdown colori quando cambia finitura - v4.39 (base v4.33)
+        // 🔄 FUNZIONE DINAMICA: Aggiorna dropdown colori quando cambia finitura - v4.33
         window.aggiornaColoriPerFinitura = (finituraField, projectId, posId, productType) => {
             console.log(`🎨 Aggiorno colori per finitura: ${finituraField}`);
             
@@ -3852,20 +3786,14 @@
                 'LX01 - Rovere naturale', 'LX02 - Ciliegio scuro', 'LX03 - Pino verniciato', 'LX04 - Rovere venato'
             ];
             
-            // Scelta opzioni - FIX v4.39: Logica uniformata a renderSelectColoreStandard
-            // Normalizza valore finitura
-            const finituraNormalized = (finituraValue || '').toString().trim().toLowerCase();
-            
+            // Scelta opzioni
             let opzioni = [];
-            // Priorità: Se contiene "alluminio" → usa colori alluminio
-            if (finituraNormalized.includes('alluminio') || finituraNormalized.includes('aluminio')) {
-                opzioni = coloriAlluminio;
-                console.log(`   ✅ Finitura contiene "alluminio" → ${coloriAlluminio.length} colori alluminio`);
-            } 
-            // Altrimenti: usa colori PVC (default sicuro)
-            else {
+            if (finituraValue && finituraValue.toLowerCase().includes('pvc')) {
                 opzioni = coloriPVC;
-                console.log(`   ✅ Finitura PVC o vuota → ${coloriPVC.length} colori PVC`);
+            } else if (finituraValue && finituraValue.toLowerCase().includes('alluminio')) {
+                opzioni = coloriAlluminio;
+            } else {
+                opzioni = coloriPVC;
             }
             
             // Trova select colore da aggiornare
@@ -3907,7 +3835,7 @@
             console.log(`   ✅ Colori aggiornati: ${opzioni.length} opzioni (${finituraValue})`);
         };
         
-        // 🔄 EVENT LISTENER GLOBALE: Intercetta cambiamenti finitura e aggiorna colori - v4.39 (base v4.33)
+        // 🔄 EVENT LISTENER GLOBALE: Intercetta cambiamenti finitura e aggiorna colori - v4.33
         document.addEventListener('change', (event) => {
             const target = event.target;
             
@@ -11682,7 +11610,7 @@
                                 '9. Vetro'
                             )}
 
-                            <!-- 10. MANIGLIA - SEMPLIFICATO v4.39 -->
+                            <!-- 10. MANIGLIA - SEMPLIFICATE v4.40 -->
                             ${renderSelectWithCustom(
                                 'maniglia',
                                 project.configInfissi?.maniglia || '',
@@ -11693,7 +11621,7 @@
                                 '10. Maniglia'
                             )}
 
-                            <!-- 11. COLORE MANIGLIA - AGGIORNATO v4.39 -->
+                            <!-- 11. COLORE MANIGLIA - 9 OPZIONI v4.40 -->
                             ${renderSelectWithCustom(
                                 'coloreManiglia',
                                 project.configInfissi?.coloreManiglia || '',
@@ -14023,7 +13951,7 @@
                                         'Vetro'
                                     )}
 
-                                    <!-- MANIGLIA - SEMPLIFICATO v4.39 -->
+                                    <!-- MANIGLIA - SEMPLIFICATE v4.40 -->
                                     ${renderSelectWithCustom(
                                         'maniglia',
                                         inf.maniglia || '',
@@ -14034,7 +13962,7 @@
                                         'Maniglia'
                                     )}
 
-                                    <!-- COLORE MANIGLIA - AGGIORNATO v4.39 -->
+                                    <!-- COLORE MANIGLIA - 9 OPZIONI v4.40 -->
                                     ${renderSelectWithCustom(
                                         'coloreManiglia',
                                         inf.coloreManiglia || '',
@@ -19159,11 +19087,7 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                     }
                 });
             }
-        });\n        
-        // 🚨 NOTIFICA VISIVA VERSIONE v4.40
-        setTimeout(() => {
-            showNotification('🚪 v4.40 ✅ FIX CRITICO: Colori cambiano IMMEDIATAMENTE!', 'success', 5000);
-        }, 1000);
+        });
         
         // Aggiungi animazioni CSS
         const style = document.createElement('style');
