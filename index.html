@@ -3609,7 +3609,7 @@
                         }
                     }, 50); // 50ms di delay
                     
-                    // 🎨 v4.39: Se campo finitura, aggiorna colori IMMEDIATAMENTE
+                    // 🎨 v4.40: Se campo finitura, aggiorna colori IMMEDIATAMENTE
                     if (fieldName === 'finituraInt' || fieldName === 'finituraEst') {
                         setTimeout(() => {
                             console.log(`🎨 TRIGGER DIRETTO: Aggiorno colori per ${fieldName}`);
@@ -3658,8 +3658,8 @@
                         placeholder="✏️ Scrivi valore personalizzato..."
                         value="${isCustom ? currentValue : ''}"
                         style="display: ${isCustom ? 'block' : 'none'};"
-                        onchange="${posId ? `updateProduct('${projectId}', '${posId}', '${productType}', '${fieldName}', this.value); ${fieldName === 'finituraInt' || fieldName === 'finituraEst' ? `setTimeout(() => aggiornaColoriPerFinitura('${fieldName}', '${projectId}', '${posId}', '${productType}'), 150);` : ''}` : 
-                                  productType === 'infisso' ? `updateConfigInfissi('${projectId}', '${fieldName}', this.value); ${fieldName === 'finituraInt' || fieldName === 'finituraEst' ? `setTimeout(() => aggiornaColoriPerFinitura('${fieldName}', '${projectId}', null, '${productType}'), 150);` : ''}` :
+                        onchange="${posId ? `updateProduct('${projectId}', '${posId}', '${productType}', '${fieldName}', this.value)` : 
+                                  productType === 'infisso' ? `updateConfigInfissi('${projectId}', '${fieldName}', this.value)` :
                                   productType === 'persiana' ? `updateConfigPersiane('${projectId}', '${fieldName}', this.value)` :
                                   productType === 'tapparella' ? `updateConfigTapparelle('${projectId}', '${fieldName}', this.value)` :
                                   productType === 'zanzariera' ? `updateConfigZanzariere('${projectId}', '${fieldName}', this.value)` :
