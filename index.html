@@ -1,6 +1,40 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.29 - FIX COLORI STANDARD (NO CUSTOM INPUT) ✅
+    Open Porte v4.30 - FIX MANIGLIE: Copia da Config + Opzioni Corrette ✅
+    
+    🐛 FIX v4.30 (18 NOV 2025):
+    
+    ✅ RISOLTO: Campi Maniglia e Colore Maniglia non venivano copiati da Config Globale a Posizione
+    
+    PROBLEMA 1 - COPIA DA CONFIG:
+    - Config Globale: Maniglia = "inox", Colore Maniglia = "bronzo"
+    - Creata nuova posizione + Aggiungi Infisso
+    - Risultato: Maniglia e Colore Maniglia VUOTI (non copiati) ❌
+    
+    PROBLEMA 2 - OPZIONI SELECT SBAGLIATE:
+    - Opzioni attuali: ['standard', 'con-chiave', 'alzante-scorrevole', 'cremonese']
+    - Opzioni corrette: ['standard', 'satinato', 'inox', 'design', 'con-chiave']
+    - Le vecchie opzioni non corrispondevano a SPECIFICA-MANIGLIE-SOLO.md
+    
+    SOLUZIONE:
+    - Funzione addInfisso() (riga ~8149): Aggiunto codTagliValues, maniglia, coloreManiglia
+    - Ora copia TUTTI i campi da config globale quando si crea infisso
+    - Aggiornate opzioni Maniglia in Config Globale (riga ~11204)
+    - Aggiornate opzioni Maniglia in Posizione (riga ~13545)
+    
+    MODIFICHE:
+    - Riga 8183-8191: addInfisso() ora copia maniglia e coloreManiglia
+    - Riga 11204: Config Globale usa opzioni corrette
+    - Riga 13545: Posizione usa opzioni corrette
+    - Riga 357: Documentazione interna aggiornata
+    
+    RISULTATO:
+    ✅ Config Globale → Posizione: maniglia e coloreManiglia copiati
+    ✅ Opzioni select conformi a specifica dashboard
+    ✅ Supplementi maniglie calcolati correttamente (+€20 inox, +€40 design, +€50 con-chiave)
+    
+    
+    ---
     
     🐛 FIX v4.29 (18 NOV 2025):
     
@@ -354,7 +388,7 @@
        7. Telaio (961, 965, 967, Z62, Z91, + custom)
        8. Allarme (si/no)
        9. Vetro (doppio, doppio-sat, triplo, triplo-sat)
-       10. Maniglia (standard, con-chiave, alzante-scorrevole, cremonese)
+       10. Maniglia (standard, satinato, inox, design, con-chiave)
        11. Colore Maniglia (bianco, bronzo, oro, nero, inox, satinato)
     
     🔧 FUNZIONI NUOVE:
@@ -1063,7 +1097,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.29 - FIX COLORI STANDARD 🎨✅</title>
+    <title>Open Porte v4.30 - FIX MANIGLIE ðŸ"§âœ…</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -6194,7 +6228,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.29</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.30</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -8182,6 +8216,9 @@
                         vetro: project.configInfissi?.vetro || '',
                         tagliTelaio: project.configInfissi?.tagliTelaio || '',
                         codTagli: project.configInfissi?.codTagli ? [...project.configInfissi.codTagli] : [],
+                        codTagliValues: project.configInfissi?.codTagliValues ? [...project.configInfissi.codTagliValues] : [],
+                        maniglia: project.configInfissi?.maniglia || '',
+                        coloreManiglia: project.configInfissi?.coloreManiglia || '',
                         motoreAzienda: project.configInfissi?.motoreAzienda || '',
                         motoreModello: project.configInfissi?.motoreModello || '',
                         BRM_L: brm.L,
@@ -9242,7 +9279,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.29
+                                    Open Porte v4.30
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -11201,7 +11238,7 @@
                             ${renderSelectWithCustom(
                                 'maniglia',
                                 project.configInfissi?.maniglia || '',
-                                ['standard', 'con-chiave', 'alzante-scorrevole', 'cremonese'],
+                                ['standard', 'satinato', 'inox', 'design', 'con-chiave'],
                                 project.id,
                                 null,
                                 'infisso',
@@ -13542,7 +13579,7 @@
                                     ${renderSelectWithCustom(
                                         'maniglia',
                                         inf.maniglia || '',
-                                        ['standard', 'con-chiave', 'alzante-scorrevole', 'cremonese'],
+                                        ['standard', 'satinato', 'inox', 'design', 'con-chiave'],
                                         project.id,
                                         pos.id,
                                         'infisso',
