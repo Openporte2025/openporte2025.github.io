@@ -1,6 +1,38 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.46 - PERSIANE: Select colori con 38 opzioni + custom input ✅
+    Open Porte v4.48 - FIX CRITICO: Rimosso backslash-n che bloccava hamburger ✅
+    
+    🔧 AGGIORNAMENTI v4.48 (19 NOV 2025):
+    
+    ⚡ FIX CRITICO: Menu hamburger ora funziona!
+       - Problema: Carattere `});\\n` letterale invece di newline reale
+       - Causa: "Uncaught SyntaxError: Invalid or unexpected token"
+       - Riga 19262: Rimosso `\\n` problematico
+       - Menu hamburger ☰ ora funziona correttamente
+       - 2 errori JavaScript risolti
+    
+    Implementazione:
+    - Sostituito `});\\n` con `});` normale
+    - Verificati altri backslash-n (tutti corretti dentro stringhe)
+    - Test locale superato
+    
+    ---
+    
+    🔧 AGGIORNAMENTI v4.47 (19 NOV 2025):
+    
+    ⚡ FIX CRITICO: Errore sintassi JavaScript risolto
+       - Problema: Liste colori inline (38 elementi) causavano "Invalid or unexpected token"
+       - Soluzione: Creata costante const COLORI_PERSIANE con array
+       - Rimossi caratteri "?" problematici → sostituiti con "50"
+       - Menu hamburger ora funziona correttamente
+       - Migliorata leggibilità del codice
+    
+    Implementazione:
+    - const COLORI_PERSIANE = [38 colori] dichiarata dopo lo state
+    - renderSelectWithCustom usa COLORI_PERSIANE invece di array inline
+    - Funziona in Config Globale E Posizioni
+    
+    ---
     
     🔧 AGGIORNAMENTI v4.46 (19 NOV 2025):
     
@@ -63,7 +95,7 @@
        (Sempre possibile scrivere manualmente altri colori)
     
     4. VERSIONE aggiornata ovunque:
-       - Tag <title>: Open Porte v4.46
+       - Tag <title>: Open Porte v4.48
        - Titolo interfaccia
        - Tutti i riferimenti
     
@@ -1369,7 +1401,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.46 - PERSIANE: Select colori con 38 opzioni + custom input ðŸ"§âœ…</title>
+    <title>Open Porte v4.48 - FIX CRITICO: Rimosso backslash-n che bloccava hamburger ðŸ"§âœ…</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2582,19 +2614,61 @@
             }
         };
 
-        // 🚨 LOG VERSIONE v4.46 - MOLTO EVIDENTE
+        // 🚨 LOG VERSIONE v4.48 - MOLTO EVIDENTE
         console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   🚪 OPEN PORTE v4.46 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   PERSIANE: 38 colori in select!            ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   🚪 OPEN PORTE v4.48 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   FIX: Menu hamburger funziona!             ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c🔧 v4.46:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
-        console.log('  ⚡ Select colori persiane con 38 opzioni CPF');
-        console.log('  ⚡ Colore Persiana e Colore Telaio con dropdown');
+        console.log('%c🔧 v4.48:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
+        console.log('  ⚡ FIX: Rimosso backslash-n che bloccava menu hamburger');
+        console.log('  ⚡ Menu hamburger ora funziona correttamente');
         console.log('%c🔧 v4.39:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
         console.log('  ✅ Logica colori uniformata');
         console.log('  ✅ Maniglie semplificate: 4 opzioni');
         console.log('  ✅ Colori maniglia: 9 opzioni complete');
         console.log(' ');
+
+        // 🎨 COSTANTE COLORI PERSIANE
+        const COLORI_PERSIANE = [
+            'CPF910L - Bianco puro tipo Ral 9010 opaco',
+            'CPF113L - Bianco perla tipo Ral1013 opaco',
+            'CPF701L - Grigio argento tipo Ral 7001 opaco',
+            'CPF716L - Antracite tipo Ral 7016 opaco',
+            'CPF605L - Verde muschio tipo Ral 6005 opaco',
+            'CPF609T - Verde abete textured tipo Ral 6009 ruvido',
+            'CPF817L - Marrone cioccolato tipo Ral 8017 opaco',
+            'CPF735L - Grigio luce tipo Ral 7035 opaco',
+            'CPF609L - Verde abete tipo Ral6009 semiopaco',
+            'CPF621L - Verde pallido tipo Ral 6021 opaco',
+            'CPF119L - Beige tipo Ral 1019 opaco Grigio',
+            'CPF524L - Azzurro pastello tipo Ral 5024 opaco',
+            'CPF811L - Marrone Nuss tipo Ral 8011 opaco',
+            'CPF910T - Bianco puro textured tipo Ral 9010 ruvido',
+            'CPF113T - Bianco perla textured tipo Ral 1013 ruvido',
+            'CPF701T - Grigio argento textured tipo Ral 7001 ruvido',
+            'CPF305T - Rosso vino textured tipo Ral 3005 ruvido',
+            'CPF605T - Verde foglia textured tipo Ral 6005 ruvido',
+            'CPF817T - Marrone cioccolato textured tipo Ral 8017 ruvido',
+            'CPF820H - Grey Oak',
+            'CPF818H - Renolit Vulcano',
+            'CPF813H - Renolit Gold',
+            'CPFR811 - Marrone Renolit scuro',
+            'CPF812H - Marrone Renolit dorato',
+            'CPFN630 - Acacia - effetto rigato',
+            'CPFN632 - Noce Reale - effetto rigato',
+            'CPF90RC - Marrone RENOLIT CHIARO ruvido',
+            'CPF91RS - Marrone RENOLIT SCURO ruvido',
+            'CPF51CR - Marrone ciliegio Renoir ruvido',
+            'CPF358R - Douglas tipo 335-S0R',
+            'CPF127R - Noce scuro ruvido tipo 102-50R',
+            'CPF375R - Castagno chiaro ruvido tipo 375-S0R',
+            'CPF378R - Castagno scuro ruvido tipo 378-50R',
+            'CPF317R - Ciliegio chiaro ruvido tipo 317-50R',
+            'CPF70KA - Winchester',
+            'CPFSLV7 - Verde Salvia',
+            'CPFRGG4 - Ruggine EVO',
+            'CPF744L - Grigio seta tipo RAL 7044 opaco'
+        ];
 
         // 📦 FASE 027K: Configurazione GitHub Sync
         const GITHUB_CONFIG = {
@@ -6693,7 +6767,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.46</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.48</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -9749,7 +9823,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.46
+                                    Open Porte v4.48
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -11860,7 +11934,7 @@
                             ${renderSelectWithCustom(
                                 'colorePersiana',
                                 project.configPersiane?.colorePersiana || '',
-                                ['CPF910L - Bianco puro tipo Ral 9010 opaco', 'CPF113L - Bianco perla tipo Ral1013 opaco', 'CPF701L - Grigio argento tipo Ral 7001 opaco', 'CPF716L - Antracite tipo Ral 7016 opaco', 'CPF605L - Verde muschio tipo Ral 6005 opaco', 'CPF609T - Verde abete textured tipo Ral 6009 ruvido', 'CPF817L - Marrone cioccolato tipo Ral 8017 opaco', 'CPF735L - Grigio luce tipo Ral 7035 opaco', 'CPF609L - Verde abete tipo Ral6009 semiopaco', 'CPF621L - Verde pallido tipo Ral 6021 opaco', 'CPF119L - Beige tipo Ral 1019 opaco Grigio', 'CPF524L - Azzurro pastello tipo Ral 5024 opaco', 'CPF811L - Marrone Nuss tipo Ral 8011 opaco', 'CPF910T - Bianco puro textured tipo Ral 9010 ruvido', 'CPF113T - Bianco perla textured tipo Ral 1013 ruvido', 'CPF701T - Grigio argento textured tipo Ral 7001 ruvido', 'CPF305T - Rosso vino textured tipo Ral 3005 ruvido', 'CPF605T - Verde foglia textured tipo Ral 6005 ruvido', 'CPF817T - Marrone cioccolato textured tipo Ral 8017 ruvido', 'CPF820H - Grey Oak', 'CPF818H - Renolit Vulcano', 'CPF813H - Renolit Gold', 'CPFR811 - Marrone Renolit scuro', 'CPF812H - Marrone Renolit dorato', 'CPFN630 - Acacia - effetto rigato', 'CPFN632 - Noce Reale - effetto rigato', 'CPF90RC - Marrone RENOLIT CHIARO ruvido', 'CPF91RS - Marrone RENOLIT SCURO ruvido', 'CPF51CR - Marrone ciliegio Renoir ruvido', 'CPF358R - Douglas tipo 335-S0R', 'CPF127R - Noce scuro ruvido tipo 102-?0R', 'CPF375R - Castagno chiaro ruvido tipo 375-S0R', 'CPF378R - Castagno scuro ruvido tipo 378-?0R', 'CPF317R - Ciliegio chiaro ruvido tipo 317-?OR', 'CPF70KA - Winchester', 'CPFSLV7 - Verde Salvia', 'CPFRGG4 - Ruggine EVO', 'CPF744L - Grigio seta tipo RAL 7044 opaco'],
+                                COLORI_PERSIANE,
                                 project.id,
                                 null,
                                 'persiana',
@@ -11873,7 +11947,7 @@
                                 ${renderSelectWithCustom(
                                     'coloreTelaio',
                                     project.configPersiane?.coloreTelaio || '',
-                                    ['CPF910L - Bianco puro tipo Ral 9010 opaco', 'CPF113L - Bianco perla tipo Ral1013 opaco', 'CPF701L - Grigio argento tipo Ral 7001 opaco', 'CPF716L - Antracite tipo Ral 7016 opaco', 'CPF605L - Verde muschio tipo Ral 6005 opaco', 'CPF609T - Verde abete textured tipo Ral 6009 ruvido', 'CPF817L - Marrone cioccolato tipo Ral 8017 opaco', 'CPF735L - Grigio luce tipo Ral 7035 opaco', 'CPF609L - Verde abete tipo Ral6009 semiopaco', 'CPF621L - Verde pallido tipo Ral 6021 opaco', 'CPF119L - Beige tipo Ral 1019 opaco Grigio', 'CPF524L - Azzurro pastello tipo Ral 5024 opaco', 'CPF811L - Marrone Nuss tipo Ral 8011 opaco', 'CPF910T - Bianco puro textured tipo Ral 9010 ruvido', 'CPF113T - Bianco perla textured tipo Ral 1013 ruvido', 'CPF701T - Grigio argento textured tipo Ral 7001 ruvido', 'CPF305T - Rosso vino textured tipo Ral 3005 ruvido', 'CPF605T - Verde foglia textured tipo Ral 6005 ruvido', 'CPF817T - Marrone cioccolato textured tipo Ral 8017 ruvido', 'CPF820H - Grey Oak', 'CPF818H - Renolit Vulcano', 'CPF813H - Renolit Gold', 'CPFR811 - Marrone Renolit scuro', 'CPF812H - Marrone Renolit dorato', 'CPFN630 - Acacia - effetto rigato', 'CPFN632 - Noce Reale - effetto rigato', 'CPF90RC - Marrone RENOLIT CHIARO ruvido', 'CPF91RS - Marrone RENOLIT SCURO ruvido', 'CPF51CR - Marrone ciliegio Renoir ruvido', 'CPF358R - Douglas tipo 335-S0R', 'CPF127R - Noce scuro ruvido tipo 102-?0R', 'CPF375R - Castagno chiaro ruvido tipo 375-S0R', 'CPF378R - Castagno scuro ruvido tipo 378-?0R', 'CPF317R - Ciliegio chiaro ruvido tipo 317-?OR', 'CPF70KA - Winchester', 'CPFSLV7 - Verde Salvia', 'CPFRGG4 - Ruggine EVO', 'CPF744L - Grigio seta tipo RAL 7044 opaco'],
+                                    COLORI_PERSIANE,
                                     project.id,
                                     null,
                                     'persiana',
@@ -14477,7 +14551,7 @@
                                     ${renderSelectWithCustom(
                                         'colorePersiana',
                                         per.colorePersiana || '',
-                                        ['CPF910L - Bianco puro tipo Ral 9010 opaco', 'CPF113L - Bianco perla tipo Ral1013 opaco', 'CPF701L - Grigio argento tipo Ral 7001 opaco', 'CPF716L - Antracite tipo Ral 7016 opaco', 'CPF605L - Verde muschio tipo Ral 6005 opaco', 'CPF609T - Verde abete textured tipo Ral 6009 ruvido', 'CPF817L - Marrone cioccolato tipo Ral 8017 opaco', 'CPF735L - Grigio luce tipo Ral 7035 opaco', 'CPF609L - Verde abete tipo Ral6009 semiopaco', 'CPF621L - Verde pallido tipo Ral 6021 opaco', 'CPF119L - Beige tipo Ral 1019 opaco Grigio', 'CPF524L - Azzurro pastello tipo Ral 5024 opaco', 'CPF811L - Marrone Nuss tipo Ral 8011 opaco', 'CPF910T - Bianco puro textured tipo Ral 9010 ruvido', 'CPF113T - Bianco perla textured tipo Ral 1013 ruvido', 'CPF701T - Grigio argento textured tipo Ral 7001 ruvido', 'CPF305T - Rosso vino textured tipo Ral 3005 ruvido', 'CPF605T - Verde foglia textured tipo Ral 6005 ruvido', 'CPF817T - Marrone cioccolato textured tipo Ral 8017 ruvido', 'CPF820H - Grey Oak', 'CPF818H - Renolit Vulcano', 'CPF813H - Renolit Gold', 'CPFR811 - Marrone Renolit scuro', 'CPF812H - Marrone Renolit dorato', 'CPFN630 - Acacia - effetto rigato', 'CPFN632 - Noce Reale - effetto rigato', 'CPF90RC - Marrone RENOLIT CHIARO ruvido', 'CPF91RS - Marrone RENOLIT SCURO ruvido', 'CPF51CR - Marrone ciliegio Renoir ruvido', 'CPF358R - Douglas tipo 335-S0R', 'CPF127R - Noce scuro ruvido tipo 102-?0R', 'CPF375R - Castagno chiaro ruvido tipo 375-S0R', 'CPF378R - Castagno scuro ruvido tipo 378-?0R', 'CPF317R - Ciliegio chiaro ruvido tipo 317-?OR', 'CPF70KA - Winchester', 'CPFSLV7 - Verde Salvia', 'CPFRGG4 - Ruggine EVO', 'CPF744L - Grigio seta tipo RAL 7044 opaco'],
+                                        COLORI_PERSIANE,
                                         project.id,
                                         pos.id,
                                         'persiana',
@@ -14488,7 +14562,7 @@
                                     ${per.fissaggio === 'telaio' ? renderSelectWithCustom(
                                         'coloreTelaio',
                                         per.coloreTelaio || '',
-                                        ['CPF910L - Bianco puro tipo Ral 9010 opaco', 'CPF113L - Bianco perla tipo Ral1013 opaco', 'CPF701L - Grigio argento tipo Ral 7001 opaco', 'CPF716L - Antracite tipo Ral 7016 opaco', 'CPF605L - Verde muschio tipo Ral 6005 opaco', 'CPF609T - Verde abete textured tipo Ral 6009 ruvido', 'CPF817L - Marrone cioccolato tipo Ral 8017 opaco', 'CPF735L - Grigio luce tipo Ral 7035 opaco', 'CPF609L - Verde abete tipo Ral6009 semiopaco', 'CPF621L - Verde pallido tipo Ral 6021 opaco', 'CPF119L - Beige tipo Ral 1019 opaco Grigio', 'CPF524L - Azzurro pastello tipo Ral 5024 opaco', 'CPF811L - Marrone Nuss tipo Ral 8011 opaco', 'CPF910T - Bianco puro textured tipo Ral 9010 ruvido', 'CPF113T - Bianco perla textured tipo Ral 1013 ruvido', 'CPF701T - Grigio argento textured tipo Ral 7001 ruvido', 'CPF305T - Rosso vino textured tipo Ral 3005 ruvido', 'CPF605T - Verde foglia textured tipo Ral 6005 ruvido', 'CPF817T - Marrone cioccolato textured tipo Ral 8017 ruvido', 'CPF820H - Grey Oak', 'CPF818H - Renolit Vulcano', 'CPF813H - Renolit Gold', 'CPFR811 - Marrone Renolit scuro', 'CPF812H - Marrone Renolit dorato', 'CPFN630 - Acacia - effetto rigato', 'CPFN632 - Noce Reale - effetto rigato', 'CPF90RC - Marrone RENOLIT CHIARO ruvido', 'CPF91RS - Marrone RENOLIT SCURO ruvido', 'CPF51CR - Marrone ciliegio Renoir ruvido', 'CPF358R - Douglas tipo 335-S0R', 'CPF127R - Noce scuro ruvido tipo 102-?0R', 'CPF375R - Castagno chiaro ruvido tipo 375-S0R', 'CPF378R - Castagno scuro ruvido tipo 378-?0R', 'CPF317R - Ciliegio chiaro ruvido tipo 317-?OR', 'CPF70KA - Winchester', 'CPFSLV7 - Verde Salvia', 'CPFRGG4 - Ruggine EVO', 'CPF744L - Grigio seta tipo RAL 7044 opaco'],
+                                        COLORI_PERSIANE,
                                         project.id,
                                         pos.id,
                                         'persiana',
@@ -19201,10 +19275,11 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                     }
                 });
             }
-        });\n        
-        // 🚨 NOTIFICA VISIVA VERSIONE v4.46
+        });
+        
+        // 🚨 NOTIFICA VISIVA VERSIONE v4.48
         setTimeout(() => {
-            showNotification('🚪 v4.46 ✅ PERSIANE: 38 colori in select con custom input!', 'success', 5000);
+            showNotification('🚪 v4.48 ✅ FIX: Menu hamburger funziona! Rimosso backslash-n', 'success', 5000);
         }, 1000);
         
         // Aggiungi animazioni CSS
