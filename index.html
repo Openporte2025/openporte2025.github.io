@@ -1,8 +1,27 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.49 - TAPPARELLE: 14 modelli completi da tabella UNI EN13659 ✅
+    Open Porte v4.51 - FIX CRITICO: Salvataggio modello+tipologia+guida tapparelle nel JSON ✅
     
-    🔧 AGGIORNAMENTI v4.49 (19 NOV 2025):
+    🔧 AGGIORNAMENTI v4.51 (19 NOV 2025):
+    
+    ⚡ FIX CRITICO: Tapparelle - Campi modello, tipologia e guida ora salvati nel JSON
+       - Problema: Dashboard non riusciva a calcolare prezzi tapparelle
+       - Causa: Normalizzazione GitHub NON salvava modello, tipologia, guida
+       - Soluzione: Aggiunti 3 campi alla normalizzazione (riga 5561-5563)
+       - Dashboard ora riceve dati completi per calcolo prezzi
+       - Progetti vecchi: Fallback a stringa vuota ''
+    
+    Implementazione:
+    - normalized.tapparella ora include:
+      • modello: pos.tapparella.modello || ''
+      • tipologia: pos.tapparella.tipologia || ''
+      • guida: pos.tapparella.guida || ''
+    - Retrocompatibile con progetti esistenti
+    - Fix richiesto da analisi JSON completa
+    
+    ---
+    
+    🔧 AGGIORNAMENTI v4.50 (19 NOV 2025):
     
     ⚡ FIX CRITICO: Menu hamburger ora funziona!
        - Problema: Carattere `});\\n` letterale invece di newline reale
@@ -95,7 +114,7 @@
        (Sempre possibile scrivere manualmente altri colori)
     
     4. VERSIONE aggiornata ovunque:
-       - Tag <title>: Open Porte v4.49
+       - Tag <title>: Open Porte v4.51
        - Titolo interfaccia
        - Tutti i riferimenti
     
@@ -1401,7 +1420,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.49 - TAPPARELLE: 14 modelli completi da tabella UNI EN13659</title>
+    <title>Open Porte v4.51 - FIX CRITICO: Salvataggio modello+tipologia+guida tapparelle</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2614,12 +2633,12 @@
             }
         };
 
-        // 🚨 LOG VERSIONE v4.49 - MOLTO EVIDENTE
+        // 🚨 LOG VERSIONE v4.51 - MOLTO EVIDENTE
         console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   🚪 OPEN PORTE v4.49 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   🚪 OPEN PORTE v4.50 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c║   FIX: Menu hamburger funziona!             ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c🔧 v4.49:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
+        console.log('%c🔧 v4.50:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
         console.log('  ⚡ FIX: Rimosso backslash-n che bloccava menu hamburger');
         console.log('  ⚡ Menu hamburger ora funziona correttamente');
         console.log('%c🔧 v4.39:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
@@ -5558,6 +5577,9 @@
                             L: pos.tapparella.BRM_L || 0,
                             H: pos.tapparella.BRM_H || 0
                         },
+                        modello: pos.tapparella.modello || '',
+                        tipologia: pos.tapparella.tipologia || '',
+                        guida: pos.tapparella.guida || '',
                         tipo: pos.tapparella.tipo,
                         materiale: pos.tapparella.materiale,
                         colore: pos.tapparella.colore,
@@ -6767,7 +6789,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.49</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.50</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -8854,9 +8876,13 @@
                         id: generateId(),
                         qta: '1',
                         azienda: project.configTapparelle?.azienda || '',
+                        modello: project.configTapparelle?.modello || '',
                         tipo: project.configTapparelle?.tipo || '',
                         materiale: project.configTapparelle?.materiale || '',
                         colore: project.configTapparelle?.colore || '',
+                        manualeMot: project.configTapparelle?.tipologia || '',
+                        guida: project.configTapparelle?.guida || '',
+                        coloreGuida: project.configTapparelle?.coloreGuida || '',
                         comando: project.configTapparelle?.comando || '',
                         motoreAzienda: project.configTapparelle?.motoreAzienda || '',
                         motoreModello: project.configTapparelle?.motoreModello || '',
@@ -9823,7 +9849,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.49
+                                    Open Porte v4.50
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -19288,9 +19314,9 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }
         });
         
-        // 🚨 NOTIFICA VISIVA VERSIONE v4.49
+        // 🚨 NOTIFICA VISIVA VERSIONE v4.50
         setTimeout(() => {
-            showNotification('🚪 v4.49 ✅ TAPPARELLE: 14 modelli completi da tabella UNI', 'success', 5000);
+            showNotification('🚪 v4.50 ✅ TAPPARELLE: Auto-sync completo config→posizioni', 'success', 5000);
         }, 1000);
         
         // Aggiungi animazioni CSS
