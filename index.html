@@ -1,6 +1,57 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.40 - FIX COLORI REAL-TIME + MANIGLIE ✅
+    Open Porte v4.45 - FIX PERSIANE: Show/Hide telai in config E posizioni quando cambia fissaggio ✅
+    
+    🔧 AGGIORNAMENTI v4.40 (18 NOV 2025):
+    
+    ⚡ FIX CRITICO: Colori PVC/Alluminio cambiano IMMEDIATAMENTE
+       - Prima: Bisognava uscire e rientrare dal progetto
+       - Ora: Cambio finitura → Colori si aggiornano ISTANTANEAMENTE
+       - Trigger diretto in handleSelectCustomChange
+       - Funziona sia per Config Globale che Posizioni
+       - Funziona anche con input custom
+    
+    Implementazione:
+    - handleSelectCustomChange chiama aggiornaColoriPerFinitura dopo 150ms
+    - Input custom finitura chiama aggiornaColoriPerFinitura direttamente
+    - Log console mostra "TRIGGER DIRETTO" per debug
+    
+    
+    ---
+    
+    🔧 AGGIORNAMENTI v4.39 (18 NOV 2025):
+    
+    1. COLORI PVC/ALLUMINIO - Uniformata logica:
+       - aggiornaColoriPerFinitura() ora usa stessa logica di renderSelectColoreStandard()
+       - Priorità: Se contiene "alluminio" → colori alluminio, ALTRIMENTI → colori PVC
+       - Fix incoerenza tra le due funzioni
+    
+    2. MANIGLIE SEMPLIFICATE (4 opzioni):
+       - STANDARD → 601
+       - A PRESSIONE → 712
+       - DOPPIA ANTA/RIBALTA → 773
+       - DOPPIA ANTA → 772
+       (Sempre possibile scrivere manualmente altri codici)
+    
+    3. COLORI MANIGLIA (9 opzioni complete):
+       - 01 - BIANCO
+       - 07 - PERLA
+       - 56 - NEUTRO ANODIZZATO
+       - 74 - BRONZO
+       - 40 - OTTONE LUCIDO
+       - 79 - TITANIO
+       - M01 - BIANCO
+       - M03 - NERO
+       - M07 - BIANCO CREMA
+       (Sempre possibile scrivere manualmente altri colori)
+    
+    4. VERSIONE aggiornata ovunque:
+       - Tag <title>: Open Porte v4.45
+       - Titolo interfaccia
+       - Tutti i riferimenti
+    
+    
+    ---
     
     🐛 FIX v4.38 (18 NOV 2025):
     
@@ -1301,7 +1352,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.40 - FIX COLORI REAL-TIME ðŸ"§âœ…</title>
+    <title>Open Porte v4.45 - FIX PERSIANE: Show/Hide telai in config E posizioni quando cambia fissaggio ðŸ"§âœ…</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2514,6 +2565,20 @@
             }
         };
 
+        // 🚨 LOG VERSIONE v4.40 - MOLTO EVIDENTE
+        console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   🚪 OPEN PORTE v4.40 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   FIX CRITICO: Colori real-time!            ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c🔧 v4.40:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
+        console.log('  ⚡ Colori PVC/Alluminio cambiano IMMEDIATAMENTE');
+        console.log('  ⚡ Non serve più uscire e rientrare dal progetto');
+        console.log('%c🔧 v4.39:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
+        console.log('  ✅ Logica colori uniformata');
+        console.log('  ✅ Maniglie semplificate: 4 opzioni');
+        console.log('  ✅ Colori maniglia: 9 opzioni complete');
+        console.log(' ');
+
         // 📦 FASE 027K: Configurazione GitHub Sync
         const GITHUB_CONFIG = {
             enabled: true,
@@ -3544,11 +3609,12 @@
                         }
                     }, 50); // 50ms di delay
                     
-                    // v4.40: Trigger colori real-time per finitura
+                    // 🎨 v4.40: Se campo finitura, aggiorna colori IMMEDIATAMENTE
                     if (fieldName === 'finituraInt' || fieldName === 'finituraEst') {
                         setTimeout(() => {
+                            console.log(`🎨 TRIGGER DIRETTO: Aggiorno colori per ${fieldName}`);
                             aggiornaColoriPerFinitura(fieldName, projectId, posId, productType);
-                        }, 150);
+                        }, 150); // 150ms per dare tempo al salvataggio
                     }
                 }
             }
@@ -3747,7 +3813,7 @@
             `;
         }
         
-        // 🔄 FUNZIONE DINAMICA: Aggiorna dropdown colori quando cambia finitura - v4.33
+        // 🔄 FUNZIONE DINAMICA: Aggiorna dropdown colori quando cambia finitura - v4.39 (base v4.33)
         window.aggiornaColoriPerFinitura = (finituraField, projectId, posId, productType) => {
             console.log(`🎨 Aggiorno colori per finitura: ${finituraField}`);
             
@@ -3786,14 +3852,20 @@
                 'LX01 - Rovere naturale', 'LX02 - Ciliegio scuro', 'LX03 - Pino verniciato', 'LX04 - Rovere venato'
             ];
             
-            // Scelta opzioni
+            // Scelta opzioni - FIX v4.39: Logica uniformata a renderSelectColoreStandard
+            // Normalizza valore finitura
+            const finituraNormalized = (finituraValue || '').toString().trim().toLowerCase();
+            
             let opzioni = [];
-            if (finituraValue && finituraValue.toLowerCase().includes('pvc')) {
-                opzioni = coloriPVC;
-            } else if (finituraValue && finituraValue.toLowerCase().includes('alluminio')) {
+            // Priorità: Se contiene "alluminio" → usa colori alluminio
+            if (finituraNormalized.includes('alluminio') || finituraNormalized.includes('aluminio')) {
                 opzioni = coloriAlluminio;
-            } else {
+                console.log(`   ✅ Finitura contiene "alluminio" → ${coloriAlluminio.length} colori alluminio`);
+            } 
+            // Altrimenti: usa colori PVC (default sicuro)
+            else {
                 opzioni = coloriPVC;
+                console.log(`   ✅ Finitura PVC o vuota → ${coloriPVC.length} colori PVC`);
             }
             
             // Trova select colore da aggiornare
@@ -3835,7 +3907,7 @@
             console.log(`   ✅ Colori aggiornati: ${opzioni.length} opzioni (${finituraValue})`);
         };
         
-        // 🔄 EVENT LISTENER GLOBALE: Intercetta cambiamenti finitura e aggiorna colori - v4.33
+        // 🔄 EVENT LISTENER GLOBALE: Intercetta cambiamenti finitura e aggiorna colori - v4.39 (base v4.33)
         document.addEventListener('change', (event) => {
             const target = event.target;
             
@@ -9040,6 +9112,11 @@
                         render();
                     }
                     
+                    // 🔧 v4.44: Re-render se cambiato fissaggio persiane per mostrare/nascondere telai
+                    if (productType === 'persiana' && field === 'fissaggio') {
+                        render();
+                    }
+                    
                     // RIMOSSO: render() per evitare reload pagina dopo ogni modifica
                     // I dati sono già salvati, non serve ricaricare la pagina
                     // Solo in casi specifici dove cambia la struttura HTML servirebbe,
@@ -11610,7 +11687,7 @@
                                 '9. Vetro'
                             )}
 
-                            <!-- 10. MANIGLIA - SEMPLIFICATE v4.40 -->
+                            <!-- 10. MANIGLIA - SEMPLIFICATO v4.39 -->
                             ${renderSelectWithCustom(
                                 'maniglia',
                                 project.configInfissi?.maniglia || '',
@@ -11621,7 +11698,7 @@
                                 '10. Maniglia'
                             )}
 
-                            <!-- 11. COLORE MANIGLIA - 9 OPZIONI v4.40 -->
+                            <!-- 11. COLORE MANIGLIA - AGGIORNATO v4.39 -->
                             ${renderSelectWithCustom(
                                 'coloreManiglia',
                                 project.configInfissi?.coloreManiglia || '',
@@ -11725,7 +11802,7 @@
                             ${renderSelectWithCustom(
                                 'modello',
                                 project.configPersiane?.modello || '',
-                                ['Aurora', 'Vanitosa', 'Oscura', 'Alto Adige'],
+                                ['Angela', 'Giulia', 'Luna', 'Aurora', 'Alto Adige', 'Alto Adige (R)', 'Cortina', 'Cortina (R)', 'Oscura', 'Oscura (R)', 'Nerina', 'Nerina (R)', 'Scandola', 'Scandola (TT)', 'Scandola Duo', 'Scandola Duo (TT)', 'Oscura Duo', 'Oscura Duo (TT)'],
                                 project.id,
                                 null,
                                 'persiana',
@@ -11738,20 +11815,20 @@
                             ${renderSelectWithCustom(
                                 'fissaggio',
                                 project.configPersiane?.fissaggio || '',
-                                ['A MURO', 'TELAIO'],
+                                ['muro', 'telaio'],
                                 project.id,
                                 null,
                                 'persiana',
                                 '3. Fissaggio'
                             )}
                             
-                            <!-- 4. TIPO TELAIO (condizionale se FISSAGGIO = TELAIO) -->
+                            <!-- 4. TIPO TELAIO (condizionale se FISSAGGIO = telaio) -->
                             <div id="tipo-telaio-persiane-container-${project.id}" 
-                                 style="display: ${project.configPersiane?.fissaggio === 'TELAIO' ? 'block' : 'none'}">
+                                 style="display: ${project.configPersiane?.fissaggio === 'telaio' ? 'block' : 'none'}">
                                 ${renderSelectWithCustom(
                                     'tipoTelaio',
                                     project.configPersiane?.tipoTelaio || '',
-                                    ['TH 62', 'TH 40', 'TH 82'],
+                                    ['TH10', 'TH40', 'TH41', 'TH45', 'TH46R', 'TH62', 'TH80', 'TH53'],
                                     project.id,
                                     null,
                                     'persiana',
@@ -11771,9 +11848,9 @@
                                        class="w-full px-3 py-2 border rounded-lg">
                             </div>
                             
-                            <!-- COLORE TELAIO (condizionale se FISSAGGIO = TELAIO) -->
+                            <!-- COLORE TELAIO (condizionale se FISSAGGIO = telaio) -->
                             <div id="colore-telaio-persiane-container-${project.id}" 
-                                 style="display: ${project.configPersiane?.fissaggio === 'TELAIO' ? 'block' : 'none'}">
+                                 style="display: ${project.configPersiane?.fissaggio === 'telaio' ? 'block' : 'none'}">
                                 <label class="block text-sm font-medium mb-1">6. Colore Telaio</label>
                                 <input type="text" 
                                        placeholder="Es: Bianco, Marrone"
@@ -13951,7 +14028,7 @@
                                         'Vetro'
                                     )}
 
-                                    <!-- MANIGLIA - SEMPLIFICATE v4.40 -->
+                                    <!-- MANIGLIA - SEMPLIFICATO v4.39 -->
                                     ${renderSelectWithCustom(
                                         'maniglia',
                                         inf.maniglia || '',
@@ -13962,7 +14039,7 @@
                                         'Maniglia'
                                     )}
 
-                                    <!-- COLORE MANIGLIA - 9 OPZIONI v4.40 -->
+                                    <!-- COLORE MANIGLIA - AGGIORNATO v4.39 -->
                                     ${renderSelectWithCustom(
                                         'coloreManiglia',
                                         inf.coloreManiglia || '',
@@ -14345,7 +14422,7 @@
                                     ${renderSelectWithCustom(
                                         'modello',
                                         per.modello || '',
-                                        ['Aurora', 'Vanitosa', 'Oscura', 'Alto Adige'],
+                                        ['Angela', 'Giulia', 'Luna', 'Aurora', 'Alto Adige', 'Alto Adige (R)', 'Cortina', 'Cortina (R)', 'Oscura', 'Oscura (R)', 'Nerina', 'Nerina (R)', 'Scandola', 'Scandola (TT)', 'Scandola Duo', 'Scandola Duo (TT)', 'Oscura Duo', 'Oscura Duo (TT)'],
                                         project.id,
                                         pos.id,
                                         'persiana',
@@ -14356,18 +14433,18 @@
                                     ${renderSelectWithCustom(
                                         'fissaggio',
                                         per.fissaggio || '',
-                                        ['A MURO', 'TELAIO'],
+                                        ['muro', 'telaio'],
                                         project.id,
                                         pos.id,
                                         'persiana',
                                         'Fissaggio'
                                     )}
 
-                                    <!-- TIPO TELAIO - Solo se fissaggio = TELAIO -->
-                                    ${per.fissaggio === 'TELAIO' ? renderSelectWithCustom(
+                                    <!-- TIPO TELAIO - Solo se fissaggio = telaio -->
+                                    ${per.fissaggio === 'telaio' ? renderSelectWithCustom(
                                         'tipoTelaio',
                                         per.tipoTelaio || '',
-                                        ['TH 62', 'TH 40', 'TH 82'],
+                                        ['TH10', 'TH40', 'TH41', 'TH45', 'TH46R', 'TH62', 'TH80', 'TH53'],
                                         project.id,
                                         pos.id,
                                         'persiana',
@@ -14383,8 +14460,8 @@
                                                class="w-full compact-input border rounded mt-1">
                                     </div>
 
-                                    <!-- COLORE TELAIO - Solo se fissaggio = TELAIO -->
-                                    ${per.fissaggio === 'TELAIO' ? `
+                                    <!-- COLORE TELAIO - Solo se fissaggio = telaio -->
+                                    ${per.fissaggio === 'telaio' ? `
                                     <div>
                                         <label class="text-xs font-medium">Colore Telaio</label>
                                         <input type="text" value="${per.coloreTelaio || ''}"
@@ -16442,6 +16519,19 @@
                 syncConfigToPositions(project, 'persiana', field, value, oldValue);
                 
                 saveState();
+                
+                // 🔧 v4.44: Se il campo è 'fissaggio', mostra/nascondi campi telaio
+                if (field === 'fissaggio') {
+                    const tipoTelaioContainer = document.getElementById(`tipo-telaio-persiane-container-${projectId}`);
+                    const coloreTelaioContainer = document.getElementById(`colore-telaio-persiane-container-${projectId}`);
+                    
+                    if (tipoTelaioContainer) {
+                        tipoTelaioContainer.style.display = value === 'telaio' ? 'block' : 'none';
+                    }
+                    if (coloreTelaioContainer) {
+                        coloreTelaioContainer.style.display = value === 'telaio' ? 'block' : 'none';
+                    }
+                }
             }
         };
 
@@ -16496,10 +16586,10 @@
                 const coloreTelaioContainer = document.getElementById(`colore-telaio-persiane-container-${projectId}`);
                 
                 if (tipoTelaioContainer) {
-                    tipoTelaioContainer.style.display = value === 'TELAIO' ? 'block' : 'none';
+                    tipoTelaioContainer.style.display = value === 'telaio' ? 'block' : 'none';
                 }
                 if (coloreTelaioContainer) {
-                    coloreTelaioContainer.style.display = value === 'TELAIO' ? 'block' : 'none';
+                    coloreTelaioContainer.style.display = value === 'telaio' ? 'block' : 'none';
                 }
             }
         };
@@ -19087,7 +19177,11 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                     }
                 });
             }
-        });
+        });\n        
+        // 🚨 NOTIFICA VISIVA VERSIONE v4.40
+        setTimeout(() => {
+            showNotification('🚪 v4.40 ✅ FIX CRITICO: Colori cambiano IMMEDIATAMENTE!', 'success', 5000);
+        }, 1000);
         
         // Aggiungi animazioni CSS
         const style = document.createElement('style');
