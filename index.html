@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.48 - FIX CRITICO: Rimosso backslash-n che bloccava hamburger ✅
+    Open Porte v4.49 - TAPPARELLE: 14 modelli completi da tabella UNI EN13659 ✅
     
-    🔧 AGGIORNAMENTI v4.48 (19 NOV 2025):
+    🔧 AGGIORNAMENTI v4.49 (19 NOV 2025):
     
     ⚡ FIX CRITICO: Menu hamburger ora funziona!
        - Problema: Carattere `});\\n` letterale invece di newline reale
@@ -95,7 +95,7 @@
        (Sempre possibile scrivere manualmente altri colori)
     
     4. VERSIONE aggiornata ovunque:
-       - Tag <title>: Open Porte v4.48
+       - Tag <title>: Open Porte v4.49
        - Titolo interfaccia
        - Tutti i riferimenti
     
@@ -1401,7 +1401,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.48 - FIX CRITICO: Rimosso backslash-n che bloccava hamburger ðŸ"§âœ…</title>
+    <title>Open Porte v4.49 - TAPPARELLE: 14 modelli completi da tabella UNI EN13659</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2614,12 +2614,12 @@
             }
         };
 
-        // 🚨 LOG VERSIONE v4.48 - MOLTO EVIDENTE
+        // 🚨 LOG VERSIONE v4.49 - MOLTO EVIDENTE
         console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   🚪 OPEN PORTE v4.48 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   🚪 OPEN PORTE v4.49 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c║   FIX: Menu hamburger funziona!             ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c🔧 v4.48:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
+        console.log('%c🔧 v4.49:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
         console.log('  ⚡ FIX: Rimosso backslash-n che bloccava menu hamburger');
         console.log('  ⚡ Menu hamburger ora funziona correttamente');
         console.log('%c🔧 v4.39:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
@@ -6767,7 +6767,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.48</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.49</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -9823,7 +9823,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.48
+                                    Open Porte v4.49
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -12005,7 +12005,7 @@
                             ${renderSelectWithCustom(
                                 'modello',
                                 project.configTapparelle?.modello || '',
-                                ['Mini', 'Alluminio'],
+                                ['TA01 - Tipo ALUPROFIL MD 13x55', 'TA25 - Tipo ALUPROFIL AD 13x55', 'TA15 - Tipo STEELPROFIL 13x55', 'A01 - Tipo ANTIGRANDINE 14x50', 'A10 - Tipo PESANTE 14x50', 'A16 - Tipo MINI 10 11x32', 'A15 - Tipo MINI 8 8x33', 'TA10 - Tipo ALUBLIND 13x45', 'TA13 - Tipo ALUBLIND 9x27', 'A18 - Tipo COMBI 13x53', 'A20 - Tipo COMBI 10x39', 'A40 - Tipo ORIENTA', 'A50 - Tipo ESTELLA CLASSIC (A)', 'A50 - Tipo ESTELLA CLASSIC (B)'],
                                 project.id,
                                 null,
                                 'tapparella',
@@ -14866,9 +14866,20 @@
                                                onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'modello', this.value)"
                                                class="w-full compact-input border rounded mt-1">
                                         <datalist id="modello-tap-list-${pos.id}">
-                                            <option value="Mini">
-                                            <option value="Maxi">
-                                            <option value="Standard">
+                                            <option value="TA01 - Tipo ALUPROFIL MD 13x55">
+                                            <option value="TA25 - Tipo ALUPROFIL AD 13x55">
+                                            <option value="TA15 - Tipo STEELPROFIL 13x55">
+                                            <option value="A01 - Tipo ANTIGRANDINE 14x50">
+                                            <option value="A10 - Tipo PESANTE 14x50">
+                                            <option value="A16 - Tipo MINI 10 11x32">
+                                            <option value="A15 - Tipo MINI 8 8x33">
+                                            <option value="TA10 - Tipo ALUBLIND 13x45">
+                                            <option value="TA13 - Tipo ALUBLIND 9x27">
+                                            <option value="A18 - Tipo COMBI 13x53">
+                                            <option value="A20 - Tipo COMBI 10x39">
+                                            <option value="A40 - Tipo ORIENTA">
+                                            <option value="A50 - Tipo ESTELLA CLASSIC (A)">
+                                            <option value="A50 - Tipo ESTELLA CLASSIC (B)">
                                         </datalist>
                                     </div>
                                     <div>
@@ -19277,9 +19288,9 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }
         });
         
-        // 🚨 NOTIFICA VISIVA VERSIONE v4.48
+        // 🚨 NOTIFICA VISIVA VERSIONE v4.49
         setTimeout(() => {
-            showNotification('🚪 v4.48 ✅ FIX: Menu hamburger funziona! Rimosso backslash-n', 'success', 5000);
+            showNotification('🚪 v4.49 ✅ TAPPARELLE: 14 modelli completi da tabella UNI', 'success', 5000);
         }, 1000);
         
         // Aggiungi animazioni CSS
