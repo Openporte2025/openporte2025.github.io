@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.59 - SISTEMA VERSIONING COMPLETO: Tracking modifiche dettagliato + history ✅
+    Open Porte v4.60 - SISTEMA VERSIONING COMPLETO: Tracking modifiche dettagliato + history ✅
     
-    🔧 AGGIORNAMENTI v4.59 (20 NOV 2025):
+    🔧 AGGIORNAMENTI v4.60 (20 NOV 2025):
     
     ⚡ FIX CRITICO: Upload GitHub da iPad ora funziona
        - Problema: Safari iOS falliva codifica base64 con caratteri speciali
@@ -138,7 +138,7 @@
        (Sempre possibile scrivere manualmente altri colori)
     
     4. VERSIONE aggiornata ovunque:
-       - Tag <title>: Open Porte v4.59
+       - Tag <title>: Open Porte v4.60
        - Titolo interfaccia
        - Tutti i riferimenti
     
@@ -1444,7 +1444,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.59 - Fix Progetti Corrotti</title>
+    <title>Open Porte v4.60 - Fix Progetti Corrotti</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2657,16 +2657,17 @@
             }
         };
 
-        // 🚨 LOG VERSIONE v4.59 - MOLTO EVIDENTE
+        // 🚨 LOG VERSIONE v4.60 - MOLTO EVIDENTE
         console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   🚪 OPEN PORTE v4.59 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   🚪 OPEN PORTE v4.60 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c║   FIX: Menu hamburger funziona!             ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c🔧 v4.59:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
-        console.log('  🔢 Sistema versioning COMPLETO con tracking modifiche');
-        console.log('  📋 Log dettagliato: chi, quando, cosa ha modificato');
-        console.log('  👁️ Versione visibile nella lista progetti');
-        console.log('  🔄 Auto-increment version + history completa');
+        console.log('%c🔧 v4.60:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
+        console.log('  🔄 SYNC BIDIREZIONALE: GitHub = master, progetti cancellati gestiti');
+        console.log('  🔢 Confronto versioni intelligente (metadata.version)');
+        console.log('  ⚖️ GitHub più recente → scarica | Locale più recente → carica');
+        console.log('  🗑️ Progetti cancellati da GitHub → chiede conferma utente');
+        console.log('  ✅ Risolto bug: progetti riappaiono su GitHub dopo cancellazione');
         console.log('%c🔧 v4.39:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
         console.log('  ✅ Logica colori uniformata');
         console.log('  ✅ Maniglie semplificate: 4 opzioni');
@@ -4211,7 +4212,7 @@
         // ───────────────────────────────────────────────────────────────
 
         function initMetadata() {
-            // 🆕 v4.59: Metadata versioning COMPLETO con log dettagliato
+            // 🆕 v4.60: Metadata versioning COMPLETO con log dettagliato
             const now = new Date().toISOString();
             return {
                 version: 1,  // 🔢 Numero versione incrementale (1, 2, 3, 4...)
@@ -4236,7 +4237,7 @@
         }
 
         function updateProjectTimestamp(projectId, action, details, changedFields = {}) {
-            // 🆕 v4.59: Auto-aggiorna versione e logga modifiche DETTAGLIATE
+            // 🆕 v4.60: Auto-aggiorna versione e logga modifiche DETTAGLIATE
             const project = state.projects.find(p => p.id === projectId);
             if (!project) return;
             
@@ -5491,9 +5492,9 @@
             }
             
             try {
-                showNotification('📥 Scaricando progetti da GitHub...', 'info');
+                showNotification('📥 Sincronizzazione con GitHub...', 'info');
                 
-                // Lista tutti i file nella cartella progetti
+                // 🆕 v4.60: SYNC BIDIREZIONALE - Lista tutti i file nella cartella progetti
                 const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.projectsPath}`, {
                     headers: {
                         'Authorization': `token ${GITHUB_CONFIG.token}`,
@@ -5516,15 +5517,82 @@
                 
                 if (projectFiles.length === 0) {
                     showNotification('📭 Nessun progetto trovato su GitHub', 'info');
+                    
+                    // 🆕 v4.60: Se GitHub vuoto ma ci sono progetti locali, chiedi cosa fare
+                    if (state.projects.length > 0) {
+                        const localProjects = state.projects.length;
+                        const shouldUpload = confirm(
+                            `⚠️ ATTENZIONE:\n\n` +
+                            `GitHub: 0 progetti\n` +
+                            `Locale: ${localProjects} progetti\n\n` +
+                            `Vuoi caricare i tuoi progetti locali su GitHub?\n\n` +
+                            `OK = Carica su GitHub\n` +
+                            `Annulla = Mantieni solo locali`
+                        );
+                        
+                        if (shouldUpload) {
+                            console.log('📤 Caricamento progetti locali su GitHub...');
+                            await syncToGitHub();
+                        }
+                    }
+                    
                     return false;
                 }
                 
                 console.log(`📥 Trovati ${projectFiles.length} progetti su GitHub`);
                 
-                // Scarica ogni progetto
+                // 🆕 v4.60: Estrai ID progetti da GitHub
+                const githubProjectIds = new Set(
+                    projectFiles
+                        .map(f => f.name.match(/progetto-(.+)\.json/))
+                        .filter(m => m)
+                        .map(m => m[1])
+                );
+                
+                console.log('📋 Progetti su GitHub:', Array.from(githubProjectIds));
+                
+                // 🆕 v4.60: Identifica progetti SOLO locali (cancellati da GitHub)
+                const localOnlyProjects = state.projects.filter(p => !githubProjectIds.has(p.id));
+                
+                if (localOnlyProjects.length > 0) {
+                    console.warn(`⚠️ Trovati ${localOnlyProjects.length} progetti solo locali (cancellati da GitHub):`);
+                    localOnlyProjects.forEach(p => {
+                        console.warn(`   - ${p.id}: ${p.name || p.client}`);
+                    });
+                    
+                    // Chiedi all'utente cosa fare
+                    const message = 
+                        `⚠️ PROGETTI CANCELLATI DA GITHUB:\n\n` +
+                        `Trovati ${localOnlyProjects.length} progetti sul tuo dispositivo\n` +
+                        `che sono stati cancellati da GitHub:\n\n` +
+                        localOnlyProjects.map(p => `• ${p.name || p.client} (${p.id})`).join('\n') +
+                        `\n\nCosa vuoi fare?\n\n` +
+                        `OK = Ricaricare su GitHub\n` +
+                        `Annulla = Eliminare localmente`;
+                    
+                    const shouldReUpload = confirm(message);
+                    
+                    if (shouldReUpload) {
+                        // Ricarica progetti locali su GitHub
+                        console.log('📤 Ricaricamento progetti locali su GitHub...');
+                        for (const project of localOnlyProjects) {
+                            await uploadSingleProjectToGitHub(project);
+                        }
+                        showNotification(`✅ ${localOnlyProjects.length} progetti ricaricati su GitHub`, 'success', 3000);
+                    } else {
+                        // Elimina progetti locali
+                        console.log('🗑️ Eliminazione progetti locali...');
+                        state.projects = state.projects.filter(p => githubProjectIds.has(p.id));
+                        saveState();
+                        showNotification(`🗑️ ${localOnlyProjects.length} progetti rimossi localmente`, 'info', 3000);
+                    }
+                }
+                
+                // Scarica ogni progetto da GitHub
                 let downloadedCount = 0;
                 let updatedCount = 0;
                 let newCount = 0;
+                let skippedCount = 0;
                 
                 for (const file of projectFiles) {
                     try {
@@ -5573,25 +5641,48 @@
                             const existingIndex = state.projects.findIndex(p => p.id === project.id);
                             
                             if (existingIndex >= 0) {
-                                // Aggiorna progetto esistente solo se più recente
+                                // 🆕 v4.60: Confronto INTELLIGENTE basato su metadata.version
                                 const existing = state.projects[existingIndex];
-                                const remoteDate = new Date(project.lastModified || project.updatedAt || 0);
-                                const localDate = new Date(existing.lastModified || existing.updatedAt || 0);
                                 
-                                if (remoteDate > localDate) {
-                                    // ✅ NORMALIZZA prima di salvare
-                                    if (!project.positions || !Array.isArray(project.positions)) {
-                                        project.positions = [];
-                                    }
+                                const remoteVersion = project.metadata?.version || 1;
+                                const localVersion = existing.metadata?.version || 1;
+                                
+                                console.log(`🔍 Confronto ${project.id}:`, {
+                                    remote: remoteVersion,
+                                    local: localVersion,
+                                    remoteName: project.name,
+                                    localName: existing.name
+                                });
+                                
+                                if (remoteVersion > localVersion) {
+                                    // GitHub più recente → Usa GitHub
+                                    console.log(`📥 GitHub più recente (v${remoteVersion} > v${localVersion})`);
                                     state.projects[existingIndex] = project;
                                     updatedCount++;
-                                    console.log(`🔄 Aggiornato: ${project.name}`);
+                                } else if (localVersion > remoteVersion) {
+                                    // Locale più recente → Ignora GitHub, carica locale su GitHub dopo
+                                    console.log(`📤 Locale più recente (v${localVersion} > v${remoteVersion}) - da ricaricare`);
+                                    skippedCount++;
+                                    // Verrà ricaricato da auto-sync
+                                } else {
+                                    // Stessa versione → Controlla timestamp come fallback
+                                    const remoteDate = new Date(project.metadata?.updated || project.updated || 0);
+                                    const localDate = new Date(existing.metadata?.updated || existing.updated || 0);
+                                    
+                                    if (remoteDate > localDate) {
+                                        console.log(`📥 Stesso version ma GitHub più recente (timestamp)`);
+                                        state.projects[existingIndex] = project;
+                                        updatedCount++;
+                                    } else {
+                                        console.log(`✅ Progetti identici (v${localVersion})`);
+                                        skippedCount++;
+                                    }
                                 }
                             } else {
-                                // Aggiungi nuovo progetto
+                                // Aggiungi nuovo progetto da GitHub
                                 state.projects.push(project);
                                 newCount++;
-                                console.log(`➕ Nuovo: ${project.name}`);
+                                console.log(`➕ Nuovo da GitHub: ${project.name} (v${project.metadata?.version || 1})`);
                             }
                             
                             downloadedCount++;
@@ -5603,12 +5694,14 @@
                 }
                 
                 // ⚡ DEBUG: Verifica stato progetti dopo download
-                console.log('📊 DEBUG download GitHub:');
-                console.log(`   - Progetti in state: ${state.projects.length}`);
-                console.log(`   - Progetti scaricati: ${downloadedCount}`);
-                console.log(`   - Nuovi: ${newCount}, Aggiornati: ${updatedCount}`);
+                console.log('📊 DEBUG sync bidirezionale:');
+                console.log(`   - Progetti finali in state: ${state.projects.length}`);
+                console.log(`   - Progetti scaricati: ${downloadedCount}/${projectFiles.length}`);
+                console.log(`   - Nuovi: ${newCount}`);
+                console.log(`   - Aggiornati: ${updatedCount}`);
+                console.log(`   - Skipped (locale più recente): ${skippedCount}`);
                 state.projects.forEach((p, i) => {
-                    console.log(`   ${i+1}. ${p.name || p.cliente?.nome || 'NO NAME'} [ID: ${p.id}]`);
+                    console.log(`   ${i+1}. ${p.name || p.client || 'NO NAME'} [ID: ${p.id}] v${p.metadata?.version || '?'}`);
                 });
                 
                 // Salva stato aggiornato
@@ -5620,17 +5713,36 @@
                     state.github.syncStatus = 'synced';
                 }
                 
-                // Mostra risultato
-                const message = `✅ Download completato!\n` +
-                    `📥 Scaricati: ${downloadedCount}/${projectFiles.length}\n` +
-                    `➕ Nuovi: ${newCount}\n` +
-                    `🔄 Aggiornati: ${updatedCount}`;
+                // 🆕 v4.60: Se ci sono progetti locali più recenti, caricali su GitHub
+                if (skippedCount > 0) {
+                    console.log(`📤 Caricamento ${skippedCount} progetti locali più recenti su GitHub...`);
+                    const localNewerProjects = state.projects.filter(local => {
+                        const githubVersion = projectFiles
+                            .find(f => f.name === `progetto-${local.id}.json`)
+                            ?.metadata?.version || 0;
+                        return (local.metadata?.version || 1) > githubVersion;
+                    });
+                    
+                    for (const project of localNewerProjects) {
+                        await uploadSingleProjectToGitHub(project);
+                    }
+                }
+                
+                // Mostra risultato completo
+                const parts = [];
+                if (newCount > 0) parts.push(`➕ ${newCount} nuovi`);
+                if (updatedCount > 0) parts.push(`🔄 ${updatedCount} aggiornati`);
+                if (skippedCount > 0) parts.push(`📤 ${skippedCount} ricaricati`);
+                
+                const message = parts.length > 0
+                    ? `✅ Sincronizzazione completata!\n${parts.join(' • ')}`
+                    : `✅ Tutti i progetti sono già sincronizzati`;
                 
                 showNotification(message, 'success', 5000);
                 
                 // Re-render SEMPRE dopo download
                 render();
-                console.log('🔄 Render forzato dopo download GitHub');
+                console.log('🔄 Render forzato dopo sync bidirezionale');
                 
                 return true;
                 
@@ -5807,7 +5919,7 @@
                 const numPositions = (project.positions && project.positions.length) || 0;
                 console.log(`✅ Upload valido: ${project.name || project.id} (${numPositions} posizioni)`);
                 
-                // 🆕 v4.59: Tracking modifiche prima dell'upload
+                // 🆕 v4.60: Tracking modifiche prima dell'upload
                 updateProjectTimestamp(
                     project.id, 
                     'uploaded_to_github', 
@@ -6071,7 +6183,7 @@
                     created: project.created || new Date().toISOString(),
                     updated: new Date().toISOString(),
                     
-                    // 🆕 v4.59: METADATA COMPLETO con versioning e history
+                    // 🆕 v4.60: METADATA COMPLETO con versioning e history
                     metadata: project.metadata || {
                         version: 1,
                         created: project.created || new Date().toISOString(),
@@ -7031,7 +7143,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.59</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.60</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -10092,7 +10204,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.59
+                                    Open Porte v4.60
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -19269,9 +19381,9 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }
         });
         
-        // 🚨 NOTIFICA VISIVA VERSIONE v4.59
+        // 🚨 NOTIFICA VISIVA VERSIONE v4.60
         setTimeout(() => {
-            showNotification('🚪 v4.59 ✅ Sistema versioning attivo - Tracking modifiche completo', 'success', 5000);
+            showNotification('🚪 v4.60 ✅ Sync bidirezionale attivo - GitHub come master', 'success', 5000);
         }, 1000);
         
         // Aggiungi animazioni CSS
