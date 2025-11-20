@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.54 - FIX CRITICO: Try-catch robusto saveState + export + GitHub ✅
+    Open Porte v4.55 - FIX CRITICO: Logging dettagliato errori GitHub + notifiche specifiche ✅
     
-    🔧 AGGIORNAMENTI v4.54 (19 NOV 2025):
+    🔧 AGGIORNAMENTI v4.55 (19 NOV 2025):
     
     ⚡ FIX CRITICO: Upload GitHub da iPad ora funziona
        - Problema: Safari iOS falliva codifica base64 con caratteri speciali
@@ -138,7 +138,7 @@
        (Sempre possibile scrivere manualmente altri colori)
     
     4. VERSIONE aggiornata ovunque:
-       - Tag <title>: Open Porte v4.54
+       - Tag <title>: Open Porte v4.55
        - Titolo interfaccia
        - Tutti i riferimenti
     
@@ -1444,7 +1444,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.54 - FIX CRITICO: Try-catch robusto</title>
+    <title>Open Porte v4.55 - FIX CRITICO: Logging GitHub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2657,12 +2657,12 @@
             }
         };
 
-        // 🚨 LOG VERSIONE v4.54 - MOLTO EVIDENTE
+        // 🚨 LOG VERSIONE v4.55 - MOLTO EVIDENTE
         console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   🚪 OPEN PORTE v4.54 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   🚪 OPEN PORTE v4.55 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c║   FIX: Menu hamburger funziona!             ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c🔧 v4.54:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
+        console.log('%c🔧 v4.55:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
         console.log('  ⚡ FIX: Rimosso backslash-n che bloccava menu hamburger');
         console.log('  ⚡ Menu hamburger ora funziona correttamente');
         console.log('%c🔧 v4.39:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
@@ -5279,10 +5279,22 @@
         
         // 📦 FASE 027K: Upload progetti su GitHub
         async function uploadToGitHub(projectId = null) {
-            if (!GITHUB_CONFIG.token) {
-                showNotification('⚠️ Configura GitHub', 'error');
+            // 🔧 Controllo token PRIMA di tutto
+            if (!GITHUB_CONFIG.token || GITHUB_CONFIG.token.trim() === '') {
+                console.error('❌ GITHUB_CONFIG.token non configurato:', {
+                    hasToken: !!GITHUB_CONFIG.token,
+                    tokenLength: GITHUB_CONFIG.token ? GITHUB_CONFIG.token.length : 0,
+                    stateGithub: state.github
+                });
+                showNotification('⚠️ Token GitHub mancante - Configura in Impostazioni → GitHub', 'error', 5000);
                 return false;
             }
+            
+            console.log('✅ Token GitHub presente:', {
+                tokenLength: GITHUB_CONFIG.token.length,
+                owner: GITHUB_CONFIG.owner,
+                repo: GITHUB_CONFIG.repo
+            });
             
             // 🔧 FIX: Assicura che state.github esista
             if (!state.github) {
@@ -5678,28 +5690,28 @@
                 const hasPositions = project.positions && project.positions.length > 0;
 
                 if (!hasValidName) {
-                    console.log('⚠️ Upload bloccato: progetto senza nome valido', {
+                    const errorMsg = `⚠️ Progetto ${project.id}: Nome mancante`;
+                    console.log(errorMsg, {
                         id: project.id,
                         name: project.name,
                         client: project.client,
                         clientNome: project.clientData?.nome
                     });
+                    showNotification(errorMsg + ' - Compila nome progetto o cliente', 'warning', 4000);
                     return false;
                 }
 
                 if (!hasPositions) {
-                    console.log('⚠️ Upload bloccato: progetto senza posizioni', {
+                    const errorMsg = `⚠️ Progetto ${project.name || project.id}: Nessuna posizione`;
+                    console.log(errorMsg, {
                         id: project.id,
                         name: hasValidName
                     });
+                    showNotification(errorMsg + ' - Aggiungi almeno una posizione', 'warning', 4000);
                     return false;
                 }
 
-                console.log('✅ Progetto valido per upload:', {
-                    id: project.id,
-                    name: hasValidName,
-                    positions: project.positions.length
-                });
+                console.log(`✅ Upload valido: ${project.name || project.id} (${project.positions.length} posizioni)`);
                 
                 // Prepara dati progetto COMPLETI
                 const projectData = {
@@ -6041,7 +6053,28 @@
                 return true;
                 
             } catch (error) {
-                console.error(`❌ Errore upload progetto ${project.id}:`, error);
+                const projectName = project.name || project.client || project.id;
+                console.error(`❌ ERRORE upload progetto ${projectName}:`, {
+                    error: error.message,
+                    stack: error.stack,
+                    projectId: project.id,
+                    hasToken: !!GITHUB_CONFIG.token,
+                    tokenLength: GITHUB_CONFIG.token ? GITHUB_CONFIG.token.length : 0
+                });
+                
+                // Notifica specifica all'utente
+                let userMsg = `❌ Upload fallito: ${projectName}`;
+                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    userMsg = '⚠️ Token GitHub non valido - Riconnetti';
+                } else if (error.message.includes('404')) {
+                    userMsg = '⚠️ Repository GitHub non trovato - Verifica configurazione';
+                } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                    userMsg = '⚠️ Errore connessione - Controlla rete';
+                } else {
+                    userMsg = `❌ ${error.message}`;
+                }
+                showNotification(userMsg, 'error', 5000);
+                
                 return false;
             }
         }
@@ -6866,7 +6899,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.54</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.55</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -9913,7 +9946,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.54
+                                    Open Porte v4.55
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -19080,9 +19113,9 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }
         });
         
-        // 🚨 NOTIFICA VISIVA VERSIONE v4.54
+        // 🚨 NOTIFICA VISIVA VERSIONE v4.55
         setTimeout(() => {
-            showNotification('🚪 v4.54 ✅ FIX: Try-catch robusto salvataggio', 'success', 5000);
+            showNotification('🚪 v4.55 ✅ FIX: Try-catch robusto salvataggio', 'success', 5000);
         }, 1000);
         
         // Aggiungi animazioni CSS
