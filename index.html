@@ -6,7 +6,30 @@
     
     <!--
     ═══════════════════════════════════════════════════════════════════════════════
-    DASHBOARD RILIEVI v7.40 - CHANGELOG
+    DASHBOARD RILIEVI v7.41 - CHANGELOG
+    ═══════════════════════════════════════════════════════════════════════════════
+    
+    🔧 VERSIONE 7.41 (20 NOV 2025):
+    
+    🔐 SICUREZZA TOKEN GITHUB - FIX CRITICO
+    - ❌ RIMOSSO: Token hardcoded dal codice (VULNERABILITÀ DI SICUREZZA)
+    - ✅ Token ora caricato SOLO da localStorage (sicuro)
+    - 🔒 Nessun token committato nel repository
+    - ⚠️ Se token non trovato: Overlay nascosto + Form inserimento token
+    - 🔄 Dopo inserimento token: Auto-reload progetti da GitHub
+    - 🎯 Form token appare SOTTO overlay (non più coperto)
+    - 📝 Gestione corretta flusso: Token missing → Form → Salva → Reload
+    
+    PROBLEMA RISOLTO:
+    - Token GitHub era esposto nel codice sorgente
+    - GitHub ha revocato automaticamente il token per sicurezza
+    - Ora token è gestito solo via localStorage (mai hardcoded)
+    
+    FUNZIONI MODIFICATE:
+    - GITHUB_DASHBOARD_CONFIG.token: ora '' invece di token hardcoded
+    - initGitHubSync(): Aggiunto check token → mostra form se mancante
+    - Overlay nascosto PRIMA di mostrare form token
+    
     ═══════════════════════════════════════════════════════════════════════════════
     
     🔧 VERSIONE 7.40 (20 NOV 2025):
@@ -8945,7 +8968,7 @@ if (typeof module !== 'undefined' && module.exports) {
             
             <div class="logo">
                 Dashboard Rilievi 
-                <span class="logo-version">v7.40 - Auto-Sync GitHub</span>
+                <span class="logo-version">v7.41 - Secure Token</span>
             </div>
             <nav class="main-nav">
                 <button class="nav-btn active blocco-generale" onclick="switchBlocco('generale')">
@@ -15237,7 +15260,7 @@ if (typeof module !== 'undefined' && module.exports) {
             owner: 'Openporte2025',
             repo: 'dati-cantieri',
             branch: 'main',
-            token: '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',
+            token: '', // ⚠️ NON HARDCODARE MAI TOKEN QUI - Viene caricato da localStorage
             autoRefreshInterval: 60000, // 60 secondi
             lastSync: null
         };
@@ -15313,7 +15336,19 @@ if (typeof module !== 'undefined' && module.exports) {
                     }
                 }
                 
-                // Carica progetti da GitHub
+                // ⚠️ SE TOKEN NON TROVATO: Nascondi overlay e mostra form
+                if (!GITHUB_DASHBOARD_CONFIG.token) {
+                    console.log('⚠️ Token GitHub non trovato - Richiesta inserimento');
+                    // Nascondi overlay immediatamente
+                    if (overlay) {
+                        overlay.classList.add('hidden');
+                    }
+                    // Mostra form inserimento token
+                    showGitHubTokenForm();
+                    return; // Esci - utente deve inserire token
+                }
+                
+                // Carica progetti da GitHub (token presente)
                 if (GITHUB_DASHBOARD_CONFIG.enabled) {
                     await loadProjectsFromGitHub();
                     
