@@ -1,6 +1,30 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.52 - ELIMINATO: Sezione Rilievo Preesistente + colonne Materiale/Togliere/Smaltire/Cop.INT/Cop.EST ✅
+    Open Porte v4.53 - FIX CRITICO: Upload GitHub da iPad + Notifiche errore ✅
+    
+    🔧 AGGIORNAMENTI v4.53 (19 NOV 2025):
+    
+    ⚡ FIX CRITICO: Upload GitHub da iPad ora funziona
+       - Problema: Safari iOS falliva codifica base64 con caratteri speciali
+       - Causa: btoa(unescape(encodeURIComponent())) non compatibile iOS
+       - Soluzione: Usa TextEncoder per codifica sicura + fallback
+       - Upload da iPad ora funziona correttamente
+    
+    ⚡ FIX: Notifiche errore upload visibili
+       - Problema: Upload falliva silenziosamente (solo console.log)
+       - Utente vedeva "✅ Salvato" anche quando falliva
+       - Soluzione: Mostra "❌ Impossibile salvare" se upload fallisce
+       - Mostra "⚠️ Parziale" se alcuni progetti falliscono
+       - Log dettagliati errori HTTP per debugging
+    
+    Implementazione:
+    - TextEncoder per base64 (riga ~5919-5930)
+    - Tracking progetti falliti (riga ~5297-5330)
+    - Notifiche errore specifiche
+    - Status sync corretto (synced/error)
+    - Compatibile iOS Safari
+    
+    ---
     
     🔧 AGGIORNAMENTI v4.52 (19 NOV 2025):
     
@@ -114,7 +138,7 @@
        (Sempre possibile scrivere manualmente altri colori)
     
     4. VERSIONE aggiornata ovunque:
-       - Tag <title>: Open Porte v4.52
+       - Tag <title>: Open Porte v4.53
        - Titolo interfaccia
        - Tutti i riferimenti
     
@@ -1420,7 +1444,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.52 - ELIMINATO: Sezione Rilievo Preesistente</title>
+    <title>Open Porte v4.53 - FIX CRITICO: Upload GitHub da iPad</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -5294,23 +5318,42 @@
                 
                 // Upload progetti
                 let successCount = 0;
+                let failedProjects = [];
                 for (const project of projectsToUpload) {
                     const uploaded = await uploadSingleProjectToGitHub(project);
-                    if (uploaded) successCount++;
+                    if (uploaded) {
+                        successCount++;
+                    } else {
+                        failedProjects.push(project.name || project.id);
+                    }
                 }
                 
                 state.github.lastSyncTime = Date.now();
-                state.github.syncStatus = 'synced';
-                updateSyncStatusDisplay('synced');
+                state.github.syncStatus = successCount > 0 ? 'synced' : 'error';
+                updateSyncStatusDisplay(successCount > 0 ? 'synced' : 'error');
                 
-                // Notifica successo
+                // Notifica successo o errore
                 if (state.github.syncNotifications && !isUserTyping()) {
                     if (!window.lastSyncNotification || (Date.now() - window.lastSyncNotification) > 5000) {
                         window.lastSyncNotification = Date.now();
-                        const msg = projectsToUpload.length === 1 
-                            ? '✅ Progetto salvato su GitHub'
-                            : `✅ ${successCount}/${projectsToUpload.length} progetti salvati su GitHub`;
-                        showNotification(msg, 'success', 2000);
+                        
+                        if (successCount === 0) {
+                            // ✅ NESSUN progetto salvato - ERRORE
+                            const msg = projectsToUpload.length === 1
+                                ? '❌ Impossibile salvare progetto su GitHub'
+                                : `❌ Impossibile salvare ${projectsToUpload.length} progetti su GitHub`;
+                            showNotification(msg, 'error', 4000);
+                        } else if (successCount === projectsToUpload.length) {
+                            // ✅ TUTTI i progetti salvati - SUCCESSO
+                            const msg = projectsToUpload.length === 1 
+                                ? '✅ Progetto salvato su GitHub'
+                                : `✅ ${successCount} progetti salvati su GitHub`;
+                            showNotification(msg, 'success', 2000);
+                        } else {
+                            // ⚠️ ALCUNI progetti salvati - PARZIALE
+                            const msg = `⚠️ ${successCount}/${projectsToUpload.length} progetti salvati su GitHub`;
+                            showNotification(msg, 'warning', 3000);
+                        }
                     }
                 }
                 
@@ -5916,9 +5959,20 @@
                 const fileName = `progetto-${project.id}.json`;
                 const filePath = `progetti/${fileName}`;
                 
-                // Converti in JSON + Base64
+                // Converti in JSON + Base64 (compatibile Safari iOS)
                 const content = JSON.stringify(projectData, null, 2);
-                const base64Content = btoa(unescape(encodeURIComponent(content)));
+                
+                // ✅ FIX iOS: Usa TextEncoder invece di btoa+unescape (più sicuro)
+                let base64Content;
+                try {
+                    // Metodo moderno (preferito)
+                    const encoder = new TextEncoder();
+                    const uint8Array = encoder.encode(content);
+                    base64Content = btoa(String.fromCharCode.apply(null, uint8Array));
+                } catch (e) {
+                    // Fallback per browser vecchi
+                    base64Content = btoa(unescape(encodeURIComponent(content)));
+                }
                 
                 // Verifica se file esiste già (per ottenere SHA)
                 const checkUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${filePath}`;
@@ -5956,8 +6010,19 @@
                 });
                 
                 if (!uploadResponse.ok) {
-                    const error = await uploadResponse.json();
-                    throw new Error(error.message || 'Upload fallito');
+                    let errorMsg = 'Upload fallito';
+                    try {
+                        const error = await uploadResponse.json();
+                        errorMsg = error.message || errorMsg;
+                    } catch (e) {
+                        errorMsg = `HTTP ${uploadResponse.status}: ${uploadResponse.statusText}`;
+                    }
+                    console.error(`❌ Upload fallito per ${project.id}:`, {
+                        status: uploadResponse.status,
+                        statusText: uploadResponse.statusText,
+                        error: errorMsg
+                    });
+                    throw new Error(errorMsg);
                 }
                 
                 console.log(`✅ Progetto salvato: ${fileName}`);
