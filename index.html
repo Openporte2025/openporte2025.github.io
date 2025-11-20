@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.55 - FIX CRITICO: Logging dettagliato errori GitHub + notifiche specifiche ✅
+    Open Porte v4.56 - FIX DEBUG: Logging super dettagliato upload GitHub per individuare errori ✅
     
-    🔧 AGGIORNAMENTI v4.55 (19 NOV 2025):
+    🔧 AGGIORNAMENTI v4.56 (20 NOV 2025):
     
     ⚡ FIX CRITICO: Upload GitHub da iPad ora funziona
        - Problema: Safari iOS falliva codifica base64 con caratteri speciali
@@ -138,7 +138,7 @@
        (Sempre possibile scrivere manualmente altri colori)
     
     4. VERSIONE aggiornata ovunque:
-       - Tag <title>: Open Porte v4.55
+       - Tag <title>: Open Porte v4.56
        - Titolo interfaccia
        - Tutti i riferimenti
     
@@ -1444,7 +1444,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.55 - FIX CRITICO: Logging GitHub</title>
+    <title>Open Porte v4.56 - DEBUG: Logging GitHub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2657,12 +2657,12 @@
             }
         };
 
-        // 🚨 LOG VERSIONE v4.55 - MOLTO EVIDENTE
+        // 🚨 LOG VERSIONE v4.56 - MOLTO EVIDENTE
         console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   🚪 OPEN PORTE v4.55 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   🚪 OPEN PORTE v4.56 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c║   FIX: Menu hamburger funziona!             ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c🔧 v4.55:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
+        console.log('%c🔧 v4.56:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
         console.log('  ⚡ FIX: Rimosso backslash-n che bloccava menu hamburger');
         console.log('  ⚡ Menu hamburger ora funziona correttamente');
         console.log('%c🔧 v4.39:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
@@ -5681,6 +5681,23 @@
         // 📦 FASE 027K: Upload singolo progetto (helper function)
         async function uploadSingleProjectToGitHub(project) {
             try {
+                console.log('═══════════════════════════════════════════════════════');
+                console.log('🚀 INIZIO UPLOAD PROGETTO:', project.id);
+                console.log('📋 Nome:', project.name);
+                console.log('👤 Cliente:', project.client);
+                console.log('🏢 ClienteData:', project.clientData);
+                console.log('📍 Posizioni:', project.positions?.length || 0);
+                console.log('🔑 Token presente:', !!GITHUB_CONFIG.token);
+                console.log('🔑 Token lunghezza:', GITHUB_CONFIG.token ? GITHUB_CONFIG.token.length : 0);
+                console.log('═══════════════════════════════════════════════════════');
+                
+                // ⚠️ CONTROLLO TOKEN
+                if (!GITHUB_CONFIG.token || GITHUB_CONFIG.token.trim() === '') {
+                    const errorMsg = '❌ Token GitHub mancante';
+                    console.error(errorMsg);
+                    showNotification('⚠️ Connetti GitHub prima di salvare - Vai in "Connetti GitHub"', 'error', 5000);
+                    return false;
+                }
                 
                 // ✅ FIX PROGETTI VUOTI: Non salvare su GitHub progetti incompleti
                 const hasValidName = (project.name && project.name.trim()) || 
@@ -6000,6 +6017,11 @@
                 
                 // Verifica se file esiste già (per ottenere SHA)
                 const checkUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${filePath}`;
+                
+                console.log('🔍 Controllo esistenza file su GitHub...');
+                console.log('📍 URL:', checkUrl);
+                console.log('🔑 Token (primi 10 char):', GITHUB_CONFIG.token.substring(0, 10) + '...');
+                
                 const checkResponse = await fetch(checkUrl, {
                     headers: {
                         'Authorization': `token ${GITHUB_CONFIG.token}`,
@@ -6011,13 +6033,23 @@
                 if (checkResponse.ok) {
                     const existing = await checkResponse.json();
                     sha = existing.sha;
-                    console.log('📝 Aggiornamento file esistente');
+                    console.log('📝 File esiste già - Aggiornamento (SHA:', sha.substring(0, 10) + '...)');
                 } else {
-                    console.log('📄 Creazione nuovo file');
+                    console.log('📄 File non esiste - Creazione nuovo (Status:', checkResponse.status, ')');
+                    if (checkResponse.status !== 404) {
+                        console.warn('⚠️ Status inaspettato:', checkResponse.status, checkResponse.statusText);
+                    }
                 }
                 
                 // Upload file su GitHub
                 const uploadUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${filePath}`;
+                
+                console.log('📤 Inizio upload su GitHub...');
+                console.log('📍 URL:', uploadUrl);
+                console.log('📦 Dimensione contenuto:', content.length, 'caratteri');
+                console.log('📦 Dimensione base64:', base64Content.length, 'caratteri');
+                console.log('🔄 Tipo operazione:', sha ? 'UPDATE (con SHA)' : 'CREATE');
+                
                 const uploadResponse = await fetch(uploadUrl, {
                     method: 'PUT',
                     headers: {
@@ -6033,23 +6065,34 @@
                     })
                 });
                 
+                console.log('📥 Risposta GitHub:', {
+                    ok: uploadResponse.ok,
+                    status: uploadResponse.status,
+                    statusText: uploadResponse.statusText
+                });
+                
                 if (!uploadResponse.ok) {
                     let errorMsg = 'Upload fallito';
+                    let errorDetails = null;
                     try {
                         const error = await uploadResponse.json();
                         errorMsg = error.message || errorMsg;
+                        errorDetails = error;
+                        console.error('❌ Dettagli errore GitHub:', error);
                     } catch (e) {
                         errorMsg = `HTTP ${uploadResponse.status}: ${uploadResponse.statusText}`;
+                        console.error('❌ Impossibile parsare risposta errore');
                     }
                     console.error(`❌ Upload fallito per ${project.id}:`, {
                         status: uploadResponse.status,
                         statusText: uploadResponse.statusText,
-                        error: errorMsg
+                        error: errorMsg,
+                        errorDetails: errorDetails
                     });
                     throw new Error(errorMsg);
                 }
                 
-                console.log(`✅ Progetto salvato: ${fileName}`);
+                console.log(`✅ Progetto salvato con successo: ${fileName}`);
                 return true;
                 
             } catch (error) {
@@ -6899,7 +6942,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.55</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.56</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -9946,7 +9989,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.55
+                                    Open Porte v4.56
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -19113,9 +19156,9 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }
         });
         
-        // 🚨 NOTIFICA VISIVA VERSIONE v4.55
+        // 🚨 NOTIFICA VISIVA VERSIONE v4.56
         setTimeout(() => {
-            showNotification('🚪 v4.55 ✅ FIX: Try-catch robusto salvataggio', 'success', 5000);
+            showNotification('🚪 v4.56 ✅ DEBUG: Logging super dettagliato upload GitHub', 'success', 5000);
         }, 1000);
         
         // Aggiungi animazioni CSS
