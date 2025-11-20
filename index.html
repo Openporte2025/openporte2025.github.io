@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.53 - FIX CRITICO: Upload GitHub da iPad + Notifiche errore ✅
+    Open Porte v4.54 - FIX CRITICO: Try-catch robusto saveState + export + GitHub ✅
     
-    🔧 AGGIORNAMENTI v4.53 (19 NOV 2025):
+    🔧 AGGIORNAMENTI v4.54 (19 NOV 2025):
     
     ⚡ FIX CRITICO: Upload GitHub da iPad ora funziona
        - Problema: Safari iOS falliva codifica base64 con caratteri speciali
@@ -138,7 +138,7 @@
        (Sempre possibile scrivere manualmente altri colori)
     
     4. VERSIONE aggiornata ovunque:
-       - Tag <title>: Open Porte v4.53
+       - Tag <title>: Open Porte v4.54
        - Titolo interfaccia
        - Tutti i riferimenti
     
@@ -1444,7 +1444,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.53 - FIX CRITICO: Upload GitHub da iPad</title>
+    <title>Open Porte v4.54 - FIX CRITICO: Try-catch robusto</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2657,12 +2657,12 @@
             }
         };
 
-        // 🚨 LOG VERSIONE v4.52 - MOLTO EVIDENTE
+        // 🚨 LOG VERSIONE v4.54 - MOLTO EVIDENTE
         console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   🚪 OPEN PORTE v4.52 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   🚪 OPEN PORTE v4.54 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c║   FIX: Menu hamburger funziona!             ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c🔧 v4.52:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
+        console.log('%c🔧 v4.54:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
         console.log('  ⚡ FIX: Rimosso backslash-n che bloccava menu hamburger');
         console.log('  ⚡ Menu hamburger ora funziona correttamente');
         console.log('%c🔧 v4.39:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
@@ -3404,8 +3404,14 @@
                 }
             }
             
-            localStorage.setItem('openPorteData', JSON.stringify(state));
-            console.log('✅ localStorage AGGIORNATO');
+            try {
+                localStorage.setItem('openPorteData', JSON.stringify(state));
+                console.log('✅ localStorage AGGIORNATO');
+            } catch (error) {
+                console.error('❌ Errore salvataggio localStorage:', error);
+                showNotification('⚠️ Errore salvataggio locale: ' + error.message, 'error', 5000);
+                return; // Esci se non riesce a salvare localmente
+            }
             
             // 📦 FASE 027K: Auto-backup su GitHub (debounced)
             // Solo se connesso, auto-backup abilitato e non già in sync
@@ -3413,11 +3419,17 @@
                 state.github.autoBackupEnabled && 
                 state.github.syncStatus !== 'syncing') {
                 
-                // Debounce: aspetta 2 secondi di inattività prima di sync
-                clearTimeout(window.githubSyncDebounce);
-                window.githubSyncDebounce = setTimeout(() => {
-                    uploadToGitHub();
-                }, 2000);
+                try {
+                    // Debounce: aspetta 2 secondi di inattività prima di sync
+                    clearTimeout(window.githubSyncDebounce);
+                    window.githubSyncDebounce = setTimeout(() => {
+                        uploadToGitHub().catch(err => {
+                            console.error('❌ Errore auto-sync GitHub:', err);
+                        });
+                    }, 2000);
+                } catch (error) {
+                    console.error('❌ Errore setup auto-sync:', error);
+                }
             }
         }
 
@@ -6854,7 +6866,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.52</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.54</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -9901,7 +9913,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.52
+                                    Open Porte v4.54
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -19068,9 +19080,9 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }
         });
         
-        // 🚨 NOTIFICA VISIVA VERSIONE v4.52
+        // 🚨 NOTIFICA VISIVA VERSIONE v4.54
         setTimeout(() => {
-            showNotification('🚪 v4.52 ✅ ELIMINATO: Sezione Rilievo Preesistente', 'success', 5000);
+            showNotification('🚪 v4.54 ✅ FIX: Try-catch robusto salvataggio', 'success', 5000);
         }, 1000);
         
         // Aggiungi animazioni CSS
