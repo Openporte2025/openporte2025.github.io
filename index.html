@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.57 - PERMETTI PROGETTI SENZA POSIZIONI: Schede cliente pre-cantiere OK ✅
+    Open Porte v4.58 - FIX PROGETTI CORROTTI: Pulizia automatica + validazione robusta ✅
     
-    🔧 AGGIORNAMENTI v4.57 (20 NOV 2025):
+    🔧 AGGIORNAMENTI v4.58 (20 NOV 2025):
     
     ⚡ FIX CRITICO: Upload GitHub da iPad ora funziona
        - Problema: Safari iOS falliva codifica base64 con caratteri speciali
@@ -138,7 +138,7 @@
        (Sempre possibile scrivere manualmente altri colori)
     
     4. VERSIONE aggiornata ovunque:
-       - Tag <title>: Open Porte v4.57
+       - Tag <title>: Open Porte v4.58
        - Titolo interfaccia
        - Tutti i riferimenti
     
@@ -1444,7 +1444,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.57 - Progetti Vuoti OK</title>
+    <title>Open Porte v4.58 - Fix Progetti Corrotti</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2657,14 +2657,15 @@
             }
         };
 
-        // 🚨 LOG VERSIONE v4.57 - MOLTO EVIDENTE
+        // 🚨 LOG VERSIONE v4.58 - MOLTO EVIDENTE
         console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   🚪 OPEN PORTE v4.57 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   🚪 OPEN PORTE v4.58 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c║   FIX: Menu hamburger funziona!             ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c🔧 v4.57:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
-        console.log('  ⚡ FIX: Rimosso backslash-n che bloccava menu hamburger');
-        console.log('  ⚡ Menu hamburger ora funziona correttamente');
+        console.log('%c🔧 v4.58:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
+        console.log('  🧹 Pulizia automatica progetti corrotti (ID #UNKNOWN)');
+        console.log('  🛡️ Validazione robusta creazione progetti');
+        console.log('  ✅ Database sempre consistente');
         console.log('%c🔧 v4.39:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
         console.log('  ✅ Logica colori uniformata');
         console.log('  ✅ Maniglie semplificate: 4 opzioni');
@@ -2966,6 +2967,9 @@
                         console.log('✅ Struttura drawings migrata per tutti i progetti');
                     }
                     
+                    console.log('🧹 ESEGUENDO cleanCorruptedProjects...');
+                    cleanCorruptedProjects(); // 🔧 v4.57: Rimuove progetti corrotti (ID mancante/undefined)
+                    
                 } catch (e) {
                     console.error('❌ Errore caricando stato da localStorage:', e);
                     console.log('🔄 Resetto allo stato iniziale...');
@@ -3146,6 +3150,52 @@
                     });
                 }
             });
+        }
+
+        // 🔧 v4.57: Pulizia progetti corrotti (ID mancante o undefined)
+        function cleanCorruptedProjects() {
+            if (!state.projects || !Array.isArray(state.projects)) return;
+            
+            const originalLength = state.projects.length;
+            
+            // Rimuovi progetti con ID corrotto
+            state.projects = state.projects.filter(project => {
+                // Controlla ID valido
+                const hasValidId = project.id && 
+                                  project.id !== '#UNKNOWN' && 
+                                  project.id !== 'undefined' && 
+                                  typeof project.id === 'string' &&
+                                  project.id.trim() !== '';
+                
+                // Controlla nome valido (almeno uno dei tre)
+                const hasValidName = (project.name && project.name !== 'undefined' && project.name.trim()) ||
+                                    (project.client && project.client !== 'undefined' && project.client.trim()) ||
+                                    (project.clientData?.nome && project.clientData.nome !== 'undefined' && project.clientData.nome.trim());
+                
+                // Se progetto corrotto, logga e rimuovi
+                if (!hasValidId || !hasValidName) {
+                    console.warn('🗑️ PROGETTO CORROTTO RIMOSSO:', {
+                        id: project.id,
+                        name: project.name,
+                        client: project.client,
+                        hasValidId: hasValidId,
+                        hasValidName: hasValidName
+                    });
+                    return false; // Rimuovi
+                }
+                
+                return true; // Mantieni
+            });
+            
+            const removedCount = originalLength - state.projects.length;
+            
+            if (removedCount > 0) {
+                console.log(`✅ Rimossi ${removedCount} progetti corrotti`);
+                saveState(); // Salva stato pulito
+                showNotification(`🧹 Rimossi ${removedCount} progetti corrotti dal database`, 'success', 4000);
+            } else {
+                console.log('✅ Nessun progetto corrotto trovato');
+            }
         }
 
         // Migrazione dati da vecchio formato (array) a nuovo formato (oggetto singolo)
@@ -6931,7 +6981,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.57</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.58</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -8642,8 +8692,22 @@
 
         // Project Management
         function createProject(name, client) {
+            // 🔧 v4.57: Genera ID e verifica validità
+            let newId = generateId();
+            
+            // 🚨 VALIDAZIONE CRITICA: ID deve essere valido
+            if (!newId || newId === '#UNKNOWN' || newId === 'undefined' || newId.trim() === '') {
+                console.error('❌ ERRORE CRITICO: generateId() ha ritornato ID non valido:', newId);
+                // Fallback: genera ID con timestamp
+                const fallbackId = `${new Date().getFullYear()}P${Date.now().toString().slice(-3)}`;
+                console.warn('⚠️ Uso ID fallback:', fallbackId);
+                newId = fallbackId;
+            }
+            
+            console.log('✅ Nuovo progetto creato con ID:', newId);
+            
             const project = {
-                id: generateId(),  // 🆕 v4.20: USA formato ANNOP001 (2025P001)
+                id: newId,  // 🆕 v4.20: USA formato ANNOP001 (2025P001) + v4.57: validato
                 name,
                 client,
                 clientData: {},
@@ -9978,7 +10042,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.57
+                                    Open Porte v4.58
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -19145,9 +19209,9 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }
         });
         
-        // 🚨 NOTIFICA VISIVA VERSIONE v4.57
+        // 🚨 NOTIFICA VISIVA VERSIONE v4.58
         setTimeout(() => {
-            showNotification('🚪 v4.57 ✅ Progetti senza posizioni ora salvabili (schede pre-cantiere)', 'success', 5000);
+            showNotification('🚪 v4.58 ✅ FIX: Progetti corrotti rimossi automaticamente', 'success', 5000);
         }, 1000);
         
         // Aggiungi animazioni CSS
