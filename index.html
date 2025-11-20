@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.58 - FIX PROGETTI CORROTTI: Pulizia automatica + validazione robusta ✅
+    Open Porte v4.59 - SISTEMA VERSIONING COMPLETO: Tracking modifiche dettagliato + history ✅
     
-    🔧 AGGIORNAMENTI v4.58 (20 NOV 2025):
+    🔧 AGGIORNAMENTI v4.59 (20 NOV 2025):
     
     ⚡ FIX CRITICO: Upload GitHub da iPad ora funziona
        - Problema: Safari iOS falliva codifica base64 con caratteri speciali
@@ -138,7 +138,7 @@
        (Sempre possibile scrivere manualmente altri colori)
     
     4. VERSIONE aggiornata ovunque:
-       - Tag <title>: Open Porte v4.58
+       - Tag <title>: Open Porte v4.59
        - Titolo interfaccia
        - Tutti i riferimenti
     
@@ -1444,7 +1444,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.58 - Fix Progetti Corrotti</title>
+    <title>Open Porte v4.59 - Fix Progetti Corrotti</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2657,15 +2657,16 @@
             }
         };
 
-        // 🚨 LOG VERSIONE v4.58 - MOLTO EVIDENTE
+        // 🚨 LOG VERSIONE v4.59 - MOLTO EVIDENTE
         console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   🚪 OPEN PORTE v4.58 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   🚪 OPEN PORTE v4.59 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c║   FIX: Menu hamburger funziona!             ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c🔧 v4.58:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
-        console.log('  🧹 Pulizia automatica progetti corrotti (ID #UNKNOWN)');
-        console.log('  🛡️ Validazione robusta creazione progetti');
-        console.log('  ✅ Database sempre consistente');
+        console.log('%c🔧 v4.59:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
+        console.log('  🔢 Sistema versioning COMPLETO con tracking modifiche');
+        console.log('  📋 Log dettagliato: chi, quando, cosa ha modificato');
+        console.log('  👁️ Versione visibile nella lista progetti');
+        console.log('  🔄 Auto-increment version + history completa');
         console.log('%c🔧 v4.39:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
         console.log('  ✅ Logica colori uniformata');
         console.log('  ✅ Maniglie semplificate: 4 opzioni');
@@ -4210,70 +4211,107 @@
         // ───────────────────────────────────────────────────────────────
 
         function initMetadata() {
-            // Inizializza metadata per nuovo progetto
+            // 🆕 v4.59: Metadata versioning COMPLETO con log dettagliato
+            const now = new Date().toISOString();
             return {
-                createdAt: new Date().toISOString(),
-                lastModified: new Date().toISOString(),
-                version: "1.0",
-                deviceId: getDeviceId(),
-                deviceName: getDeviceName(),
+                version: 1,  // 🔢 Numero versione incrementale (1, 2, 3, 4...)
+                created: now,
+                updated: now,
+                device: {
+                    id: getDeviceId(),
+                    name: getDeviceName()
+                },
                 syncStatus: "local",  // local | synced | conflict
-                history: [{
-                    timestamp: new Date().toISOString(),
-                    device: getDeviceName(),
-                    deviceId: getDeviceId(),
+                changes: [{
+                    version: 1,
+                    timestamp: now,
                     action: "created",
-                    changes: "Progetto creato"
+                    details: "Progetto creato",
+                    device: {
+                        id: getDeviceId(),
+                        name: getDeviceName()
+                    }
                 }]
             };
         }
 
-        function updateProjectTimestamp(projectId, action, changes) {
-            // Auto-aggiorna timestamp e history ad ogni modifica
+        function updateProjectTimestamp(projectId, action, details, changedFields = {}) {
+            // 🆕 v4.59: Auto-aggiorna versione e logga modifiche DETTAGLIATE
             const project = state.projects.find(p => p.id === projectId);
             if (!project) return;
             
             // Inizializza metadata se non esiste (backward compatibility)
             if (!project.metadata) {
                 project.metadata = initMetadata();
-                project.metadata.createdAt = project.createdDate || new Date().toISOString();
+                project.metadata.created = project.createdDate || project.created || new Date().toISOString();
             }
             
-            // Aggiorna timestamp
-            project.metadata.lastModified = new Date().toISOString();
+            // 🔧 Migra da formato vecchio a nuovo se necessario
+            if (typeof project.metadata.version === 'string') {
+                // Converti "1.0" → 1, "2.5" → 3, etc
+                project.metadata.version = parseInt(project.metadata.version.split('.')[0]) || 1;
+            }
+            if (project.metadata.history && !project.metadata.changes) {
+                // Migra history → changes
+                project.metadata.changes = project.metadata.history || [];
+                delete project.metadata.history;
+            }
+            if (project.metadata.createdAt && !project.metadata.created) {
+                project.metadata.created = project.metadata.createdAt;
+                delete project.metadata.createdAt;
+            }
+            if (project.metadata.lastModified && !project.metadata.updated) {
+                project.metadata.updated = project.metadata.lastModified;
+                delete project.metadata.lastModified;
+            }
             
             // Incrementa versione
-            project.metadata.version = incrementVersion(project.metadata.version);
+            project.metadata.version = (project.metadata.version || 0) + 1;
+            
+            // Aggiorna timestamp
+            const now = new Date().toISOString();
+            project.metadata.updated = now;
             
             // Aggiorna status
             project.metadata.syncStatus = "local";
             
-            // Aggiungi a history
-            project.metadata.history.push({
-                timestamp: new Date().toISOString(),
-                device: getDeviceName(),
-                deviceId: getDeviceId(),
-                action: action,
-                changes: changes
-            });
+            // Aggiorna device info
+            project.metadata.device = {
+                id: getDeviceId(),
+                name: getDeviceName()
+            };
             
-            // Limita history a ultimi 50 entries
-            if (project.metadata.history.length > 50) {
-                project.metadata.history = project.metadata.history.slice(-50);
+            // Prepara entry log modifiche
+            const changeEntry = {
+                version: project.metadata.version,
+                timestamp: now,
+                action: action,
+                details: details,
+                device: {
+                    id: getDeviceId(),
+                    name: getDeviceName()
+                }
+            };
+            
+            // Aggiungi campi modificati se forniti
+            if (Object.keys(changedFields).length > 0) {
+                changeEntry.fields = changedFields;
             }
+            
+            // Aggiungi a changes array
+            if (!project.metadata.changes) {
+                project.metadata.changes = [];
+            }
+            project.metadata.changes.push(changeEntry);
+            
+            // Limita changes a ultimi 100 entries
+            if (project.metadata.changes.length > 100) {
+                project.metadata.changes = project.metadata.changes.slice(-100);
+            }
+            
+            console.log(`📝 Progetto ${projectId} aggiornato: v${project.metadata.version} - ${action}`);
             
             saveState();
-        }
-
-        function incrementVersion(currentVersion) {
-            // Incrementa numero versione (1.0 → 1.1 → 1.2 ... → 2.0)
-            const [major, minor] = currentVersion.split('.').map(Number);
-            const newMinor = minor + 1;
-            
-            if (newMinor >= 10) {
-                return `${major + 1}.0`;
-            }
-            return `${major}.${newMinor}`;
         }
 
         function migrateOldProjectsMetadata() {
@@ -5769,6 +5807,14 @@
                 const numPositions = (project.positions && project.positions.length) || 0;
                 console.log(`✅ Upload valido: ${project.name || project.id} (${numPositions} posizioni)`);
                 
+                // 🆕 v4.59: Tracking modifiche prima dell'upload
+                updateProjectTimestamp(
+                    project.id, 
+                    'uploaded_to_github', 
+                    `Progetto caricato su GitHub (${numPositions} posizioni)`,
+                    { positions: numPositions }
+                );
+                
                 // Prepara dati progetto COMPLETI
                 const projectData = {
                     // ═════════════════════════════════════════════════════════
@@ -6025,13 +6071,17 @@
                     created: project.created || new Date().toISOString(),
                     updated: new Date().toISOString(),
                     
-                    // METADATA
-                    metadata: {
-                        version: '4.5',
+                    // 🆕 v4.59: METADATA COMPLETO con versioning e history
+                    metadata: project.metadata || {
+                        version: 1,
+                        created: project.created || new Date().toISOString(),
+                        updated: new Date().toISOString(),
                         device: {
                             id: localStorage.getItem('deviceId'),
                             name: localStorage.getItem('deviceName')
-                        }
+                        },
+                        syncStatus: 'synced',
+                        changes: []
                     }
                 };
                 
@@ -6981,7 +7031,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.58</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.59</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -10042,7 +10092,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.58
+                                    Open Porte v4.59
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -10846,9 +10896,19 @@
                                 </div>
                             </div>
                             <div class="flex justify-between items-center text-sm pt-2 border-t border-gray-100">
-                                <span class="text-gray-500 flex items-center gap-1">
-                                    <span>📋</span> ${(p.positions || []).length} posizioni
-                                </span>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-gray-500 flex items-center gap-1">
+                                        <span>📋</span> ${(p.positions || []).length} posizioni
+                                    </span>
+                                    ${p.metadata && p.metadata.version ? `
+                                        <span class="text-xs text-blue-600 font-mono flex items-center gap-1">
+                                            <span>🔢</span> v${p.metadata.version}
+                                            ${p.metadata.updated ? `
+                                                <span class="text-gray-400">• ${new Date(p.metadata.updated).toLocaleDateString('it-IT', {day: '2-digit', month: '2-digit'})}</span>
+                                            ` : ''}
+                                        </span>
+                                    ` : ''}
+                                </div>
                                 <span class="text-purple-600 font-medium">Apri →</span>
                             </div>
                         </div>
@@ -19209,9 +19269,9 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }
         });
         
-        // 🚨 NOTIFICA VISIVA VERSIONE v4.58
+        // 🚨 NOTIFICA VISIVA VERSIONE v4.59
         setTimeout(() => {
-            showNotification('🚪 v4.58 ✅ FIX: Progetti corrotti rimossi automaticamente', 'success', 5000);
+            showNotification('🚪 v4.59 ✅ Sistema versioning attivo - Tracking modifiche completo', 'success', 5000);
         }, 1000);
         
         // Aggiungi animazioni CSS
