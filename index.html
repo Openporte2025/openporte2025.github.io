@@ -1,6 +1,44 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.62 - CAMPO TIPO AUTOMAZIONE TAPPARELLE: Manuale/Motorizzata nel rilievo preesistente ✅
+    Open Porte v4.63 - LOGICA CONDIZIONALE AUTOMAZIONE TAPPARELLE: Nuova tapparella basata su esistente ✅
+    
+    🔧 AGGIORNAMENTI v4.63 (21 NOV 2025):
+    
+    ⚡ LOGICA CONDIZIONALE COMPLETA: Configurazione Tapparelle Intelligente
+       - Campo "4. Nuova automazione" ora CONDIZIONALE basato su tipo esistente
+       - Rilievo Globale con campo "🔍 Tapparella esistente" (Manuale/Motorizzata)
+       - Auto-copia da rilievo globale a pos.rilievoTapparella.tipo
+       
+    📋 CASO A - Esistente MANUALE:
+       - Opzione 1: 🖐️ Rimane Manuale
+       - Opzione 2: ⚡ Motorizzata
+         └─ Checkbox: 🔌 Forniamo motore
+            └─ Select: [OXIMO IO / RS100 io Hybrid / LT HELIOS / RS100 SOLAR io]
+    
+    📋 CASO B - Esistente MOTORIZZATA:
+       - Opzione 1: ♻️ Motore esistente (riutilizzo)
+       - Opzione 2: 🔄 Sostituzione motore
+         └─ Select: [OXIMO IO / RS100 io Hybrid / LT HELIOS / RS100 SOLAR io]
+    
+    💾 STRUTTURA DATI:
+       - project.rilievoTapparelle.tipo: "Manuale" | "Motorizzata"
+       - project.configTapparelle.nuovaAutomazione: "Rimane Manuale" | "Motorizzata" | "Motore esistente" | "Sostituzione motore"
+       - project.configTapparelle.forniMotore: true | false (solo se Manuale→Motorizzata)
+       - project.configTapparelle.modelloMotore: stringa modello (se fornitura/sostituzione)
+    
+    🔄 AUTO-SYNC:
+       - Rilievo globale → pos.rilievoTapparella.tipo
+       - Config globale → pos.tapparella.* (tutti i campi)
+       - Sistema override funzionante come altri prodotti
+    
+    Implementazione:
+    - calculateRilievoGlobaleCompleteness: total=4 per tapparelle (riga 8750)
+    - renderRilievoGlobale: Campo tipo con bottoni toggle (riga 11735)
+    - renderStep5ConfigTapparelle: Logica condizionale completa (riga 12495)
+    - updateRilievoGlobale: Inizializzazione e copia campo tipo (riga 8417, 8459)
+    - updateConfigTapparelle: Sync automatico a posizioni (esistente)
+    
+    ---
     
     🔧 AGGIORNAMENTI v4.62 (20 NOV 2025):
     
@@ -1462,7 +1500,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.62 - Tipo Automazione Tapparelle</title>
+    <title>Open Porte v4.63 - Logica Condizionale Tapparelle</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -8416,6 +8454,12 @@
                         project[rilievoKey].coprifiliInt = false;
                         project[rilievoKey].coprifiliEst = false;
                     }
+                    
+                    // Aggiungi campo tipo per tapparelle
+                    if (productType === 'tapparelle') {
+                        project[rilievoKey].tipo = '';
+                    }
+                    
                     console.log('🆕 Creato nuovo rilievoKey:', project[rilievoKey]);
                 }
                 
@@ -8454,6 +8498,11 @@
                             if (productType === 'infissi') {
                                 pos[rilievoKey].coprifiliInt = project[rilievoKey].coprifiliInt || false;
                                 pos[rilievoKey].coprifiliEst = project[rilievoKey].coprifiliEst || false;
+                            }
+                            
+                            // Aggiungi campo tipo per tapparelle
+                            if (productType === 'tapparelle') {
+                                pos[rilievoKey].tipo = project[rilievoKey].tipo || '';
                             }
                             
                             createdCount++;
@@ -8755,6 +8804,11 @@
                 total = 5; // + coprifiliInt, coprifiliEst
             }
             
+            // Per tapparelle c'è anche il campo tipo (Manuale/Motorizzata)
+            if (productType === 'tapparelle') {
+                total = 4; // materiale, tipo, togliere, smaltimento
+            }
+            
             // Conta i campi compilati (campo "preesistente" ELIMINATO in FASE 13a)
             if (rilievo.materiale && rilievo.materiale.trim() !== '') completed++;
             if (rilievo.togliere !== undefined && rilievo.togliere !== null) completed++;
@@ -8763,6 +8817,10 @@
             if (productType === 'infissi') {
                 if (rilievo.coprifiliInt !== undefined && rilievo.coprifiliInt !== null) completed++;
                 if (rilievo.coprifiliEst !== undefined && rilievo.coprifiliEst !== null) completed++;
+            }
+            
+            if (productType === 'tapparelle') {
+                if (rilievo.tipo && rilievo.tipo.trim() !== '') completed++;
             }
             
             const percentage = Math.round((completed / total) * 100);
@@ -10284,7 +10342,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.62
+                                    Open Porte v4.63
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -11730,6 +11788,28 @@
                             })()}
                         </div>
                         
+                        ${productType === 'tapparelle' ? `
+                        <!-- 1B. TIPO AUTOMAZIONE (solo per Tapparelle) -->
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 flex items-center gap-2">
+                                🔍 Tapparella esistente
+                                ${!rilievo.tipo || rilievo.tipo.trim() === '' ? '<span class="text-red-600">●</span>' : '<span class="text-green-600">✓</span>'}
+                            </label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button type="button"
+                                        onclick="updateRilievoGlobale('${project.id}', '${productType}', 'tipo', 'Manuale')"
+                                        class="px-4 py-3 rounded-lg border-2 font-semibold transition ${rilievo.tipo === 'Manuale' ? 'bg-blue-500 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'}">
+                                    🖐️ Manuale
+                                </button>
+                                <button type="button"
+                                        onclick="updateRilievoGlobale('${project.id}', '${productType}', 'tipo', 'Motorizzata')"
+                                        class="px-4 py-3 rounded-lg border-2 font-semibold transition ${rilievo.tipo === 'Motorizzata' ? 'bg-blue-500 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'}">
+                                    ⚡ Motorizzata
+                                </button>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
                         <!-- 2. NOTE AGGIUNTIVE -->
                         <div>
                             <label class="block text-sm font-semibold mb-2 flex items-center gap-2">
@@ -12492,16 +12572,145 @@
                                        class="w-full px-3 py-2 border rounded-lg">
                             </div>
                             
-                            <!-- 4. MANUALE/MOTORIZZATO -->
-                            ${renderSelectWithCustom(
-                                'tipologia',
-                                project.configTapparelle?.tipologia || '',
-                                ['Manuale', 'Motorizzata'],
-                                project.id,
-                                null,
-                                'tapparella',
-                                '4. Manuale/Motorizzato'
-                            )}
+                            <!-- 4. NUOVA AUTOMAZIONE (CONDIZIONALE) -->
+                            ${(() => {
+                                const tipoEsistente = project.rilievoTapparelle?.tipo || '';
+                                const config = project.configTapparelle || {};
+                                
+                                // Se tipo esistente non specificato, mostra avviso
+                                if (!tipoEsistente || tipoEsistente.trim() === '') {
+                                    return `
+                                        <div class="col-span-2 bg-amber-50 border-2 border-amber-300 rounded-lg p-4">
+                                            <p class="text-sm font-semibold text-amber-800 flex items-center gap-2">
+                                                ⚠️ Compila prima "Rilievo Globale" sopra per specificare se la tapparella esistente è Manuale o Motorizzata
+                                            </p>
+                                        </div>
+                                    `;
+                                }
+                                
+                                // CASO A: Esistente MANUALE
+                                if (tipoEsistente === 'Manuale') {
+                                    return `
+                                        <div class="col-span-2">
+                                            <label class="block text-sm font-medium mb-2">4. Nuova tapparella</label>
+                                            <div class="space-y-3">
+                                                <!-- Opzione: Rimane Manuale -->
+                                                <div class="flex items-center gap-3 bg-white p-3 rounded-lg border-2 ${config.nuovaAutomazione === 'Rimane Manuale' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}">
+                                                    <input type="radio" 
+                                                           name="nuovaAuto-${project.id}" 
+                                                           id="rimaneManuale-${project.id}"
+                                                           ${config.nuovaAutomazione === 'Rimane Manuale' ? 'checked' : ''}
+                                                           onchange="updateConfigTapparelle('${project.id}', 'nuovaAutomazione', 'Rimane Manuale'); updateConfigTapparelle('${project.id}', 'forniMotore', false); updateConfigTapparelle('${project.id}', 'modelloMotore', ''); renderCurrentScreen();"
+                                                           class="w-4 h-4">
+                                                    <label for="rimaneManuale-${project.id}" class="font-semibold cursor-pointer flex-1">
+                                                        🖐️ Rimane Manuale
+                                                    </label>
+                                                </div>
+                                                
+                                                <!-- Opzione: Motorizzata -->
+                                                <div class="border-2 rounded-lg ${config.nuovaAutomazione === 'Motorizzata' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'}">
+                                                    <div class="flex items-center gap-3 p-3">
+                                                        <input type="radio" 
+                                                               name="nuovaAuto-${project.id}" 
+                                                               id="motorizzata-${project.id}"
+                                                               ${config.nuovaAutomazione === 'Motorizzata' ? 'checked' : ''}
+                                                               onchange="updateConfigTapparelle('${project.id}', 'nuovaAutomazione', 'Motorizzata'); renderCurrentScreen();"
+                                                               class="w-4 h-4">
+                                                        <label for="motorizzata-${project.id}" class="font-semibold cursor-pointer flex-1">
+                                                            ⚡ Motorizzata
+                                                        </label>
+                                                    </div>
+                                                    
+                                                    ${config.nuovaAutomazione === 'Motorizzata' ? `
+                                                        <div class="px-3 pb-3 space-y-3 border-t pt-3">
+                                                            <!-- Checkbox: Forniamo motore? -->
+                                                            <div class="flex items-center gap-3">
+                                                                <input type="checkbox" 
+                                                                       id="forniMotore-${project.id}"
+                                                                       ${config.forniMotore ? 'checked' : ''}
+                                                                       onchange="updateConfigTapparelle('${project.id}', 'forniMotore', this.checked); renderCurrentScreen();"
+                                                                       class="w-4 h-4">
+                                                                <label for="forniMotore-${project.id}" class="font-medium cursor-pointer">
+                                                                    🔌 Forniamo motore
+                                                                </label>
+                                                            </div>
+                                                            
+                                                            ${config.forniMotore ? `
+                                                                <!-- Select Modello Motore -->
+                                                                <div class="pl-6">
+                                                                    <label class="block text-sm font-medium mb-1">Modello motore:</label>
+                                                                    <select class="w-full px-3 py-2 border rounded-lg"
+                                                                            onchange="updateConfigTapparelle('${project.id}', 'modelloMotore', this.value)">
+                                                                        <option value="">Seleziona modello...</option>
+                                                                        <option value="OXIMO IO" ${config.modelloMotore === 'OXIMO IO' ? 'selected' : ''}>OXIMO IO</option>
+                                                                        <option value="RS100 io Hybrid" ${config.modelloMotore === 'RS100 io Hybrid' ? 'selected' : ''}>RS100 io Hybrid</option>
+                                                                        <option value="LT HELIOS" ${config.modelloMotore === 'LT HELIOS' ? 'selected' : ''}>LT HELIOS</option>
+                                                                        <option value="RS100 SOLAR io" ${config.modelloMotore === 'RS100 SOLAR io' ? 'selected' : ''}>RS100 SOLAR io</option>
+                                                                    </select>
+                                                                </div>
+                                                            ` : ''}
+                                                        </div>
+                                                    ` : ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                                
+                                // CASO B: Esistente MOTORIZZATA
+                                if (tipoEsistente === 'Motorizzata') {
+                                    return `
+                                        <div class="col-span-2">
+                                            <label class="block text-sm font-medium mb-2">4. Nuova tapparella motorizzata</label>
+                                            <div class="space-y-3">
+                                                <!-- Opzione: Motore esistente -->
+                                                <div class="flex items-center gap-3 bg-white p-3 rounded-lg border-2 ${config.nuovaAutomazione === 'Motore esistente' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}">
+                                                    <input type="radio" 
+                                                           name="nuovaAuto-${project.id}" 
+                                                           id="motoreEsist-${project.id}"
+                                                           ${config.nuovaAutomazione === 'Motore esistente' ? 'checked' : ''}
+                                                           onchange="updateConfigTapparelle('${project.id}', 'nuovaAutomazione', 'Motore esistente'); updateConfigTapparelle('${project.id}', 'modelloMotore', ''); renderCurrentScreen();"
+                                                           class="w-4 h-4">
+                                                    <label for="motoreEsist-${project.id}" class="font-semibold cursor-pointer flex-1">
+                                                        ♻️ Motore esistente (riutilizzo)
+                                                    </label>
+                                                </div>
+                                                
+                                                <!-- Opzione: Sostituzione motore -->
+                                                <div class="border-2 rounded-lg ${config.nuovaAutomazione === 'Sostituzione motore' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'}">
+                                                    <div class="flex items-center gap-3 p-3">
+                                                        <input type="radio" 
+                                                               name="nuovaAuto-${project.id}" 
+                                                               id="sostMotore-${project.id}"
+                                                               ${config.nuovaAutomazione === 'Sostituzione motore' ? 'checked' : ''}
+                                                               onchange="updateConfigTapparelle('${project.id}', 'nuovaAutomazione', 'Sostituzione motore'); renderCurrentScreen();"
+                                                               class="w-4 h-4">
+                                                        <label for="sostMotore-${project.id}" class="font-semibold cursor-pointer flex-1">
+                                                            🔄 Sostituzione motore
+                                                        </label>
+                                                    </div>
+                                                    
+                                                    ${config.nuovaAutomazione === 'Sostituzione motore' ? `
+                                                        <div class="px-3 pb-3 border-t pt-3">
+                                                            <label class="block text-sm font-medium mb-1">Modello motore:</label>
+                                                            <select class="w-full px-3 py-2 border rounded-lg"
+                                                                    onchange="updateConfigTapparelle('${project.id}', 'modelloMotore', this.value)">
+                                                                <option value="">Seleziona modello...</option>
+                                                                <option value="OXIMO IO" ${config.modelloMotore === 'OXIMO IO' ? 'selected' : ''}>OXIMO IO</option>
+                                                                <option value="RS100 io Hybrid" ${config.modelloMotore === 'RS100 io Hybrid' ? 'selected' : ''}>RS100 io Hybrid</option>
+                                                                <option value="LT HELIOS" ${config.modelloMotore === 'LT HELIOS' ? 'selected' : ''}>LT HELIOS</option>
+                                                                <option value="RS100 SOLAR io" ${config.modelloMotore === 'RS100 SOLAR io' ? 'selected' : ''}>RS100 SOLAR io</option>
+                                                            </select>
+                                                        </div>
+                                                    ` : ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                                
+                                return '';
+                            })()}
                             
                             <!-- 5. SOST. ESISTENTE -->
                             ${renderSelectWithCustom(
