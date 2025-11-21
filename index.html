@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.66 - FIX CHECKBOX FORNIAMO MOTORE: Modello motore appare/scompare immediatamente ✅
+    Open Porte v4.67 - LOGICA CONDIZIONALE POSIZIONI TAPPARELLE: Basata su rilievo esistente ✅
     
-    🔧 AGGIORNAMENTI v4.66 (21 NOV 2025):
-    - 🐛 FIX CHECKBOX "Forniamo motore": Campo "Modello motore" ora appare/scompare IMMEDIATAMENTE
-    - ✅ Sostituito renderCurrentScreen() (NON esistente) con render() in 5 punti
-    - ✅ Fix applicato a tutti i radio button della sezione automazione tapparelle
-    - ✅ Interfaccia ora reagisce istantaneamente a tutti i cambiamenti
+    🔧 AGGIORNAMENTI v4.67 (21 NOV 2025):
+    - ✨ LOGICA CONDIZIONALE POSIZIONI: Tab Tapparelle ora usa rilievo esistente dal tab Misure
+    - ✅ Eliminato campo manuale "Manuale/Motorizzato"
+    - ✅ Sistema automatico basato su "🔍 Tapparella esistente" (Manuale/Motorizzata)
+    - ✅ CASO A: Esistente Manuale → Scegli "Rimane Manuale" o "Motorizzata" (con checkbox Forniamo motore)
+    - ✅ CASO B: Esistente Motorizzata → Scegli "Motore esistente" o "Sostituzione motore"
+    - ✅ Identico sistema del config globale, ma per singola posizione
     
     ⚡ LOGICA CONDIZIONALE COMPLETA: Configurazione Tapparelle Intelligente
        - Campo "4. Nuova automazione" ora CONDIZIONALE basato su tipo esistente
@@ -1504,7 +1506,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.66 - Fix Checkbox Forniamo Motore</title>
+    <title>Open Porte v4.67 - Logica Condizionale Posizioni Tapparelle</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -10358,7 +10360,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.66
+                                    Open Porte v4.67
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -15345,18 +15347,145 @@
                                             <option value="grigio">
                                         </datalist>
                                     </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Manuale/Motorizzato</label>
-                                        <input type="text" value="${tap.manualeMot || ''}"
-                                               placeholder="Motorizzata"
-                                               list="manualeMot-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'manualeMot', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="manualeMot-list-${pos.id}">
-                                            <option value="Manuale">
-                                            <option value="Motorizzata">
-                                        </datalist>
-                                    </div>
+                                    
+                                    <!-- 🆕 LOGICA CONDIZIONALE BASATA SU RILIEVO ESISTENTE -->
+                                    ${(() => {
+                                        const tipoEsistente = pos.rilievoTapparelle?.tipo || '';
+                                        
+                                        // Se tipo esistente non specificato, mostra avviso
+                                        if (!tipoEsistente || tipoEsistente.trim() === '') {
+                                            return `
+                                                <div class="mt-4 bg-amber-50 border-2 border-amber-300 rounded-lg p-4">
+                                                    <p class="text-sm font-semibold text-amber-800 flex items-center gap-2">
+                                                        ⚠️ Vai nel tab "Misure" e compila "RILIEVO PREESISTENTE - Tapparelle" per specificare se la tapparella esistente è Manuale o Motorizzata
+                                                    </p>
+                                                </div>
+                                            `;
+                                        }
+                                        
+                                        // CASO A: Esistente MANUALE
+                                        if (tipoEsistente === 'Manuale') {
+                                            return `
+                                                <div class="mt-4">
+                                                    <label class="block text-sm font-medium mb-2">🔍 Esistente: Manuale → Nuova tapparella:</label>
+                                                    <div class="space-y-3">
+                                                        <!-- Opzione: Rimane Manuale -->
+                                                        <div class="flex items-center gap-3 bg-white p-3 rounded-lg border-2 ${tap.nuovaAutomazione === 'Rimane Manuale' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}">
+                                                            <input type="radio" 
+                                                                   name="nuovaAuto-${pos.id}" 
+                                                                   id="rimaneManuale-${pos.id}"
+                                                                   ${!tap.nuovaAutomazione || tap.nuovaAutomazione === 'Rimane Manuale' ? 'checked' : ''}
+                                                                   onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'nuovaAutomazione', 'Rimane Manuale'); updateProduct('${project.id}', '${pos.id}', 'tapparella', 'forniMotore', false); updateProduct('${project.id}', '${pos.id}', 'tapparella', 'modelloMotore', ''); render();"
+                                                                   class="w-4 h-4">
+                                                            <label for="rimaneManuale-${pos.id}" class="font-semibold cursor-pointer flex-1">
+                                                                🖐️ Rimane Manuale
+                                                            </label>
+                                                        </div>
+                                                        
+                                                        <!-- Opzione: Motorizzata -->
+                                                        <div class="border-2 rounded-lg ${tap.nuovaAutomazione === 'Motorizzata' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'}">
+                                                            <div class="flex items-center gap-3 p-3">
+                                                                <input type="radio" 
+                                                                       name="nuovaAuto-${pos.id}" 
+                                                                       id="motorizzata-${pos.id}"
+                                                                       ${tap.nuovaAutomazione === 'Motorizzata' ? 'checked' : ''}
+                                                                       onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'nuovaAutomazione', 'Motorizzata'); render();"
+                                                                       class="w-4 h-4">
+                                                                <label for="motorizzata-${pos.id}" class="font-semibold cursor-pointer flex-1">
+                                                                    ⚡ Motorizzata
+                                                                </label>
+                                                            </div>
+                                                            
+                                                            ${tap.nuovaAutomazione === 'Motorizzata' ? `
+                                                                <div class="px-3 pb-3 space-y-3 border-t pt-3">
+                                                                    <!-- Checkbox: Forniamo motore? -->
+                                                                    <div class="flex items-center gap-3">
+                                                                        <input type="checkbox" 
+                                                                               id="forniMotore-${pos.id}"
+                                                                               ${tap.forniMotore ? 'checked' : ''}
+                                                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'forniMotore', this.checked); render();"
+                                                                               class="w-4 h-4">
+                                                                        <label for="forniMotore-${pos.id}" class="font-medium cursor-pointer">
+                                                                            🔌 Forniamo motore
+                                                                        </label>
+                                                                    </div>
+                                                                    
+                                                                    ${tap.forniMotore ? `
+                                                                        <!-- Select Modello Motore -->
+                                                                        <div class="pl-6">
+                                                                            <label class="block text-sm font-medium mb-1">Modello motore:</label>
+                                                                            <select class="w-full px-3 py-2 border rounded-lg"
+                                                                                    onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'modelloMotore', this.value)">
+                                                                                <option value="">Seleziona modello...</option>
+                                                                                <option value="OXIMO IO" ${tap.modelloMotore === 'OXIMO IO' ? 'selected' : ''}>OXIMO IO</option>
+                                                                                <option value="RS100 io Hybrid" ${tap.modelloMotore === 'RS100 io Hybrid' ? 'selected' : ''}>RS100 io Hybrid</option>
+                                                                                <option value="LT HELIOS" ${tap.modelloMotore === 'LT HELIOS' ? 'selected' : ''}>LT HELIOS</option>
+                                                                                <option value="RS100 SOLAR io" ${tap.modelloMotore === 'RS100 SOLAR io' ? 'selected' : ''}>RS100 SOLAR io</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    ` : ''}
+                                                                </div>
+                                                            ` : ''}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            `;
+                                        }
+                                        
+                                        // CASO B: Esistente MOTORIZZATA
+                                        if (tipoEsistente === 'Motorizzata') {
+                                            return `
+                                                <div class="mt-4">
+                                                    <label class="block text-sm font-medium mb-2">🔍 Esistente: Motorizzata → Nuova tapparella:</label>
+                                                    <div class="space-y-3">
+                                                        <!-- Opzione: Motore esistente -->
+                                                        <div class="flex items-center gap-3 bg-white p-3 rounded-lg border-2 ${!tap.nuovaAutomazione || tap.nuovaAutomazione === 'Motore esistente' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}">
+                                                            <input type="radio" 
+                                                                   name="nuovaAuto-${pos.id}" 
+                                                                   id="motoreEsist-${pos.id}"
+                                                                   ${!tap.nuovaAutomazione || tap.nuovaAutomazione === 'Motore esistente' ? 'checked' : ''}
+                                                                   onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'nuovaAutomazione', 'Motore esistente'); updateProduct('${project.id}', '${pos.id}', 'tapparella', 'modelloMotore', ''); render();"
+                                                                   class="w-4 h-4">
+                                                            <label for="motoreEsist-${pos.id}" class="font-semibold cursor-pointer flex-1">
+                                                                ♻️ Motore esistente (riutilizzo)
+                                                            </label>
+                                                        </div>
+                                                        
+                                                        <!-- Opzione: Sostituzione motore -->
+                                                        <div class="border-2 rounded-lg ${tap.nuovaAutomazione === 'Sostituzione motore' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'}">
+                                                            <div class="flex items-center gap-3 p-3">
+                                                                <input type="radio" 
+                                                                       name="nuovaAuto-${pos.id}" 
+                                                                       id="sostMotore-${pos.id}"
+                                                                       ${tap.nuovaAutomazione === 'Sostituzione motore' ? 'checked' : ''}
+                                                                       onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'nuovaAutomazione', 'Sostituzione motore'); render();"
+                                                                       class="w-4 h-4">
+                                                                <label for="sostMotore-${pos.id}" class="font-semibold cursor-pointer flex-1">
+                                                                    🔄 Sostituzione motore
+                                                                </label>
+                                                            </div>
+                                                            
+                                                            ${tap.nuovaAutomazione === 'Sostituzione motore' ? `
+                                                                <div class="px-3 pb-3 border-t pt-3">
+                                                                    <label class="block text-sm font-medium mb-1">Modello motore:</label>
+                                                                    <select class="w-full px-3 py-2 border rounded-lg"
+                                                                            onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'modelloMotore', this.value)">
+                                                                        <option value="">Seleziona modello...</option>
+                                                                        <option value="OXIMO IO" ${tap.modelloMotore === 'OXIMO IO' ? 'selected' : ''}>OXIMO IO</option>
+                                                                        <option value="RS100 io Hybrid" ${tap.modelloMotore === 'RS100 io Hybrid' ? 'selected' : ''}>RS100 io Hybrid</option>
+                                                                        <option value="LT HELIOS" ${tap.modelloMotore === 'LT HELIOS' ? 'selected' : ''}>LT HELIOS</option>
+                                                                        <option value="RS100 SOLAR io" ${tap.modelloMotore === 'RS100 SOLAR io' ? 'selected' : ''}>RS100 SOLAR io</option>
+                                                                    </select>
+                                                                </div>
+                                                            ` : ''}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            `;
+                                        }
+                                        
+                                        return '';
+                                    })()}
                                 </div>
 
                                 <!-- FASE 11a: TIPO SOSTITUZIONE -->
@@ -15425,8 +15554,17 @@
                                 ` : ''}
                             </div>
 
-                            <!-- 🔌 MOTORI (SISTEMA COMPLETO FASE 11a) - Solo se Motorizzata e non Solo Tapparella -->
-                            ${tap.manualeMot === 'Motorizzata' && tap.tipoSostituzione !== 'Solo Tapparella' ? `
+                            <!-- 🔌 MOTORI (SISTEMA COMPLETO FASE 11a) -->
+                            ${(() => {
+                                const tipoEsistente = pos.rilievoTapparelle?.tipo || '';
+                                const mostraMotori = (
+                                    // CASO A: Esistente Manuale → Nuova Motorizzata → Forniamo motore
+                                    (tipoEsistente === 'Manuale' && tap.nuovaAutomazione === 'Motorizzata' && tap.forniMotore) ||
+                                    // CASO B: Esistente Motorizzata → Sostituzione motore
+                                    (tipoEsistente === 'Motorizzata' && tap.nuovaAutomazione === 'Sostituzione motore')
+                                ) && tap.tipoSostituzione !== 'Solo Tapparella';
+                                
+                                return mostraMotori ? `
                             <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-3">
                                 <div class="flex justify-between items-center mb-3">
                                     <h5 class="font-semibold text-blue-800 flex items-center gap-2">
@@ -15528,7 +15666,7 @@
                                     <p class="text-sm text-gray-500 italic text-center py-3">Nessun motore aggiunto</p>
                                 `}
                             </div>
-                            ` : ''}
+                            ` : '' })()}
 
                             <div class="bg-amber-50 border-2 border-amber-300 rounded-lg p-4 mb-3">
                                 <div class="flex justify-between items-center mb-3">
