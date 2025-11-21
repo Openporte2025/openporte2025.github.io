@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.65 - FIX AGGIORNAMENTO IMMEDIATO: Rilievo tapparelle ora si aggiorna immediatamente ✅
+    Open Porte v4.66 - FIX CHECKBOX FORNIAMO MOTORE: Modello motore appare/scompare immediatamente ✅
     
-    🔧 AGGIORNAMENTI v4.65 (21 NOV 2025):
-    - 🚀 FIX CRITICO: Interfaccia ora si aggiorna IMMEDIATAMENTE quando si clicca Manuale/Motorizzata
-    - ✅ Aggiunto render() in updateRilievoGlobale per aggiornamento real-time
-    - ✅ Risolto: Prima bisognava uscire e rientrare per vedere il cambiamento
-    - ✅ Ora il pulsante cambia colore istantaneamente al click
+    🔧 AGGIORNAMENTI v4.66 (21 NOV 2025):
+    - 🐛 FIX CHECKBOX "Forniamo motore": Campo "Modello motore" ora appare/scompare IMMEDIATAMENTE
+    - ✅ Sostituito renderCurrentScreen() (NON esistente) con render() in 5 punti
+    - ✅ Fix applicato a tutti i radio button della sezione automazione tapparelle
+    - ✅ Interfaccia ora reagisce istantaneamente a tutti i cambiamenti
     
     ⚡ LOGICA CONDIZIONALE COMPLETA: Configurazione Tapparelle Intelligente
        - Campo "4. Nuova automazione" ora CONDIZIONALE basato su tipo esistente
@@ -1504,7 +1504,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.65 - Fix Aggiornamento Immediato</title>
+    <title>Open Porte v4.66 - Fix Checkbox Forniamo Motore</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -10358,7 +10358,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.65
+                                    Open Porte v4.66
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -12616,7 +12616,7 @@
                                                            name="nuovaAuto-${project.id}" 
                                                            id="rimaneManuale-${project.id}"
                                                            ${config.nuovaAutomazione === 'Rimane Manuale' ? 'checked' : ''}
-                                                           onchange="updateConfigTapparelle('${project.id}', 'nuovaAutomazione', 'Rimane Manuale'); updateConfigTapparelle('${project.id}', 'forniMotore', false); updateConfigTapparelle('${project.id}', 'modelloMotore', ''); renderCurrentScreen();"
+                                                           onchange="updateConfigTapparelle('${project.id}', 'nuovaAutomazione', 'Rimane Manuale'); updateConfigTapparelle('${project.id}', 'forniMotore', false); updateConfigTapparelle('${project.id}', 'modelloMotore', ''); render();"
                                                            class="w-4 h-4">
                                                     <label for="rimaneManuale-${project.id}" class="font-semibold cursor-pointer flex-1">
                                                         🖐️ Rimane Manuale
@@ -12630,7 +12630,7 @@
                                                                name="nuovaAuto-${project.id}" 
                                                                id="motorizzata-${project.id}"
                                                                ${config.nuovaAutomazione === 'Motorizzata' ? 'checked' : ''}
-                                                               onchange="updateConfigTapparelle('${project.id}', 'nuovaAutomazione', 'Motorizzata'); renderCurrentScreen();"
+                                                               onchange="updateConfigTapparelle('${project.id}', 'nuovaAutomazione', 'Motorizzata'); render();"
                                                                class="w-4 h-4">
                                                         <label for="motorizzata-${project.id}" class="font-semibold cursor-pointer flex-1">
                                                             ⚡ Motorizzata
@@ -12644,7 +12644,7 @@
                                                                 <input type="checkbox" 
                                                                        id="forniMotore-${project.id}"
                                                                        ${config.forniMotore ? 'checked' : ''}
-                                                                       onchange="updateConfigTapparelle('${project.id}', 'forniMotore', this.checked); renderCurrentScreen();"
+                                                                       onchange="updateConfigTapparelle('${project.id}', 'forniMotore', this.checked); render();"
                                                                        class="w-4 h-4">
                                                                 <label for="forniMotore-${project.id}" class="font-medium cursor-pointer">
                                                                     🔌 Forniamo motore
@@ -12685,7 +12685,7 @@
                                                            name="nuovaAuto-${project.id}" 
                                                            id="motoreEsist-${project.id}"
                                                            ${config.nuovaAutomazione === 'Motore esistente' ? 'checked' : ''}
-                                                           onchange="updateConfigTapparelle('${project.id}', 'nuovaAutomazione', 'Motore esistente'); updateConfigTapparelle('${project.id}', 'modelloMotore', ''); renderCurrentScreen();"
+                                                           onchange="updateConfigTapparelle('${project.id}', 'nuovaAutomazione', 'Motore esistente'); updateConfigTapparelle('${project.id}', 'modelloMotore', ''); render();"
                                                            class="w-4 h-4">
                                                     <label for="motoreEsist-${project.id}" class="font-semibold cursor-pointer flex-1">
                                                         ♻️ Motore esistente (riutilizzo)
@@ -12699,7 +12699,7 @@
                                                                name="nuovaAuto-${project.id}" 
                                                                id="sostMotore-${project.id}"
                                                                ${config.nuovaAutomazione === 'Sostituzione motore' ? 'checked' : ''}
-                                                               onchange="updateConfigTapparelle('${project.id}', 'nuovaAutomazione', 'Sostituzione motore'); renderCurrentScreen();"
+                                                               onchange="updateConfigTapparelle('${project.id}', 'nuovaAutomazione', 'Sostituzione motore'); render();"
                                                                class="w-4 h-4">
                                                         <label for="sostMotore-${project.id}" class="font-semibold cursor-pointer flex-1">
                                                             🔄 Sostituzione motore
