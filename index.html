@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.70 - LOGICA CASSONETTI CONDIZIONALE: Finstral (checkbox+text) vs Magò/Alpac (select) ✅
+    Open Porte v4.71 - FIX SINCRONIZZAZIONE GITHUB INTELLIGENTE ✅
+    
+    🔧 AGGIORNAMENTI v4.71 (21 NOV 2025):
+    - 🚨 FIX CRITICO: Sincronizzazione GitHub ora AGGIORNA progetti esistenti!
+    - ✅ Confronto versioni: GitHub > Locale → SOVRASCRIVI automaticamente
+    - ✅ Confronto timestamp: Stessa versione ma più recente → AGGIORNA
+    - ✅ Messaggio dettagliato: "X nuovi, Y aggiornati"
+    - ⚠️ Gestione conflitti: Se locale > GitHub → Mantiene locale e avvisa
+    - 💡 RISOLVE: "Modifiche da PC non visibili su iPad anche dopo download"
     
     🔧 AGGIORNAMENTI v4.70 (21 NOV 2025):
     - ✅ IMPLEMENTATA logica condizionale cassonetti basata su azienda
@@ -2767,12 +2775,19 @@
             }
         };
 
-        // 🚨 LOG VERSIONE v4.70 - MOLTO EVIDENTE
+        // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
+        const APP_VERSION = '4.71';
+        const APP_VERSION_NOTE = 'Fix sincronizzazione GitHub intelligente';
+
+        // 📄 Aggiorna title dinamicamente
+        document.title = `Open Porte v${APP_VERSION} - ${APP_VERSION_NOTE}`;
+
+        // 🚨 LOG VERSIONE - AUTOMATICO
         console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   🚪 OPEN PORTE v4.70 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   Logica cassonetti condizionale!           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log(`%c║   🚪 OPEN PORTE v${APP_VERSION} CARICATO! ✅           ║`, 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log(`%c║   ${APP_VERSION_NOTE}!           ║`, 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c🔧 v4.70:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
+        console.log(`%c🔧 v${APP_VERSION}:`, 'color: #dc2626; font-weight: bold; font-size: 13px;');
         console.log('  📦 CASSONETTI CONDIZIONALI: Finstral vs Magò/Alpac');
         console.log('  🏢 Finstral: checkbox+text (Cassonetto, Posa, Colore AUTO, Isolamento, Soffitto)');
         console.log('  🏢 Magò/Alpac: select (Tipo, Posa, Finitura) - campi 5-6 nascosti');
@@ -5386,9 +5401,10 @@
                 
                 console.log('📦 Project files:', projectFiles.map(f => f.name));
                 
-                // Scarica e importa tutti i progetti
-                let importedCount = 0;
-                const existingIds = new Set(state.projects.map(p => p.id));
+                // Calcola statistiche
+                let newCount = 0;
+                let updatedCount = 0;
+                const messages = [];
                 
                 for (const file of projectFiles) {
                     try {
@@ -5437,17 +5453,49 @@
                                 continue;
                             }
                             
+                            // ✅ NORMALIZZA positions
+                            if (!proj.positions || !Array.isArray(proj.positions)) {
+                                proj.positions = [];
+                            }
+                            
                             if (!existingIds.has(proj.id)) {
-                                // ✅ NORMALIZZA positions
-                                if (!proj.positions || !Array.isArray(proj.positions)) {
-                                    proj.positions = [];
-                                }
+                                // NUOVO PROGETTO: Importa
                                 state.projects.push(proj);
                                 existingIds.add(proj.id);
-                                importedCount++;
-                                console.log('✅ Imported:', proj.name);
+                                newCount++;
+                                console.log('✅ Imported NEW:', proj.name);
                             } else {
-                                console.log('⏭️ Skipped (already exists):', proj.name);
+                                // PROGETTO ESISTENTE: Confronta versioni
+                                const existingIndex = state.projects.findIndex(p => p.id === proj.id);
+                                const existing = state.projects[existingIndex];
+                                
+                                const localVersion = existing.metadata?.version || 0;
+                                const githubVersion = proj.metadata?.version || 0;
+                                
+                                console.log(`🔄 Project "${proj.name}": Local v${localVersion} vs GitHub v${githubVersion}`);
+                                
+                                if (githubVersion > localVersion) {
+                                    // GitHub più recente → SOVRASCRIVI
+                                    state.projects[existingIndex] = proj;
+                                    updatedCount++;
+                                    console.log(`✅ UPDATED (GitHub v${githubVersion} > Local v${localVersion}):`, proj.name);
+                                } else if (githubVersion === localVersion) {
+                                    // Stesso numero versione → Confronta timestamp
+                                    const localTime = new Date(existing.metadata?.updated || 0).getTime();
+                                    const githubTime = new Date(proj.metadata?.updated || 0).getTime();
+                                    
+                                    if (githubTime > localTime) {
+                                        state.projects[existingIndex] = proj;
+                                        updatedCount++;
+                                        console.log(`✅ UPDATED (same version but newer timestamp):`, proj.name);
+                                    } else {
+                                        console.log('⏭️ Skipped (local is same or newer):', proj.name);
+                                    }
+                                } else {
+                                    // Locale più recente → CONFLITTO
+                                    console.warn(`⚠️ CONFLICT: Local v${localVersion} > GitHub v${githubVersion} for "${proj.name}"`);
+                                    console.warn('   → Keeping local version. Upload to sync.');
+                                }
                             }
                         }
                         
@@ -5456,12 +5504,16 @@
                     }
                 }
                 
-                if (importedCount > 0) {
+                // Messaggi finali
+                if (newCount > 0) messages.push(`${newCount} nuovi`);
+                if (updatedCount > 0) messages.push(`${updatedCount} aggiornati`);
+                
+                if (newCount > 0 || updatedCount > 0) {
                     saveState();
                     render();
-                    showNotification(`✅ ${importedCount} progetti scaricati da GitHub!`, 'success');
+                    showNotification(`✅ Download completato: ${messages.join(', ')}!`, 'success');
                 } else {
-                    showNotification('ℹ️ Nessun nuovo progetto da importare', 'info');
+                    showNotification('ℹ️ Tutti i progetti sono già aggiornati', 'info');
                 }
                 
                 return true;
@@ -10397,7 +10449,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.70
+                                    Open Porte v${APP_VERSION}
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
