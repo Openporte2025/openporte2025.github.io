@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.64 - FIX RILIEVO TAPPARELLE: Campo "tipo" (Manuale/Motorizzata) ora funzionante ✅
+    Open Porte v4.65 - FIX AGGIORNAMENTO IMMEDIATO: Rilievo tapparelle ora si aggiorna immediatamente ✅
     
-    🔧 AGGIORNAMENTI v4.64 (21 NOV 2025):
-    - 🐛 FIX RILIEVO TAPPARELLE: Corretto salvataggio campo "tipo" (Manuale/Motorizzata)
-    - ✅ Fix updateRilievoProdotto: Inizializzazione campo tipo per tapparelle
-    - ✅ Fix copiaRilievoDaGlobaleProdotto: Copia campo tipo per tapparelle
-    - ✅ Risolto problema: Campo "tipo" ora viene salvato correttamente sia in configurazione globale che nelle posizioni
+    🔧 AGGIORNAMENTI v4.65 (21 NOV 2025):
+    - 🚀 FIX CRITICO: Interfaccia ora si aggiorna IMMEDIATAMENTE quando si clicca Manuale/Motorizzata
+    - ✅ Aggiunto render() in updateRilievoGlobale per aggiornamento real-time
+    - ✅ Risolto: Prima bisognava uscire e rientrare per vedere il cambiamento
+    - ✅ Ora il pulsante cambia colore istantaneamente al click
     
     ⚡ LOGICA CONDIZIONALE COMPLETA: Configurazione Tapparelle Intelligente
        - Campo "4. Nuova automazione" ora CONDIZIONALE basato su tipo esistente
@@ -1504,7 +1504,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.64 - Fix Rilievo Tapparelle</title>
+    <title>Open Porte v4.65 - Fix Aggiornamento Immediato</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -8536,8 +8536,7 @@
                 console.log('💾 PRIMA DI SALVARE - project[rilievoKey]:', project[rilievoKey]);
                 saveState();
                 console.log('✅ saveState() CHIAMATO per updateRilievoGlobale');
-                // ❌ NON chiamare render() qui perché potrebbe sovrascrivere i dati!
-                // Il render viene già chiamato dagli eventi onchange/onclick
+                render(); // ✅ Aggiunto render() per aggiornamento immediato interfaccia
             } else {
                 console.error('❌ PROJECT NON TROVATO in updateRilievoGlobale:', projectId);
             }
@@ -10359,7 +10358,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.64
+                                    Open Porte v4.65
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
