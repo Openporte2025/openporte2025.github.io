@@ -1,6 +1,28 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.69 - 3 OPZIONI TAPPARELLE SEMPRE VISIBILI: Eliminata dipendenza da rilievo preesistente ✅
+    Open Porte v4.70 - LOGICA CASSONETTI CONDIZIONALE: Finstral (checkbox+text) vs Magò/Alpac (select) ✅
+    
+    🔧 AGGIORNAMENTI v4.70 (21 NOV 2025):
+    - ✅ IMPLEMENTATA logica condizionale cassonetti basata su azienda
+    - 🏢 FINSTRAL:
+      • Campo 2: Cassonetto (☑ checkbox + text, default "Cassonetto")
+      • Campo 3: Posa (☑ checkbox + text, default "Frontale")
+      • Campo 4: Colore (⚡ AUTO da infisso.coloreEsterno + modificabile "Finiture PVC")
+      • Campo 5: Isolamento Posaclima (☑ checkbox)
+      • Campo 6: A Soffitto (☑ checkbox)
+    - 🏢 MAGÒ e ALPAC:
+      • Campo 2: Tipo (▼ select: Cassonetto | Monoblocco)
+      • Campo 3: Posa (▼ select: Frontale | Rasomuro | Esterna dal sotto | Interna dal sotto)
+      • Campo 4: Finitura (▼ select: Grezzo da rasare | Mano di fondo)
+      • Campi 5 e 6: 🚫 NASCOSTI
+    - ✅ Logica implementata in Config Globale (Step 3) e Tab Posizioni
+    - ✅ Cambio azienda → render automatico nuovi campi
+    
+    💾 STRUTTURA DATI:
+    - FINSTRAL: cassonettoCheck, cassonettoText, posaCheck, posaText, colore, isolamentoPosaclima, aSoffitto
+    - MAGÒ/ALPAC: tipo, posa, finitura
+    
+    ---
     
     🔧 AGGIORNAMENTI v4.69 (21 NOV 2025):
     - 🗑️ ELIMINATO campo "tipo" (Manuale/Motorizzata) dal rilievo preesistente tapparelle
@@ -1532,7 +1554,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.69 - 3 Opzioni Tapparelle Sempre Visibili</title>
+    <title>Open Porte v4.70 - Logica Cassonetti Condizionale</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2745,19 +2767,18 @@
             }
         };
 
-        // 🚨 LOG VERSIONE v4.69 - MOLTO EVIDENTE
+        // 🚨 LOG VERSIONE v4.70 - MOLTO EVIDENTE
         console.log('%c╔═══════════════════════════════════════════════╗', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   🚪 OPEN PORTE v4.69 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c║   3 opzioni tapparelle sempre visibili!     ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   🚪 OPEN PORTE v4.70 CARICATO! ✅           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
+        console.log('%c║   Logica cassonetti condizionale!           ║', 'color: #16a34a; font-weight: bold; font-size: 14px;');
         console.log('%c╚═══════════════════════════════════════════════╝', 'color: #16a34a; font-weight: bold; font-size: 14px;');
-        console.log('%c🔧 v4.69:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
-        console.log('  🗑️ ELIMINATA dipendenza da rilievo preesistente tapparelle');
-        console.log('  ✅ 3 OPZIONI SEMPRE VISIBILI: Manuale | Motore esistente | Motorizzata');
-        console.log('  🎯 Config Globale: Opzioni sempre disponibili');
-        console.log('  🎯 Tab Posizioni: Opzioni sempre disponibili');
-        console.log('%c🔧 v4.61:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
-        console.log('  🗑️ CANCELLAZIONE COMPLETA: Pulsante elimina cancella anche da GitHub');
-        console.log('  🔄 Sync bidirezionale: Cancelli app → Cancella GitHub automaticamente');
+        console.log('%c🔧 v4.70:', 'color: #dc2626; font-weight: bold; font-size: 13px;');
+        console.log('  📦 CASSONETTI CONDIZIONALI: Finstral vs Magò/Alpac');
+        console.log('  🏢 Finstral: checkbox+text (Cassonetto, Posa, Colore AUTO, Isolamento, Soffitto)');
+        console.log('  🏢 Magò/Alpac: select (Tipo, Posa, Finitura) - campi 5-6 nascosti');
+        console.log('  ✅ Config Globale + Tab Posizioni implementate');
+        console.log('%c🔧 v4.69:', 'color: #2563eb; font-weight: bold; font-size: 13px;');
+        console.log('  ✅ 3 OPZIONI TAPPARELLE SEMPRE VISIBILI: Manuale | Motore esistente | Motorizzata');
         console.log(' ');
 
         // 🎨 COSTANTE COLORI PERSIANE
@@ -10376,7 +10397,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.69
+                                    Open Porte v4.70
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
@@ -12831,6 +12852,7 @@
                     
                     <div class="space-y-2 mt-4">
                         <div class="grid md:grid-cols-2 gap-2">
+                            <!-- 1. AZIENDA -->
                             <div>
                                 <label class="block text-sm font-medium mb-1">1. Azienda</label>
                                 ${(() => {
@@ -12842,7 +12864,7 @@
                                     
                                     return `
                                         <select id="${selectId}" 
-                                                onchange="handleConfigSelectWithCustom('${project.id}', 'cassonetti', 'azienda', '${selectId}', '${inputId}', this.value)"
+                                                onchange="handleConfigSelectWithCustom('${project.id}', 'cassonetti', 'azienda', '${selectId}', '${inputId}', this.value); render();"
                                                 class="w-full px-3 py-2 border rounded-lg">
                                             <option value="">Seleziona azienda...</option>
                                             ${options.map(opt => `
@@ -12853,7 +12875,7 @@
                                         <input type="text" 
                                                id="${inputId}"
                                                value="${isCustom ? current : ''}"
-                                               onchange="updateConfigCassonetti('${project.id}', 'azienda', this.value)"
+                                               onchange="updateConfigCassonetti('${project.id}', 'azienda', this.value); render();"
                                                placeholder="Inserisci azienda personalizzata..."
                                                style="display: ${isCustom ? 'block' : 'none'};"
                                                class="w-full px-3 py-2 border rounded-lg mt-2">
@@ -12861,93 +12883,130 @@
                                 })()}
                             </div>
                             
-                            <div>
-                                <label class="block text-sm font-medium mb-1">2. Cassonetto/Monoblocco</label>
-                                ${(() => {
-                                    const options = ['Cassonetto', 'Isolamento', 'Monoblocco'];
-                                    const current = project.configCassonetti?.tipo || '';
-                                    const isCustom = current && !options.includes(current);
-                                    const selectId = `cass-tipo-${project.id}`;
-                                    const inputId = `cass-tipo-input-${project.id}`;
-                                    
+                            ${(() => {
+                                const azienda = project.configCassonetti?.azienda || '';
+                                
+                                // ====== FINSTRAL ======
+                                if (azienda === 'Finstral') {
                                     return `
-                                        <select id="${selectId}" 
-                                                onchange="handleConfigSelectWithCustom('${project.id}', 'cassonetti', 'tipo', '${selectId}', '${inputId}', this.value)"
-                                                class="w-full px-3 py-2 border rounded-lg">
-                                            <option value="">Seleziona...</option>
-                                            ${options.map(opt => `
-                                                <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
-                                            `).join('')}
-                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altro...</option>
-                                        </select>
-                                        <input type="text" 
-                                               id="${inputId}"
-                                               value="${isCustom ? current : ''}"
-                                               onchange="updateConfigCassonetti('${project.id}', 'tipo', this.value)"
-                                               placeholder="Inserisci tipo personalizzato..."
-                                               style="display: ${isCustom ? 'block' : 'none'};"
-                                               class="w-full px-3 py-2 border rounded-lg mt-2">
+                                        <!-- 2. CASSONETTO (checkbox + text) -->
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1 flex items-center gap-2">
+                                                2. Cassonetto
+                                                <input type="checkbox" 
+                                                       ${project.configCassonetti?.cassonettoCheck !== false ? 'checked' : ''}
+                                                       onchange="updateConfigCassonetti('${project.id}', 'cassonettoCheck', this.checked)"
+                                                       class="w-4 h-4">
+                                            </label>
+                                            <input type="text" 
+                                                   value="${project.configCassonetti?.cassonettoText || 'Cassonetto'}"
+                                                   onchange="updateConfigCassonetti('${project.id}', 'cassonettoText', this.value)"
+                                                   placeholder="Cassonetto"
+                                                   class="w-full px-3 py-2 border rounded-lg">
+                                        </div>
+                                        
+                                        <!-- 3. POSA (checkbox + text) -->
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1 flex items-center gap-2">
+                                                3. Posa
+                                                <input type="checkbox" 
+                                                       ${project.configCassonetti?.posaCheck !== false ? 'checked' : ''}
+                                                       onchange="updateConfigCassonetti('${project.id}', 'posaCheck', this.checked)"
+                                                       class="w-4 h-4">
+                                            </label>
+                                            <input type="text" 
+                                                   value="${project.configCassonetti?.posaText || 'Frontale'}"
+                                                   onchange="updateConfigCassonetti('${project.id}', 'posaText', this.value)"
+                                                   placeholder="Frontale"
+                                                   class="w-full px-3 py-2 border rounded-lg">
+                                        </div>
+                                        
+                                        <!-- 4. COLORE (auto da infisso + modificabile) -->
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">4. Colore</label>
+                                            <input type="text" 
+                                                   value="${project.configCassonetti?.colore || project.configInfissi?.coloreEsterno || 'Finiture PVC'}"
+                                                   onchange="updateConfigCassonetti('${project.id}', 'colore', this.value)"
+                                                   placeholder="Finiture PVC"
+                                                   class="w-full px-3 py-2 border rounded-lg bg-blue-50">
+                                            <p class="text-xs text-gray-500 mt-1">⚡ Auto-compilato da infisso</p>
+                                        </div>
+                                        
+                                        <!-- 5. AGGIUNGERE ISOLAMENTO POSACLIMA (checkbox) -->
+                                        <div>
+                                            <label class="block text-sm font-medium mb-2 flex items-center gap-2">
+                                                <input type="checkbox" 
+                                                       ${project.configCassonetti?.isolamentoPosaclima ? 'checked' : ''}
+                                                       onchange="updateConfigCassonetti('${project.id}', 'isolamentoPosaclima', this.checked)"
+                                                       class="w-4 h-4">
+                                                5. Aggiungere isolamento Posaclima
+                                            </label>
+                                        </div>
+                                        
+                                        <!-- 6. A SOFFITTO (checkbox) -->
+                                        <div>
+                                            <label class="block text-sm font-medium mb-2 flex items-center gap-2">
+                                                <input type="checkbox" 
+                                                       ${project.configCassonetti?.aSoffitto ? 'checked' : ''}
+                                                       onchange="updateConfigCassonetti('${project.id}', 'aSoffitto', this.checked)"
+                                                       class="w-4 h-4">
+                                                6. A Soffitto
+                                            </label>
+                                        </div>
                                     `;
-                                })()}
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium mb-1">3. Ispezione</label>
-                                ${(() => {
-                                    const options = ['Frontale', 'Esterna'];
-                                    const current = project.configCassonetti?.materiale || '';
-                                    const isCustom = current && !options.includes(current);
-                                    const selectId = `cass-materiale-${project.id}`;
-                                    const inputId = `cass-materiale-input-${project.id}`;
-                                    
+                                }
+                                
+                                // ====== MAGÒ E ALPAC ======
+                                if (azienda === 'Magò' || azienda === 'Alpac') {
                                     return `
-                                        <select id="${selectId}" 
-                                                onchange="handleConfigSelectWithCustom('${project.id}', 'cassonetti', 'materiale', '${selectId}', '${inputId}', this.value)"
-                                                class="w-full px-3 py-2 border rounded-lg">
-                                            <option value="">Seleziona...</option>
-                                            ${options.map(opt => `
-                                                <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
-                                            `).join('')}
-                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altro...</option>
-                                        </select>
-                                        <input type="text" 
-                                               id="${inputId}"
-                                               value="${isCustom ? current : ''}"
-                                               onchange="updateConfigCassonetti('${project.id}', 'materiale', this.value)"
-                                               placeholder="Inserisci tipo ispezione..."
-                                               style="display: ${isCustom ? 'block' : 'none'};"
-                                               class="w-full px-3 py-2 border rounded-lg mt-2">
+                                        <!-- 2. TIPO -->
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">2. Tipo</label>
+                                            <select onchange="updateConfigCassonetti('${project.id}', 'tipo', this.value)"
+                                                    class="w-full px-3 py-2 border rounded-lg">
+                                                <option value="">Seleziona...</option>
+                                                <option value="Cassonetto" ${project.configCassonetti?.tipo === 'Cassonetto' ? 'selected' : ''}>Cassonetto</option>
+                                                <option value="Monoblocco" ${project.configCassonetti?.tipo === 'Monoblocco' ? 'selected' : ''}>Monoblocco</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- 3. POSA -->
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">3. Posa</label>
+                                            <select onchange="updateConfigCassonetti('${project.id}', 'posa', this.value)"
+                                                    class="w-full px-3 py-2 border rounded-lg">
+                                                <option value="">Seleziona...</option>
+                                                <option value="Frontale" ${project.configCassonetti?.posa === 'Frontale' ? 'selected' : ''}>Frontale</option>
+                                                <option value="Rasomuro" ${project.configCassonetti?.posa === 'Rasomuro' ? 'selected' : ''}>Rasomuro</option>
+                                                <option value="Esterna dal sotto" ${project.configCassonetti?.posa === 'Esterna dal sotto' ? 'selected' : ''}>Esterna dal sotto</option>
+                                                <option value="Interna dal sotto" ${project.configCassonetti?.posa === 'Interna dal sotto' ? 'selected' : ''}>Interna dal sotto</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- 4. FINITURA -->
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">4. Finitura</label>
+                                            <select onchange="updateConfigCassonetti('${project.id}', 'finitura', this.value)"
+                                                    class="w-full px-3 py-2 border rounded-lg">
+                                                <option value="">Seleziona...</option>
+                                                <option value="Grezzo da rasare" ${project.configCassonetti?.finitura === 'Grezzo da rasare' ? 'selected' : ''}>Grezzo da rasare</option>
+                                                <option value="Mano di fondo" ${project.configCassonetti?.finitura === 'Mano di fondo' ? 'selected' : ''}>Mano di fondo</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- 5 e 6 NASCOSTI -->
                                     `;
-                                })()}
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium mb-1">4. Finitura/Colore</label>
-                                <input type="text" value="${project.configCassonetti?.finitura || ''}"
-                                       onchange="updateConfigCassonetti('${project.id}', 'finitura', this.value)"
-                                       placeholder="Es: Bianco, RAL 9010, Legno"
-                                       class="w-full px-3 py-2 border rounded-lg">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium mb-1">5. Aggiungere isolamento Posaclima</label>
-                                <select onchange="updateConfigCassonetti('${project.id}', 'coibentazione', this.value)"
-                                        class="w-full px-3 py-2 border rounded-lg">
-                                    <option value="">Seleziona...</option>
-                                    <option value="SI" ${project.configCassonetti?.coibentazione === 'SI' ? 'selected' : ''}>SI</option>
-                                    <option value="NO" ${project.configCassonetti?.coibentazione === 'NO' ? 'selected' : ''}>NO</option>
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium mb-1">6. A Soffitto</label>
-                                <select onchange="updateConfigCassonetti('${project.id}', 'aSoffitto', this.value)"
-                                        class="w-full px-3 py-2 border rounded-lg">
-                                    <option value="">Seleziona...</option>
-                                    <option value="SI" ${project.configCassonetti?.aSoffitto === 'SI' ? 'selected' : ''}>SI</option>
-                                    <option value="NO" ${project.configCassonetti?.aSoffitto === 'NO' ? 'selected' : ''}>NO</option>
-                                </select>
-                            </div>
+                                }
+                                
+                                // Nessuna azienda selezionata
+                                return `
+                                    <div class="col-span-2 bg-gray-50 border-2 border-gray-300 rounded-lg p-4">
+                                        <p class="text-sm text-gray-600 text-center">
+                                            ⚠️ Seleziona un'azienda per visualizzare i campi specifici
+                                        </p>
+                                    </div>
+                                `;
+                            })()}
                         </div>
                     </div>
                     
@@ -16043,6 +16102,7 @@
                                     📋 Dati Generali
                                 </h5>
                                 <div class="grid md:grid-cols-3 gap-3">
+                                    <!-- QUANTITÀ -->
                                     <div>
                                         <label class="text-xs font-medium">Quantità</label>
                                         <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'qta', this.value)"
@@ -16052,23 +16112,8 @@
                                             `).join('')}
                                         </select>
                                     </div>
-
-                                    <!-- FASE 11a: CAMPO TIPO CASSONETTO ELIMINATO (ridondante con Cassonetto/Monoblocco) -->
-
-                                    <div>
-                                        <label class="text-xs font-medium">Cassonetto/Monoblocco</label>
-                                        <input type="text" value="${cas.tipo || ''}"
-                                               placeholder="Cassonetto"
-                                               list="tipo-cas-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'tipo', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="tipo-cas-list-${pos.id}">
-                                            <option value="Cassonetto">
-                                            <option value="Isolamento">
-                                            <option value="Monoblocco">
-                                        </datalist>
-                                    </div>
-                                    <!-- AZIENDA -->
+                                    
+                                    <!-- 1. AZIENDA -->
                                     ${renderSelectWithCustom(
                                         'azienda',
                                         cas.azienda || '',
@@ -16078,67 +16123,138 @@
                                         'cassonetto',
                                         'Azienda'
                                     )}
-
-                                    <div>
-                                        <label class="text-xs font-medium">Ispezione</label>
-                                        <input type="text" value="${cas.materiale || ''}"
-                                               placeholder="Frontale"
-                                               list="ispezione-cas-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'materiale', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="ispezione-cas-list-${pos.id}">
-                                            <option value="Frontale">
-                                            <option value="Esterna">
-                                        </datalist>
-                                    </div>
-
-                                    <div>
-                                        <label class="text-xs font-medium">Isolamento Posaclima</label>
-                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'coibentazione', this.value)"
-                                                class="w-full compact-input border rounded mt-1">
-                                            <option value="">--</option>
-                                            <option value="SI" ${cas.coibentazione === 'SI' ? 'selected' : ''}>SI</option>
-                                            <option value="NO" ${cas.coibentazione === 'NO' ? 'selected' : ''}>NO</option>
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label class="text-xs font-medium">Colore</label>
-                                        <input type="text" value="${cas.colore || ''}"
-                                               placeholder="42"
-                                               list="colore-cas-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'colore', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="colore-cas-list-${pos.id}">
-                                            <option value="42">
-                                            <option value="Bianco">
-                                            <option value="L55">
-                                            <option value="RAL 9010">
-                                        </datalist>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Sovrappi/Sostit</label>
-                                        <input type="text" value="${cas.sovrappiSostit || ''}"
-                                               placeholder="--"
-                                               list="sovrappi-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'sovrappiSostit', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="sovrappi-list-${pos.id}">
-                                            <option value="Sovrapposizione">
-                                            <option value="Sostituzione">
-                                            <option value="Nuova installazione">
-                                        </datalist>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium">A Soffitto</label>
-                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'aSoffitto', this.value)"
-                                                class="w-full compact-input border rounded mt-1">
-                                            <option value="">--</option>
-                                            <option value="SI" ${cas.aSoffitto === 'SI' ? 'selected' : ''}>SI</option>
-                                            <option value="NO" ${cas.aSoffitto === 'NO' ? 'selected' : ''}>NO</option>
-                                        </select>
-                                    </div>
                                 </div>
+                                
+                                ${(() => {
+                                    const azienda = cas.azienda || '';
+                                    
+                                    // ====== FINSTRAL ======
+                                    if (azienda === 'Finstral') {
+                                        return `
+                                            <div class="grid md:grid-cols-3 gap-3 mt-3">
+                                                <!-- 2. CASSONETTO (checkbox + text) -->
+                                                <div>
+                                                    <label class="text-xs font-medium flex items-center gap-2">
+                                                        <input type="checkbox" 
+                                                               ${cas.cassonettoCheck !== false ? 'checked' : ''}
+                                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'cassonettoCheck', this.checked)"
+                                                               class="w-4 h-4">
+                                                        2. Cassonetto
+                                                    </label>
+                                                    <input type="text" 
+                                                           value="${cas.cassonettoText || 'Cassonetto'}"
+                                                           onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'cassonettoText', this.value)"
+                                                           placeholder="Cassonetto"
+                                                           class="w-full compact-input border rounded mt-1">
+                                                </div>
+                                                
+                                                <!-- 3. POSA (checkbox + text) -->
+                                                <div>
+                                                    <label class="text-xs font-medium flex items-center gap-2">
+                                                        <input type="checkbox" 
+                                                               ${cas.posaCheck !== false ? 'checked' : ''}
+                                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'posaCheck', this.checked)"
+                                                               class="w-4 h-4">
+                                                        3. Posa
+                                                    </label>
+                                                    <input type="text" 
+                                                           value="${cas.posaText || 'Frontale'}"
+                                                           onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'posaText', this.value)"
+                                                           placeholder="Frontale"
+                                                           class="w-full compact-input border rounded mt-1">
+                                                </div>
+                                                
+                                                <!-- 4. COLORE (auto da infisso) -->
+                                                <div>
+                                                    <label class="text-xs font-medium">4. Colore</label>
+                                                    <input type="text" 
+                                                           value="${cas.colore || pos.infisso?.coloreEsterno || 'Finiture PVC'}"
+                                                           onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'colore', this.value)"
+                                                           placeholder="Finiture PVC"
+                                                           class="w-full compact-input border rounded mt-1 bg-blue-50">
+                                                    <p class="text-xs text-gray-500 mt-0.5">⚡ Auto da infisso</p>
+                                                </div>
+                                                
+                                                <!-- 5. ISOLAMENTO POSACLIMA (checkbox) -->
+                                                <div>
+                                                    <label class="text-xs font-medium flex items-center gap-2 mt-2">
+                                                        <input type="checkbox" 
+                                                               ${cas.isolamentoPosaclima ? 'checked' : ''}
+                                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'isolamentoPosaclima', this.checked)"
+                                                               class="w-4 h-4">
+                                                        5. Isolamento Posaclima
+                                                    </label>
+                                                </div>
+                                                
+                                                <!-- 6. A SOFFITTO (checkbox) -->
+                                                <div>
+                                                    <label class="text-xs font-medium flex items-center gap-2 mt-2">
+                                                        <input type="checkbox" 
+                                                               ${cas.aSoffitto ? 'checked' : ''}
+                                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'aSoffitto', this.checked)"
+                                                               class="w-4 h-4">
+                                                        6. A Soffitto
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }
+                                    
+                                    // ====== MAGÒ E ALPAC ======
+                                    if (azienda === 'Magò' || azienda === 'Alpac') {
+                                        return `
+                                            <div class="grid md:grid-cols-3 gap-3 mt-3">
+                                                <!-- 2. TIPO -->
+                                                <div>
+                                                    <label class="text-xs font-medium">2. Tipo</label>
+                                                    <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'tipo', this.value)"
+                                                            class="w-full compact-input border rounded mt-1">
+                                                        <option value="">--</option>
+                                                        <option value="Cassonetto" ${cas.tipo === 'Cassonetto' ? 'selected' : ''}>Cassonetto</option>
+                                                        <option value="Monoblocco" ${cas.tipo === 'Monoblocco' ? 'selected' : ''}>Monoblocco</option>
+                                                    </select>
+                                                </div>
+                                                
+                                                <!-- 3. POSA -->
+                                                <div>
+                                                    <label class="text-xs font-medium">3. Posa</label>
+                                                    <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'posa', this.value)"
+                                                            class="w-full compact-input border rounded mt-1">
+                                                        <option value="">--</option>
+                                                        <option value="Frontale" ${cas.posa === 'Frontale' ? 'selected' : ''}>Frontale</option>
+                                                        <option value="Rasomuro" ${cas.posa === 'Rasomuro' ? 'selected' : ''}>Rasomuro</option>
+                                                        <option value="Esterna dal sotto" ${cas.posa === 'Esterna dal sotto' ? 'selected' : ''}>Esterna dal sotto</option>
+                                                        <option value="Interna dal sotto" ${cas.posa === 'Interna dal sotto' ? 'selected' : ''}>Interna dal sotto</option>
+                                                    </select>
+                                                </div>
+                                                
+                                                <!-- 4. FINITURA -->
+                                                <div>
+                                                    <label class="text-xs font-medium">4. Finitura</label>
+                                                    <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'finitura', this.value)"
+                                                            class="w-full compact-input border rounded mt-1">
+                                                        <option value="">--</option>
+                                                        <option value="Grezzo da rasare" ${cas.finitura === 'Grezzo da rasare' ? 'selected' : ''}>Grezzo da rasare</option>
+                                                        <option value="Mano di fondo" ${cas.finitura === 'Mano di fondo' ? 'selected' : ''}>Mano di fondo</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }
+                                    
+                                    // Nessuna azienda o azienda custom
+                                    if (!azienda || (azienda !== 'Finstral' && azienda !== 'Magò' && azienda !== 'Alpac')) {
+                                        return `
+                                            <div class="mt-3 bg-gray-50 border-2 border-gray-300 rounded-lg p-3">
+                                                <p class="text-xs text-gray-600 text-center">
+                                                    ⚠️ Seleziona un'azienda (Finstral, Magò o Alpac) per visualizzare i campi specifici
+                                                </p>
+                                            </div>
+                                        `;
+                                    }
+                                    
+                                    return '';
+                                })()}
                             </div>
 
                             <!-- 📏 MISURE CASSONETTO (mm) -->
