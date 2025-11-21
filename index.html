@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.63 - LOGICA CONDIZIONALE AUTOMAZIONE TAPPARELLE: Nuova tapparella basata su esistente ✅
+    Open Porte v4.64 - FIX RILIEVO TAPPARELLE: Campo "tipo" (Manuale/Motorizzata) ora funzionante ✅
     
-    🔧 AGGIORNAMENTI v4.63 (21 NOV 2025):
+    🔧 AGGIORNAMENTI v4.64 (21 NOV 2025):
+    - 🐛 FIX RILIEVO TAPPARELLE: Corretto salvataggio campo "tipo" (Manuale/Motorizzata)
+    - ✅ Fix updateRilievoProdotto: Inizializzazione campo tipo per tapparelle
+    - ✅ Fix copiaRilievoDaGlobaleProdotto: Copia campo tipo per tapparelle
+    - ✅ Risolto problema: Campo "tipo" ora viene salvato correttamente sia in configurazione globale che nelle posizioni
     
     ⚡ LOGICA CONDIZIONALE COMPLETA: Configurazione Tapparelle Intelligente
        - Campo "4. Nuova automazione" ora CONDIZIONALE basato su tipo esistente
@@ -1500,7 +1504,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.63 - Logica Condizionale Tapparelle</title>
+    <title>Open Porte v4.64 - Fix Rilievo Tapparelle</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -8705,6 +8709,11 @@
                         pos[rilievoKey].coprifiliInt = rilievoGlobale.coprifiliInt || false;
                         pos[rilievoKey].coprifiliEst = rilievoGlobale.coprifiliEst || false;
                     }
+                    
+                    // Aggiungi campo tipo per tapparelle
+                    if (productType === 'tapparelle') {
+                        pos[rilievoKey].tipo = rilievoGlobale.tipo || '';
+                    }
                 }
                 
                 // Gestione checkbox (boolean)
@@ -8741,6 +8750,10 @@
                         pos[rilievoKey].coprifiliInt = false;
                         pos[rilievoKey].coprifiliEst = false;
                     }
+                    
+                    if (productType === 'tapparelle') {
+                        pos[rilievoKey].tipo = '';
+                    }
                 }
                 
                 // Copia i valori
@@ -8752,6 +8765,10 @@
                 if (productType === 'infissi') {
                     pos[rilievoKey].coprifiliInt = rilievoGlobale.coprifiliInt || false;
                     pos[rilievoKey].coprifiliEst = rilievoGlobale.coprifiliEst || false;
+                }
+                
+                if (productType === 'tapparelle') {
+                    pos[rilievoKey].tipo = rilievoGlobale.tipo || '';
                 }
                 
                 saveState();
@@ -10342,7 +10359,7 @@
                                     </button>
                                 ` : ''}
                                 <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Open Porte v4.63
+                                    Open Porte v4.64
                                 </h1>
                             </div>
                             <div class="flex items-center gap-2">
