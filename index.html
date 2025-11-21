@@ -3,18 +3,19 @@
     Open Porte v4.69 - 3 OPZIONI TAPPARELLE SEMPRE VISIBILI: Eliminata dipendenza da rilievo preesistente ✅
     
     🔧 AGGIORNAMENTI v4.69 (21 NOV 2025):
-    - 🗑️ ELIMINATA dipendenza da rilievo preesistente per tapparelle
-    - ✅ 3 OPZIONI SEMPRE VISIBILI in Config Globale:
+    - 🗑️ ELIMINATO campo "tipo" (Manuale/Motorizzata) dal rilievo preesistente tapparelle
+    - ✅ MANTENUTO rilievo preesistente (Materiale, Togliere, Smaltire, Note)
+    - ✅ 3 OPZIONI SEMPRE VISIBILI in Config Globale (punto 4):
       1. 🖐️ Manuale
       2. ♻️ Motore esistente (riutilizzo)
       3. ⚡ Motorizzata (+ checkbox Forniamo motore + select Modello)
     - ✅ 3 OPZIONI SEMPRE VISIBILI in Tab Posizioni (stesse opzioni)
-    - ✅ Nessuna logica condizionale basata su rilievo
-    - ✅ Rimossa sezione renderRilievoGlobale per tapparelle in Step 3
+    - ✅ Nessuna logica condizionale basata su tipo esistente
     
     📋 NUOVA LOGICA SEMPLIFICATA:
-    - NON serve più compilare "RILIEVO PREESISTENTE - Tapparelle"
-    - 3 opzioni disponibili da subito
+    - NON serve più compilare campo "tipo" nel rilievo
+    - Rilievo preesistente ancora presente per altri campi (Materiale, Togliere, Smaltire, Note)
+    - 3 opzioni disponibili da subito come punto 4
     - Scelta diretta del tipo tapparella
     - Checkbox "Forniamo motore" visibile solo se Motorizzata
     - Select modello motore visibile solo se checkbox attiva
@@ -8846,11 +8847,6 @@
                 total = 5; // + coprifiliInt, coprifiliEst
             }
             
-            // Per tapparelle c'è anche il campo tipo (Manuale/Motorizzata)
-            if (productType === 'tapparelle') {
-                total = 4; // materiale, tipo, togliere, smaltimento
-            }
-            
             // Conta i campi compilati (campo "preesistente" ELIMINATO in FASE 13a)
             if (rilievo.materiale && rilievo.materiale.trim() !== '') completed++;
             if (rilievo.togliere !== undefined && rilievo.togliere !== null) completed++;
@@ -8859,10 +8855,6 @@
             if (productType === 'infissi') {
                 if (rilievo.coprifiliInt !== undefined && rilievo.coprifiliInt !== null) completed++;
                 if (rilievo.coprifiliEst !== undefined && rilievo.coprifiliEst !== null) completed++;
-            }
-            
-            if (productType === 'tapparelle') {
-                if (rilievo.tipo && rilievo.tipo.trim() !== '') completed++;
             }
             
             const percentage = Math.round((completed / total) * 100);
@@ -11830,28 +11822,6 @@
                             })()}
                         </div>
                         
-                        ${productType === 'tapparelle' ? `
-                        <!-- 1B. TIPO AUTOMAZIONE (solo per Tapparelle) -->
-                        <div>
-                            <label class="block text-sm font-semibold mb-2 flex items-center gap-2">
-                                🔍 Tapparella esistente
-                                ${!rilievo.tipo || rilievo.tipo.trim() === '' ? '<span class="text-red-600">●</span>' : '<span class="text-green-600">✓</span>'}
-                            </label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button type="button"
-                                        onclick="updateRilievoGlobale('${project.id}', '${productType}', 'tipo', 'Manuale')"
-                                        class="px-4 py-3 rounded-lg border-2 font-semibold transition ${rilievo.tipo === 'Manuale' ? 'bg-blue-500 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'}">
-                                    🖐️ Manuale
-                                </button>
-                                <button type="button"
-                                        onclick="updateRilievoGlobale('${project.id}', '${productType}', 'tipo', 'Motorizzata')"
-                                        class="px-4 py-3 rounded-lg border-2 font-semibold transition ${rilievo.tipo === 'Motorizzata' ? 'bg-blue-500 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'}">
-                                    ⚡ Motorizzata
-                                </button>
-                            </div>
-                        </div>
-                        ` : ''}
-                        
                         <!-- 2. NOTE AGGIUNTIVE -->
                         <div>
                             <label class="block text-sm font-semibold mb-2 flex items-center gap-2">
@@ -12578,6 +12548,8 @@
                         <span class="text-2xl">🎚️</span> Configurazione Tapparelle Default
                     </h2>
                     <p class="text-gray-600 mb-4">Imposta i valori di default per tutte le tapparelle:</p>
+                    
+                    ${renderRilievoGlobale(project, 'tapparelle', 'Tapparelle', '🎚️')}
                     
                     <div class="space-y-2 mt-4">
                         <div class="grid md:grid-cols-2 gap-2">
@@ -13678,14 +13650,10 @@
             let completed = 0;
             let total = 3; // materiale, togliere, smaltimento
             if (hasCoprifili) total = 5; // + coprifiliInt, coprifiliEst
-            if (productType === 'tapparella') total = 4; // materiale, tipo, togliere, smaltimento
             
             if (r.materiale && r.materiale.trim() !== '') completed++;
             if (r.togliere !== undefined && r.togliere !== null) completed++;
             if (r.smaltimento !== undefined && r.smaltimento !== null) completed++;
-            if (productType === 'tapparella') {
-                if (r.tipo && r.tipo.trim() !== '') completed++; // Manuale/Motorizzata
-            }
             if (hasCoprifili) {
                 if (r.coprifiliInt !== undefined && r.coprifiliInt !== null) completed++;
                 if (r.coprifiliEst !== undefined && r.coprifiliEst !== null) completed++;
