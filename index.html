@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.73 - AUTO-SYNC GITHUB ALL'APERTURA ✅
+    Open Porte v4.74 - SYNC PERIODICO OGNI 2 MINUTI ✅
+    
+    🔧 AGGIORNAMENTI v4.74 (21 NOV 2025):
+    - 🆕 SYNC PERIODICO: Controlla aggiornamenti GitHub ogni 2 minuti automaticamente!
+    - ✅ Anche con tab già aperto: Non serve più F5 per aggiornare
+    - ✅ Background silenzioso: Non disturba lavoro utente
+    - ✅ Smart: Solo se token configurato
+    - 💡 RISOLVE: "Tab aperto da ore, dati vecchi" → Ora auto-aggiorna ogni 2 min!
     
     🔧 AGGIORNAMENTI v4.73 (21 NOV 2025):
     - 🆕 AUTO-DOWNLOAD: Scarica automaticamente da GitHub quando apri l'app!
@@ -2790,8 +2797,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.73';
-        const APP_VERSION_NOTE = 'Auto-sync GitHub all\'apertura';
+        const APP_VERSION = '4.74';
+        const APP_VERSION_NOTE = 'Sync periodico ogni 2 minuti';
 
         // 📄 Aggiorna title dinamicamente
         document.title = `Open Porte v${APP_VERSION} - ${APP_VERSION_NOTE}`;
@@ -19187,6 +19194,25 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                 }, 500); // Aspetta 500ms dopo render
             } else if (!GITHUB_CONFIG.token) {
                 console.log('⚠️ Auto-sync disabilitato: token GitHub non configurato');
+            }
+            
+            // 🆕 v4.74: SYNC PERIODICO ogni 2 minuti (anche con tab aperto)
+            if (GITHUB_CONFIG.token && !window.periodicSyncInterval) {
+                console.log('⏰ Sync periodico attivato (ogni 2 minuti)');
+                
+                window.periodicSyncInterval = setInterval(async () => {
+                    console.log('⏰ Sync periodico in esecuzione...');
+                    try {
+                        const result = await manualDownloadFromGitHub();
+                        if (result) {
+                            console.log('✅ Sync periodico: progetti aggiornati');
+                        } else {
+                            console.log('ℹ️ Sync periodico: già aggiornato');
+                        }
+                    } catch (error) {
+                        console.error('⚠️ Sync periodico fallito:', error);
+                    }
+                }, 120000); // 120000ms = 2 minuti
             }
             
             // Verifica se serve sincronizzazione (solo 1 volta per sessione)
