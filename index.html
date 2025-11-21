@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.71 - FIX SINCRONIZZAZIONE GITHUB INTELLIGENTE ✅
+    Open Porte v4.72 - FIX UPLOAD DATI FRESCHI + DOWNLOAD INTELLIGENTE ✅
+    
+    🔧 AGGIORNAMENTI v4.72 (21 NOV 2025):
+    - 🚨 FIX CRITICO UPLOAD: Forza saveState() PRIMA di preparare dati!
+    - ✅ Rilegge progetto dopo updateProjectTimestamp per versione corretta
+    - ✅ Usa updatedProject invece di project per dati freschi garantiti
+    - 💡 RISOLVE: "iPad v21 senza modifiche" - ora upload include tutte le modifiche
+    - 🔄 Combo fix: Download intelligente + Upload dati freschi
     
     🔧 AGGIORNAMENTI v4.71 (21 NOV 2025):
     - 🚨 FIX CRITICO: Sincronizzazione GitHub ora AGGIORNA progetti esistenti!
@@ -2776,8 +2783,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.71';
-        const APP_VERSION_NOTE = 'Fix sincronizzazione GitHub intelligente';
+        const APP_VERSION = '4.72';
+        const APP_VERSION_NOTE = 'Fix upload dati freschi + Download intelligente';
 
         // 📄 Aggiorna title dinamicamente
         document.title = `Open Porte v${APP_VERSION} - ${APP_VERSION_NOTE}`;
@@ -6078,6 +6085,11 @@
                 const numPositions = (project.positions && project.positions.length) || 0;
                 console.log(`✅ Upload valido: ${project.name || project.id} (${numPositions} posizioni)`);
                 
+                // 🚨 FIX v4.71: SALVA STATO PRIMA DI UPLOAD per assicurare dati freschi
+                console.log('💾 Salvataggio stato prima upload...');
+                saveState();
+                console.log('✅ Stato salvato, procedo con upload');
+                
                 // 🆕 v4.61: Tracking modifiche prima dell'upload
                 updateProjectTimestamp(
                     project.id, 
@@ -6086,214 +6098,220 @@
                     { positions: numPositions }
                 );
                 
+                // 🚨 RILEGGI progetto dopo updateProjectTimestamp per avere versione aggiornata
+                const updatedProject = state.projects.find(p => p.id === project.id);
+                if (!updatedProject) {
+                    throw new Error('Progetto non trovato dopo update timestamp');
+                }
+                
                 // Prepara dati progetto COMPLETI
                 const projectData = {
                     // ═════════════════════════════════════════════════════════
                     // DATI PROGETTO COMPLETI (v4.0)
                     // ═════════════════════════════════════════════════════════
-                    id: project.id,
-                    name: project.name || '',
-                    client: project.client || '',
+                    id: updatedProject.id,
+                    name: updatedProject.name || '',
+                    client: updatedProject.client || '',
                     
                     // DATI CLIENTE COMPLETI
                     clientData: {
-                        nome: project.clientData?.nome || '',
-                        cognome: project.clientData?.cognome || '',
-                        telefono: project.clientData?.telefono || '',
-                        email: project.clientData?.email || '',
-                        indirizzo: project.clientData?.indirizzo || '',
-                        citta: project.clientData?.citta || '',
-                        cap: project.clientData?.cap || '',
-                        piano: project.clientData?.piano || '',
-                        note: project.clientData?.note || ''
+                        nome: updatedProject.clientData?.nome || '',
+                        cognome: updatedProject.clientData?.cognome || '',
+                        telefono: updatedProject.clientData?.telefono || '',
+                        email: updatedProject.clientData?.email || '',
+                        indirizzo: updatedProject.clientData?.indirizzo || '',
+                        citta: updatedProject.clientData?.citta || '',
+                        cap: updatedProject.clientData?.cap || '',
+                        piano: updatedProject.clientData?.piano || '',
+                        note: updatedProject.clientData?.note || ''
                     },
                     
                     // PRODOTTI ABILITATI
                     prodotti: {
-                        infissi: project.prodotti?.infissi || false,
-                        persiane: project.prodotti?.persiane || false,
-                        tapparelle: project.prodotti?.tapparelle || false,
-                        zanzariere: project.prodotti?.zanzariere || false,
-                        cassonetti: project.prodotti?.cassonetti || false
+                        infissi: updatedProject.prodotti?.infissi || false,
+                        persiane: updatedProject.prodotti?.persiane || false,
+                        tapparelle: updatedProject.prodotti?.tapparelle || false,
+                        zanzariere: updatedProject.prodotti?.zanzariere || false,
+                        cassonetti: updatedProject.prodotti?.cassonetti || false
                     },
                     
                     // CARATTERISTICHE MURO
                     caratteristicheMuro: {
-                        profMuroInt: project.caratteristicheMuro?.profMuroInt || '',
-                        profPianaSopra: project.caratteristicheMuro?.profPianaSopra || '',
-                        profPianaSotto: project.caratteristicheMuro?.profPianaSotto || '',
-                        telaioProfondita: project.caratteristicheMuro?.telaioProfondita || '',
-                        telaioLarghezza: project.caratteristicheMuro?.telaioLarghezza || '',
-                        guidaEsistente: project.caratteristicheMuro?.guidaEsistente || '',
-                        profGuida: project.caratteristicheMuro?.profGuida || '',
-                        larghezzaGuida: project.caratteristicheMuro?.larghezzaGuida || '',
-                        profMuroEst: project.caratteristicheMuro?.profMuroEst || '',
-                        battutaSuperioreTapparella: project.caratteristicheMuro?.battutaSuperioreTapparella || '',
-                        falsoEsistente: project.caratteristicheMuro?.falsoEsistente || '',
-                        spessoreFalso: project.caratteristicheMuro?.spessoreFalso || '',
-                        distanzaFalsoInfisso: project.caratteristicheMuro?.distanzaFalsoInfisso || ''
+                        profMuroInt: updatedProject.caratteristicheMuro?.profMuroInt || '',
+                        profPianaSopra: updatedProject.caratteristicheMuro?.profPianaSopra || '',
+                        profPianaSotto: updatedProject.caratteristicheMuro?.profPianaSotto || '',
+                        telaioProfondita: updatedProject.caratteristicheMuro?.telaioProfondita || '',
+                        telaioLarghezza: updatedProject.caratteristicheMuro?.telaioLarghezza || '',
+                        guidaEsistente: updatedProject.caratteristicheMuro?.guidaEsistente || '',
+                        profGuida: updatedProject.caratteristicheMuro?.profGuida || '',
+                        larghezzaGuida: updatedProject.caratteristicheMuro?.larghezzaGuida || '',
+                        profMuroEst: updatedProject.caratteristicheMuro?.profMuroEst || '',
+                        battutaSuperioreTapparella: updatedProject.caratteristicheMuro?.battutaSuperioreTapparella || '',
+                        falsoEsistente: updatedProject.caratteristicheMuro?.falsoEsistente || '',
+                        spessoreFalso: updatedProject.caratteristicheMuro?.spessoreFalso || '',
+                        distanzaFalsoInfisso: updatedProject.caratteristicheMuro?.distanzaFalsoInfisso || ''
                     },
                     
                     // CONFIG INFISSI
                     configInfissi: {
-                        azienda: project.configInfissi?.azienda || '',
-                        telaio: project.configInfissi?.telaio || '',
-                        coloreInt: project.configInfissi?.coloreInt || '',
-                        coloreEst: project.configInfissi?.coloreEst || '',
-                        tipoAnta: project.configInfissi?.tipoAnta || '',
-                        finIntEst: project.configInfissi?.finIntEst || '',
-                        vetro: project.configInfissi?.vetro || '',
-                        tagliTelaio: project.configInfissi?.tagliTelaio || '',
-                        codTagli: project.configInfissi?.codTagli || [],
-                        codTagliValues: project.configInfissi?.codTagliValues || []
+                        azienda: updatedProject.configInfissi?.azienda || '',
+                        telaio: updatedProject.configInfissi?.telaio || '',
+                        coloreInt: updatedProject.configInfissi?.coloreInt || '',
+                        coloreEst: updatedProject.configInfissi?.coloreEst || '',
+                        tipoAnta: updatedProject.configInfissi?.tipoAnta || '',
+                        finIntEst: updatedProject.configInfissi?.finIntEst || '',
+                        vetro: updatedProject.configInfissi?.vetro || '',
+                        tagliTelaio: updatedProject.configInfissi?.tagliTelaio || '',
+                        codTagli: updatedProject.configInfissi?.codTagli || [],
+                        codTagliValues: updatedProject.configInfissi?.codTagliValues || []
                     },
                     
                     // BRM INFISSI
                     brmConfigInfissi: {
-                        misuraBaseL: project.brmConfigInfissi?.misuraBaseL || '',
-                        operazioneL: project.brmConfigInfissi?.operazioneL || '',
-                        valoreL: project.brmConfigInfissi?.valoreL || '',
-                        misuraBaseH: project.brmConfigInfissi?.misuraBaseH || '',
-                        operazioneH: project.brmConfigInfissi?.operazioneH || '',
-                        valoreH: project.brmConfigInfissi?.valoreH || '',
-                        note: project.brmConfigInfissi?.note || ''
+                        misuraBaseL: updatedProject.brmConfigInfissi?.misuraBaseL || '',
+                        operazioneL: updatedProject.brmConfigInfissi?.operazioneL || '',
+                        valoreL: updatedProject.brmConfigInfissi?.valoreL || '',
+                        misuraBaseH: updatedProject.brmConfigInfissi?.misuraBaseH || '',
+                        operazioneH: updatedProject.brmConfigInfissi?.operazioneH || '',
+                        valoreH: updatedProject.brmConfigInfissi?.valoreH || '',
+                        note: updatedProject.brmConfigInfissi?.note || ''
                     },
                     
                     // RILIEVO INFISSI
                     rilievoInfissi: {
-                        materiale: project.rilievoInfissi?.materiale || '',
-                        togliere: project.rilievoInfissi?.togliere || false,
-                        smaltimento: project.rilievoInfissi?.smaltimento || false,
-                        coprifiliInt: project.rilievoInfissi?.coprifiliInt || false,
-                        coprifiliEst: project.rilievoInfissi?.coprifiliEst || false,
-                        note: project.rilievoInfissi?.note || ''
+                        materiale: updatedProject.rilievoInfissi?.materiale || '',
+                        togliere: updatedProject.rilievoInfissi?.togliere || false,
+                        smaltimento: updatedProject.rilievoInfissi?.smaltimento || false,
+                        coprifiliInt: updatedProject.rilievoInfissi?.coprifiliInt || false,
+                        coprifiliEst: updatedProject.rilievoInfissi?.coprifiliEst || false,
+                        note: updatedProject.rilievoInfissi?.note || ''
                     },
                     
                     // CONFIG PERSIANE
                     configPersiane: {
-                        azienda: project.configPersiane?.azienda || '',
-                        modello: project.configPersiane?.modello || '',
-                        fissaggio: project.configPersiane?.fissaggio || '',
-                        colore: project.configPersiane?.colore || '',
-                        tipoStecca: project.configPersiane?.tipoStecca || '',
-                        asolato: project.configPersiane?.asolato || ''
+                        azienda: updatedProject.configPersiane?.azienda || '',
+                        modello: updatedProject.configPersiane?.modello || '',
+                        fissaggio: updatedProject.configPersiane?.fissaggio || '',
+                        colore: updatedProject.configPersiane?.colore || '',
+                        tipoStecca: updatedProject.configPersiane?.tipoStecca || '',
+                        asolato: updatedProject.configPersiane?.asolato || ''
                     },
                     
                     // BRM PERSIANE
                     brmConfigPersiane: {
-                        misuraBaseL: project.brmConfigPersiane?.misuraBaseL || '',
-                        operazioneL: project.brmConfigPersiane?.operazioneL || '',
-                        valoreL: project.brmConfigPersiane?.valoreL || '',
-                        misuraBaseH: project.brmConfigPersiane?.misuraBaseH || '',
-                        operazioneH: project.brmConfigPersiane?.operazioneH || '',
-                        valoreH: project.brmConfigPersiane?.valoreH || '',
-                        note: project.brmConfigPersiane?.note || ''
+                        misuraBaseL: updatedProject.brmConfigPersiane?.misuraBaseL || '',
+                        operazioneL: updatedProject.brmConfigPersiane?.operazioneL || '',
+                        valoreL: updatedProject.brmConfigPersiane?.valoreL || '',
+                        misuraBaseH: updatedProject.brmConfigPersiane?.misuraBaseH || '',
+                        operazioneH: updatedProject.brmConfigPersiane?.operazioneH || '',
+                        valoreH: updatedProject.brmConfigPersiane?.valoreH || '',
+                        note: updatedProject.brmConfigPersiane?.note || ''
                     },
                     
                     // RILIEVO PERSIANE
                     rilievoPersiane: {
-                        materiale: project.rilievoPersiane?.materiale || '',
-                        togliere: project.rilievoPersiane?.togliere || false,
-                        smaltimento: project.rilievoPersiane?.smaltimento || false,
-                        note: project.rilievoPersiane?.note || ''
+                        materiale: updatedProject.rilievoPersiane?.materiale || '',
+                        togliere: updatedProject.rilievoPersiane?.togliere || false,
+                        smaltimento: updatedProject.rilievoPersiane?.smaltimento || false,
+                        note: updatedProject.rilievoPersiane?.note || ''
                     },
                     
                     // CONFIG TAPPARELLE
                     configTapparelle: {
-                        azienda: project.configTapparelle?.azienda || '',
-                        tipo: project.configTapparelle?.tipo || '',
-                        colore: project.configTapparelle?.colore || '',
-                        motorizzazione: project.configTapparelle?.motorizzazione || '',
-                        comando: project.configTapparelle?.comando || ''
+                        azienda: updatedProject.configTapparelle?.azienda || '',
+                        tipo: updatedProject.configTapparelle?.tipo || '',
+                        colore: updatedProject.configTapparelle?.colore || '',
+                        motorizzazione: updatedProject.configTapparelle?.motorizzazione || '',
+                        comando: updatedProject.configTapparelle?.comando || ''
                     },
                     
                     // BRM TAPPARELLE
                     brmConfigTapparelle: {
-                        misuraBaseL: project.brmConfigTapparelle?.misuraBaseL || '',
-                        operazioneL: project.brmConfigTapparelle?.operazioneL || '',
-                        valoreL: project.brmConfigTapparelle?.valoreL || '',
-                        misuraBaseH: project.brmConfigTapparelle?.misuraBaseH || '',
-                        operazioneH: project.brmConfigTapparelle?.operazioneH || '',
-                        valoreH: project.brmConfigTapparelle?.valoreH || '',
-                        note: project.brmConfigTapparelle?.note || ''
+                        misuraBaseL: updatedProject.brmConfigTapparelle?.misuraBaseL || '',
+                        operazioneL: updatedProject.brmConfigTapparelle?.operazioneL || '',
+                        valoreL: updatedProject.brmConfigTapparelle?.valoreL || '',
+                        misuraBaseH: updatedProject.brmConfigTapparelle?.misuraBaseH || '',
+                        operazioneH: updatedProject.brmConfigTapparelle?.operazioneH || '',
+                        valoreH: updatedProject.brmConfigTapparelle?.valoreH || '',
+                        note: updatedProject.brmConfigTapparelle?.note || ''
                     },
                     
                     // RILIEVO TAPPARELLE
                     rilievoTapparelle: {
-                        materiale: project.rilievoTapparelle?.materiale || '',
-                        togliere: project.rilievoTapparelle?.togliere || false,
-                        smaltimento: project.rilievoTapparelle?.smaltimento || false,
-                        note: project.rilievoTapparelle?.note || ''
+                        materiale: updatedProject.rilievoTapparelle?.materiale || '',
+                        togliere: updatedProject.rilievoTapparelle?.togliere || false,
+                        smaltimento: updatedProject.rilievoTapparelle?.smaltimento || false,
+                        note: updatedProject.rilievoTapparelle?.note || ''
                     },
                     
                     // CONFIG ZANZARIERE
                     configZanzariere: {
-                        azienda: project.configZanzariere?.azienda || '',
-                        modelloF: project.configZanzariere?.modelloF || '',
-                        modelloPF: project.configZanzariere?.modelloPF || '',
-                        colore: project.configZanzariere?.colore || ''
+                        azienda: updatedProject.configZanzariere?.azienda || '',
+                        modelloF: updatedProject.configZanzariere?.modelloF || '',
+                        modelloPF: updatedProject.configZanzariere?.modelloPF || '',
+                        colore: updatedProject.configZanzariere?.colore || ''
                     },
                     
                     // BRM ZANZARIERE
                     brmConfigZanzariere: {
-                        misuraBaseL: project.brmConfigZanzariere?.misuraBaseL || '',
-                        operazioneL: project.brmConfigZanzariere?.operazioneL || '',
-                        valoreL: project.brmConfigZanzariere?.valoreL || '',
-                        misuraBaseH: project.brmConfigZanzariere?.misuraBaseH || '',
-                        operazioneH: project.brmConfigZanzariere?.operazioneH || '',
-                        valoreH: project.brmConfigZanzariere?.valoreH || '',
-                        note: project.brmConfigZanzariere?.note || ''
+                        misuraBaseL: updatedProject.brmConfigZanzariere?.misuraBaseL || '',
+                        operazioneL: updatedProject.brmConfigZanzariere?.operazioneL || '',
+                        valoreL: updatedProject.brmConfigZanzariere?.valoreL || '',
+                        misuraBaseH: updatedProject.brmConfigZanzariere?.misuraBaseH || '',
+                        operazioneH: updatedProject.brmConfigZanzariere?.operazioneH || '',
+                        valoreH: updatedProject.brmConfigZanzariere?.valoreH || '',
+                        note: updatedProject.brmConfigZanzariere?.note || ''
                     },
                     
                     // RILIEVO ZANZARIERE
                     rilievoZanzariere: {
-                        materiale: project.rilievoZanzariere?.materiale || '',
-                        togliere: project.rilievoZanzariere?.togliere || false,
-                        smaltimento: project.rilievoZanzariere?.smaltimento || false,
-                        note: project.rilievoZanzariere?.note || ''
+                        materiale: updatedProject.rilievoZanzariere?.materiale || '',
+                        togliere: updatedProject.rilievoZanzariere?.togliere || false,
+                        smaltimento: updatedProject.rilievoZanzariere?.smaltimento || false,
+                        note: updatedProject.rilievoZanzariere?.note || ''
                     },
                     
                     // CONFIG CASSONETTI
                     configCassonetti: {
-                        tipo: project.configCassonetti?.tipo || '',
-                        azienda: project.configCassonetti?.azienda || '',
-                        materiale: project.configCassonetti?.materiale || '',
-                        finitura: project.configCassonetti?.finitura || '',
-                        coibentazione: project.configCassonetti?.coibentazione || '',
-                        aSoffitto: project.configCassonetti?.aSoffitto || ''
+                        tipo: updatedProject.configCassonetti?.tipo || '',
+                        azienda: updatedProject.configCassonetti?.azienda || '',
+                        materiale: updatedProject.configCassonetti?.materiale || '',
+                        finitura: updatedProject.configCassonetti?.finitura || '',
+                        coibentazione: updatedProject.configCassonetti?.coibentazione || '',
+                        aSoffitto: updatedProject.configCassonetti?.aSoffitto || ''
                     },
                     
                     // BRM CASSONETTI
                     brmConfigCassonetti: {
-                        misuraBaseL: project.brmConfigCassonetti?.misuraBaseL || '',
-                        operazioneL: project.brmConfigCassonetti?.operazioneL || '',
-                        valoreL: project.brmConfigCassonetti?.valoreL || '',
-                        misuraBaseH: project.brmConfigCassonetti?.misuraBaseH || '',
-                        operazioneH: project.brmConfigCassonetti?.operazioneH || '',
-                        valoreH: project.brmConfigCassonetti?.valoreH || '',
-                        misuraBaseC: project.brmConfigCassonetti?.misuraBaseC || '',
-                        operazioneC: project.brmConfigCassonetti?.operazioneC || '',
-                        valoreC: project.brmConfigCassonetti?.valoreC || '',
-                        misuraBaseB: project.brmConfigCassonetti?.misuraBaseB || '',
-                        operazioneB: project.brmConfigCassonetti?.operazioneB || '',
-                        valoreB: project.brmConfigCassonetti?.valoreB || '',
-                        SRSX: project.brmConfigCassonetti?.SRSX || '',
-                        SRDX: project.brmConfigCassonetti?.SRDX || '',
-                        ZSX: project.brmConfigCassonetti?.ZSX || '',
-                        ZDX: project.brmConfigCassonetti?.ZDX || '',
-                        note: project.brmConfigCassonetti?.note || ''
+                        misuraBaseL: updatedProject.brmConfigCassonetti?.misuraBaseL || '',
+                        operazioneL: updatedProject.brmConfigCassonetti?.operazioneL || '',
+                        valoreL: updatedProject.brmConfigCassonetti?.valoreL || '',
+                        misuraBaseH: updatedProject.brmConfigCassonetti?.misuraBaseH || '',
+                        operazioneH: updatedProject.brmConfigCassonetti?.operazioneH || '',
+                        valoreH: updatedProject.brmConfigCassonetti?.valoreH || '',
+                        misuraBaseC: updatedProject.brmConfigCassonetti?.misuraBaseC || '',
+                        operazioneC: updatedProject.brmConfigCassonetti?.operazioneC || '',
+                        valoreC: updatedProject.brmConfigCassonetti?.valoreC || '',
+                        misuraBaseB: updatedProject.brmConfigCassonetti?.misuraBaseB || '',
+                        operazioneB: updatedProject.brmConfigCassonetti?.operazioneB || '',
+                        valoreB: updatedProject.brmConfigCassonetti?.valoreB || '',
+                        SRSX: updatedProject.brmConfigCassonetti?.SRSX || '',
+                        SRDX: updatedProject.brmConfigCassonetti?.SRDX || '',
+                        ZSX: updatedProject.brmConfigCassonetti?.ZSX || '',
+                        ZDX: updatedProject.brmConfigCassonetti?.ZDX || '',
+                        note: updatedProject.brmConfigCassonetti?.note || ''
                     },
                     
                     // RILIEVO CASSONETTI
                     rilievoCassonetti: {
-                        materiale: project.rilievoCassonetti?.materiale || '',
-                        togliere: project.rilievoCassonetti?.togliere || false,
-                        smaltimento: project.rilievoCassonetti?.smaltimento || false,
-                        note: project.rilievoCassonetti?.note || ''
+                        materiale: updatedProject.rilievoCassonetti?.materiale || '',
+                        togliere: updatedProject.rilievoCassonetti?.togliere || false,
+                        smaltimento: updatedProject.rilievoCassonetti?.smaltimento || false,
+                        note: updatedProject.rilievoCassonetti?.note || ''
                     },
                     
                     // POSIZIONI (con caratteristiche muro per posizione)
-                    positions: (project.positions || []).map(pos => ({
+                    positions: (updatedProject.positions || []).map(pos => ({
                         id: pos.id,
                         name: pos.name || '',
                         ambiente: pos.ambiente || '',
@@ -6329,7 +6347,7 @@
                     })),
                     
                     // 🎨 FASE DISEGNI: Disegni progetto
-                    drawings: project.drawings || {
+                    drawings: updatedProject.drawings || {
                         general: [],
                         stats: {
                             total: 0,
@@ -6339,13 +6357,13 @@
                     },
                     
                     // DATE
-                    created: project.created || new Date().toISOString(),
+                    created: updatedProject.created || new Date().toISOString(),
                     updated: new Date().toISOString(),
                     
                     // 🆕 v4.61: METADATA COMPLETO con versioning e history
-                    metadata: project.metadata || {
+                    metadata: updatedProject.metadata || {
                         version: 1,
-                        created: project.created || new Date().toISOString(),
+                        created: updatedProject.created || new Date().toISOString(),
                         updated: new Date().toISOString(),
                         device: {
                             id: localStorage.getItem('deviceId'),
@@ -6357,7 +6375,7 @@
                 };
                 
                 // Genera nome file
-                const fileName = `progetto-${project.id}.json`;
+                const fileName = `progetto-${updatedProject.id}.json`;
                 const filePath = `progetti/${fileName}`;
                 
                 // Converti in JSON + Base64 (compatibile Safari iOS)
