@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.72 - FIX UPLOAD DATI FRESCHI + DOWNLOAD INTELLIGENTE ✅
+    Open Porte v4.73 - AUTO-SYNC GITHUB ALL'APERTURA ✅
+    
+    🔧 AGGIORNAMENTI v4.73 (21 NOV 2025):
+    - 🆕 AUTO-DOWNLOAD: Scarica automaticamente da GitHub quando apri l'app!
+    - ✅ Background sync: Non blocca caricamento UI (500ms delay)
+    - ✅ Una volta per sessione: Flag per evitare sync multipli
+    - ✅ Silent fail: Se errore, non disturba utente (log in console)
+    - 💡 RISOLVE: "Devo premere scarica ogni volta" → Ora automatico!
     
     🔧 AGGIORNAMENTI v4.72 (21 NOV 2025):
     - 🚨 FIX CRITICO UPLOAD: Forza saveState() PRIMA di preparare dati!
@@ -2783,8 +2790,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.72';
-        const APP_VERSION_NOTE = 'Fix upload dati freschi + Download intelligente';
+        const APP_VERSION = '4.73';
+        const APP_VERSION_NOTE = 'Auto-sync GitHub all\'apertura';
 
         // 📄 Aggiorna title dinamicamente
         document.title = `Open Porte v${APP_VERSION} - ${APP_VERSION_NOTE}`;
@@ -19157,6 +19164,30 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             loadState();
             render();
             console.log('App inizializzata correttamente');
+            
+            // 🆕 v4.73: AUTO-SYNC da GitHub all'apertura (1 volta per sessione)
+            if (GITHUB_CONFIG.token && !window.autoSyncDone) {
+                window.autoSyncDone = true; // Flag per fare solo 1 volta
+                
+                console.log('🔄 Auto-sync da GitHub...');
+                
+                // Download in background (non blocca UI)
+                setTimeout(async () => {
+                    try {
+                        const result = await manualDownloadFromGitHub();
+                        if (result) {
+                            console.log('✅ Auto-sync completato');
+                        } else {
+                            console.log('ℹ️ Auto-sync: nessun aggiornamento');
+                        }
+                    } catch (error) {
+                        console.error('⚠️ Auto-sync fallito:', error);
+                        // Non mostra errore all'utente, solo in console
+                    }
+                }, 500); // Aspetta 500ms dopo render
+            } else if (!GITHUB_CONFIG.token) {
+                console.log('⚠️ Auto-sync disabilitato: token GitHub non configurato');
+            }
             
             // Verifica se serve sincronizzazione (solo 1 volta per sessione)
             const project = state.projects.find(p => p.id === state.currentProject);
