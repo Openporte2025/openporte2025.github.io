@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.74 - SYNC PERIODICO OGNI 2 MINUTI ✅
+    Open Porte v4.75 - PULIZIA DATI PRODOTTI DISATTIVATI ✅
+    
+    🔧 AGGIORNAMENTI v4.75 (25 NOV 2025):
+    - 🧹 Quando disattivi un prodotto, pulisce automaticamente tutti i dati correlati
+    - ✅ Pulisce config globale, BRM, rilievo preesistente
+    - ✅ Pulisce tutte le posizioni (imposta a null)
+    - ✅ Dashboard non mostra più prodotti fantasma
+    - 🔧 FIX: finituraInt e finituraEst ora salvati correttamente nel JSON
+    - ✅ Rimosso vecchio campo finIntEst, sostituito con campi separati
     
     🔧 AGGIORNAMENTI v4.74 (21 NOV 2025):
     - 🆕 SYNC PERIODICO: Controlla aggiornamenti GitHub ogni 2 minuti automaticamente!
@@ -2797,7 +2805,7 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.74';
+        const APP_VERSION = '4.75';
         const APP_VERSION_NOTE = 'Sync periodico ogni 2 minuti';
 
         // 📄 Aggiorna title dinamicamente
@@ -6170,10 +6178,11 @@
                     configInfissi: {
                         azienda: updatedProject.configInfissi?.azienda || '',
                         telaio: updatedProject.configInfissi?.telaio || '',
+                        finituraInt: updatedProject.configInfissi?.finituraInt || '',
+                        finituraEst: updatedProject.configInfissi?.finituraEst || '',
                         coloreInt: updatedProject.configInfissi?.coloreInt || '',
                         coloreEst: updatedProject.configInfissi?.coloreEst || '',
                         tipoAnta: updatedProject.configInfissi?.tipoAnta || '',
-                        finIntEst: updatedProject.configInfissi?.finIntEst || '',
                         vetro: updatedProject.configInfissi?.vetro || '',
                         tagliTelaio: updatedProject.configInfissi?.tagliTelaio || '',
                         codTagli: updatedProject.configInfissi?.codTagli || [],
@@ -17191,6 +17200,11 @@
                 
                 const productStep = productStepMap[product];
                 
+                // 🆕 v4.75: Se DISATTIVO un prodotto, pulisco tutti i dati correlati
+                if (!checked) {
+                    cleanProductData(project, product);
+                }
+                
                 // Se sto deselezionando un prodotto e sono sul suo step di config
                 if (!checked && state.setupStep === productStep) {
                     // Aggiorna temporaneamente il prodotto per calcolare il prossimo step valido
@@ -17205,6 +17219,62 @@
                 render();
             }
         };
+        
+        // 🆕 v4.75: Funzione per pulire dati prodotto quando disattivato
+        function cleanProductData(project, product) {
+            // Mappa prodotto -> chiavi JSON da pulire
+            const productDataMap = {
+                'infissi': { config: 'configInfissi', brm: 'brmConfigInfissi', rilievo: 'rilievoInfissi', position: 'infisso' },
+                'persiane': { config: 'configPersiane', brm: 'brmConfigPersiane', rilievo: 'rilievoPersiane', position: 'persiana' },
+                'tapparelle': { config: 'configTapparelle', brm: 'brmConfigTapparelle', rilievo: 'rilievoTapparelle', position: 'tapparella' },
+                'zanzariere': { config: 'configZanzariere', brm: 'brmConfigZanzariere', rilievo: 'rilievoZanzariere', position: 'zanzariera' },
+                'cassonetti': { config: 'configCassonetti', brm: 'brmConfigCassonetti', rilievo: 'rilievoCassonetti', position: 'cassonetto' }
+            };
+            
+            const keys = productDataMap[product];
+            if (!keys) return;
+            
+            // Pulisci config globale (svuota oggetto ma mantieni struttura)
+            if (project[keys.config]) {
+                Object.keys(project[keys.config]).forEach(k => {
+                    project[keys.config][k] = '';
+                });
+            }
+            
+            // Pulisci BRM config
+            if (project[keys.brm]) {
+                Object.keys(project[keys.brm]).forEach(k => {
+                    if (k === 'operazioneL' || k === 'operazioneH' || k === 'operazioneC' || k === 'operazioneB') {
+                        project[keys.brm][k] = '-';
+                    } else if (k === 'valoreL' || k === 'valoreH' || k === 'valoreC' || k === 'valoreB' || 
+                               k === 'SRSX' || k === 'SRDX' || k === 'ZSX' || k === 'ZDX') {
+                        project[keys.brm][k] = '0';
+                    } else {
+                        project[keys.brm][k] = '';
+                    }
+                });
+            }
+            
+            // Pulisci rilievo
+            if (project[keys.rilievo]) {
+                Object.keys(project[keys.rilievo]).forEach(k => {
+                    if (typeof project[keys.rilievo][k] === 'boolean') {
+                        project[keys.rilievo][k] = false;
+                    } else {
+                        project[keys.rilievo][k] = '';
+                    }
+                });
+            }
+            
+            // 🔑 IMPORTANTE: Pulisci tutte le posizioni
+            if (project.positions && project.positions.length > 0) {
+                project.positions.forEach(pos => {
+                    pos[keys.position] = null;
+                });
+            }
+            
+            console.log(`🧹 v4.75: Puliti dati ${product} (config + ${project.positions?.length || 0} posizioni)`);
+        }
 
         window.updateConfigPersiane = (projectId, field, value) => {
             const project = state.projects.find(p => p.id === projectId);
