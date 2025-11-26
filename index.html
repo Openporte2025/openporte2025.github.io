@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.89 - COLORI TAPPARELLE PLASTICINO DINAMICI ✅
+    Open Porte v4.90 - GUIDE PLASTICINO + COLORI DINAMICI ✅
+    
+    🔧 AGGIORNAMENTI v4.90 (26 NOV 2025):
+       - GUIDE PLASTICINO: 12 modelli (TG15/TG10/TG30, TG25/TG20/TG35, RIB, PF ferro)
+       - COLORI GUIDE: Anodizzati (Argento, Bronzo, Elox, Bianco) + 
+         Verniciati RAL (1013, 6005, 8014, 8017, 8019) + RAL a richiesta
+       - Dropdown dinamici in Config Globale E nelle Posizioni
+       - Ordine campi: Modello → Colore Telo → Guida → Colore Guida → Tipo
     
     🔧 AGGIORNAMENTI v4.89 (26 NOV 2025):
        - Colori Tapparelle: Aggiunta mappa colori Plasticino per modello
@@ -1686,7 +1693,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.89 - Colori Tapparelle Plasticino</title>
+    <title>Open Porte v4.90 - Guide Plasticino</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2900,8 +2907,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.89';
-        const APP_VERSION_NOTE = 'Colori Tapparelle Plasticino Dinamici';
+        const APP_VERSION = '4.90';
+        const APP_VERSION_NOTE = 'Guide Plasticino + Colori Dinamici';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -4495,7 +4502,7 @@
         }
 
         // ───────────────────────────────────────────────────────────────
-        // 🎨 COLORI TAPPARELLE PLASTICINO - v4.88
+        // 🎨 COLORI TAPPARELLE PLASTICINO - v4.89
         // ───────────────────────────────────────────────────────────────
         
         const COLORI_TAPPARELLE_PLASTICINO = {
@@ -4525,6 +4532,50 @@
                 'Bruno 68', 'Bronzo', 'Ocra 84'
             ]
         };
+        
+        // ───────────────────────────────────────────────────────────────
+        // 🛤️ GUIDE PLASTICINO - v4.89
+        // ───────────────────────────────────────────────────────────────
+        
+        const GUIDE_PLASTICINO = [
+            // Alluminio Estruso 30x25x30
+            'TG15 - Guide 30x25x30 Finestra',
+            'TG10 - Guide 30x25x30 Portafinestra',
+            'TG30 - Guide 30x25x30 Barra 6800mm',
+            // Alluminio Estruso 28x17x28 Ribassato
+            'TG25RIB - Guide 28x17x28 Ribassato Finestra',
+            'TG20RIB - Guide 28x17x28 Ribassato Portafinestra',
+            'TG35RIB - Guide 28x17x28 Ribassato Barra',
+            // Alluminio Estruso 28x17x28 Standard
+            'TG25 - Guide 28x17x28 Finestra',
+            'TG20 - Guide 28x17x28 Portafinestra',
+            'TG35 - Guide 28x17x28 Barra',
+            // Ferro Zincato 21x20x21
+            'PF2 - Guide 21x20x21 Ferro Zn Finestra',
+            'PF4 - Guide 21x20x21 Ferro Zn Portafinestra',
+            'PF1 - Guide 21x20x21 Ferro Zn Barra'
+        ];
+        
+        const COLORI_GUIDE_PLASTICINO = {
+            // Anodizzati standard
+            'ANODIZZATO': [
+                'Argento', 'Bronzo', 'Elox', 'Bianco'
+            ],
+            // Verniciati RAL
+            'VERNICIATO': [
+                'Avorio RAL 1013', 'Verde RAL 6005', 
+                'Marrone RAL 8014', 'Marrone RAL 8017', 'Marrone RAL 8019'
+            ]
+        };
+        
+        // Funzione per ottenere colori guide
+        function getColoriGuide() {
+            return [
+                ...COLORI_GUIDE_PLASTICINO['ANODIZZATO'],
+                ...COLORI_GUIDE_PLASTICINO['VERNICIATO'],
+                'RAL a richiesta'
+            ];
+        }
         
         // Mappa modello → categoria colori
         const MODELLO_TO_COLORI_MAP = {
@@ -13162,9 +13213,35 @@
                                 </datalist>
                             </div>
                             
-                            <!-- 4. TIPO TAPPARELLA (3 OPZIONI SEMPRE VISIBILI) -->
+                            <!-- 4. GUIDA -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">4. Guida</label>
+                                <input type="text" placeholder="Seleziona guida"
+                                       value="${project.configTapparelle?.guida || ''}"
+                                       list="config-guida-tap-list-${project.id}"
+                                       onchange="updateConfigTapparelle('${project.id}', 'guida', this.value)"
+                                       class="w-full px-3 py-2 border rounded-lg">
+                                <datalist id="config-guida-tap-list-${project.id}">
+                                    ${GUIDE_PLASTICINO.map(g => `<option value="${g}">`).join('\n')}
+                                </datalist>
+                            </div>
+                            
+                            <!-- 5. COLORE GUIDA -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">5. Colore Guida</label>
+                                <input type="text" placeholder="Seleziona colore guida"
+                                       value="${project.configTapparelle?.coloreGuida || ''}"
+                                       list="config-colore-guida-list-${project.id}"
+                                       onchange="updateConfigTapparelle('${project.id}', 'coloreGuida', this.value)"
+                                       class="w-full px-3 py-2 border rounded-lg">
+                                <datalist id="config-colore-guida-list-${project.id}">
+                                    ${getColoriGuide().map(c => `<option value="${c}">`).join('\n')}
+                                </datalist>
+                            </div>
+                            
+                            <!-- 6. TIPO TAPPARELLA (3 OPZIONI SEMPRE VISIBILI) -->
                             <div class="col-span-2">
-                                <label class="block text-sm font-medium mb-2">4. Tipo Tapparella</label>
+                                <label class="block text-sm font-medium mb-2">6. Tipo Tapparella</label>
                                 <div class="space-y-3">
                                     <!-- Opzione 1: Manuale -->
                                     <div class="flex items-center gap-3 bg-white p-3 rounded-lg border-2 ${(!project.configTapparelle?.nuovaAutomazione || project.configTapparelle?.nuovaAutomazione === 'Manuale') ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}">
@@ -13248,26 +13325,8 @@
                                 project.id,
                                 null,
                                 'tapparella',
-                                '5. Sost. Esistente'
+                                '7. Sost. Esistente'
                             )}
-                            
-                            <!-- 6. GUIDA -->
-                            <div>
-                                <label class="block text-sm font-medium mb-1">6. Guida</label>
-                                <input type="text" placeholder="Es: Standard, Rinforzata"
-                                       value="${project.configTapparelle?.guida || ''}"
-                                       onchange="updateConfigTapparelle('${project.id}', 'guida', this.value)"
-                                       class="w-full px-3 py-2 border rounded-lg">
-                            </div>
-                            
-                            <!-- 7. COLORE GUIDA -->
-                            <div>
-                                <label class="block text-sm font-medium mb-1">7. Colore Guida</label>
-                                <input type="text" placeholder="Es: Bianco, Marrone"
-                                       value="${project.configTapparelle?.coloreGuida || ''}"
-                                       onchange="updateConfigTapparelle('${project.id}', 'coloreGuida', this.value)"
-                                       class="w-full px-3 py-2 border rounded-lg">
-                            </div>
                         </div>
                     </div>
                     
@@ -15927,6 +15986,32 @@
                                         </datalist>
                                     </div>
                                     
+                                    <!-- GUIDA E COLORE GUIDA -->
+                                    <div class="grid grid-cols-2 gap-2 mt-2">
+                                        <div>
+                                            <label class="text-xs font-medium">Guida</label>
+                                            <input type="text" value="${tap.guida || ''}"
+                                                   placeholder="TG15 - Guide 30x25x30"
+                                                   list="guida-tap-list-${pos.id}"
+                                                   onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'guida', this.value)"
+                                                   class="w-full compact-input border rounded mt-1">
+                                            <datalist id="guida-tap-list-${pos.id}">
+                                                ${GUIDE_PLASTICINO.map(g => `<option value="${g}">`).join('\n')}
+                                            </datalist>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-medium">Colore Guida</label>
+                                            <input type="text" value="${tap.coloreGuida || ''}"
+                                                   placeholder="Argento"
+                                                   list="colore-guida-list-${pos.id}"
+                                                   onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'coloreGuida', this.value)"
+                                                   class="w-full compact-input border rounded mt-1">
+                                            <datalist id="colore-guida-list-${pos.id}">
+                                                ${getColoriGuide().map(c => `<option value="${c}">`).join('\n')}
+                                            </datalist>
+                                        </div>
+                                    </div>
+                                    
                                     <!-- 🆕 3 OPZIONI SEMPRE VISIBILI (NON PIÙ CONDIZIONALI) -->
                                     <div class="mt-4">
                                         <label class="block text-sm font-medium mb-2">Tipo Tapparella</label>
@@ -16006,31 +16091,28 @@
                                     </div>
                                 </div>
 
-                                <!-- CAMPI GUIDA E COLORE GUIDA -->
+                                <!-- CAMPI GUIDA E COLORE GUIDA - PLASTICINO -->
                                 <div class="grid md:grid-cols-2 gap-3 mt-3">
                                     <div>
                                         <label class="text-xs font-medium">Guida</label>
                                         <input type="text" value="${tap.guida || ''}"
-                                               placeholder="--"
-                                               list="guida-tap-list-${pos.id}"
+                                               placeholder="Seleziona guida"
+                                               list="guida-tap-list2-${pos.id}"
                                                onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'guida', this.value)"
                                                class="w-full compact-input border rounded mt-1">
-                                        <datalist id="guida-tap-list-${pos.id}">
-                                            <option value="Standard">
-                                            <option value="Rinforzata">
+                                        <datalist id="guida-tap-list2-${pos.id}">
+                                            ${GUIDE_PLASTICINO.map(g => `<option value="${g}">`).join('\n')}
                                         </datalist>
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium">Colore Guida</label>
                                         <input type="text" value="${tap.coloreGuida || ''}"
-                                               placeholder="--"
-                                               list="coloreGuida-list-${pos.id}"
+                                               placeholder="Seleziona colore"
+                                               list="colore-guida-list2-${pos.id}"
                                                onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'coloreGuida', this.value)"
                                                class="w-full compact-input border rounded mt-1">
-                                        <datalist id="coloreGuida-list-${pos.id}">
-                                            <option value="bianco">
-                                            <option value="marrone">
-                                            <option value="grigio">
+                                        <datalist id="colore-guida-list2-${pos.id}">
+                                            ${getColoriGuide().map(c => `<option value="${c}">`).join('\n')}
                                         </datalist>
                                     </div>
                                 </div>
