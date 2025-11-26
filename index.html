@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.82 - FIX TAB NAVIGAZIONE MISURE ✅
+    Open Porte v4.83 - FIX RENDER PVC/PVC COLORI ✅
+    
+    🔧 AGGIORNAMENTI v4.83 (26 NOV 2025):
+    - 🎨 FIX: Colori PVC/PVC si aggiornano subito senza cambiare schermata
+    - ✅ Aggiunto render() immediato dopo sync coloreInt/coloreEst
+    - ✅ Funziona sia in Config Globale che nelle Posizioni
     
     🔧 AGGIORNAMENTI v4.82 (25 NOV 2025):
     - ⌨️ FIX navigazione TAB in Misure Principali (LVT→HVT→LF→HF→TMV→HMT→L4→H4)
@@ -2847,8 +2852,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.82';
-        const APP_VERSION_NOTE = 'Fix TAB navigazione misure';
+        const APP_VERSION = '4.83';
+        const APP_VERSION_NOTE = 'Fix render immediato PVC/PVC colori';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -9849,9 +9854,17 @@
                             if (field === 'coloreInt') {
                                 inf.coloreEst = value;
                                 console.log('🎨 v4.78: PVC/PVC posizione → coloreEst sincronizzato');
+                                // 🆕 v4.83: Aggiorna UI immediatamente
+                                saveState();
+                                render();
+                                return; // Evita doppio render
                             } else if (field === 'coloreEst') {
                                 inf.coloreInt = value;
                                 console.log('🎨 v4.78: PVC/PVC posizione → coloreInt sincronizzato');
+                                // 🆕 v4.83: Aggiorna UI immediatamente
+                                saveState();
+                                render();
+                                return; // Evita doppio render
                             }
                         }
                     }
@@ -10380,11 +10393,15 @@
                         console.log('🎨 v4.78: PVC/PVC → coloreEst sincronizzato a:', value);
                         // Sincronizza anche coloreEst alle posizioni
                         syncConfigToPositions(project, 'infisso', 'coloreEst', value, oldValue);
+                        // 🆕 v4.83: Aggiorna UI immediatamente
+                        render();
                     } else if (field === 'coloreEst') {
                         project.configInfissi.coloreInt = value;
                         console.log('🎨 v4.78: PVC/PVC → coloreInt sincronizzato a:', value);
                         // Sincronizza anche coloreInt alle posizioni
                         syncConfigToPositions(project, 'infisso', 'coloreInt', value, oldValue);
+                        // 🆕 v4.83: Aggiorna UI immediatamente
+                        render();
                     }
                 }
                 
