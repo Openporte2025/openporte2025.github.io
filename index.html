@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.85 - FIX ERRORE ADDINFISSO ✅
+    Open Porte v4.87 - RADIO BUTTON ZSX/ZDX CASSONETTI ✅
+    
+    🔧 AGGIORNAMENTI v4.87 (26 NOV 2025):
+       - ZSX/ZDX Cassonetti: Sostituiti campi numerici con radio button
+       - Opzioni: 🧱 Muro (attaccato) | ✅ Libero (>50mm) | ⚠️ Limitato (inserisci mm)
+       - Campo numerico visibile SOLO se "Limitato" selezionato
+       - Funzioni updateZSXTipo() e updateZDXTipo() per gestione stato
+       - UX migliorata: meno scrittura manuale per casi comuni
+    
+    🔧 AGGIORNAMENTI v4.86 (26 NOV 2025):
+       - FIX BRM Cassonetti Larghezza: Formula "(LS+SRSX+SRDX)" ora calcolata correttamente
+       - Bug: Le parentesi nella formula impedivano il parsing (split '+' creava valori errati)
+       - Soluzione: Rimossi caratteri () dalla formula prima dell'elaborazione
+       - Calcolo corretto: LS=1550 + SRSX=110 + SRDX=130 + 30 = 1820mm (non più 140!)
+       - FIX Controllo B-C Real-time: Ora si aggiorna automaticamente quando cambi B o C
+       - Implementata funzione validateCassonettoBC() che era vuota
+       - Aggiunto ID al div del controllo per aggiornamento DOM diretto
     
     🔧 AGGIORNAMENTI v4.85 (26 NOV 2025):
     - 🐛 FIX CRITICO: Errore "codTagli undefined" che bloccava addInfisso
@@ -9095,6 +9111,9 @@
                 // Rimuovi tutti gli spazi dalla formula
                 formula = formula.replace(/\s+/g, '');
                 
+                // ✅ v4.86 FIX: Rimuovi parentesi dalla formula (es. "(LS+SRSX+SRDX)" → "LS+SRSX+SRDX")
+                formula = formula.replace(/[()]/g, '');
+                
                 // Se la formula contiene "+" significa che è una somma di più misure
                 if (formula.includes('+')) {
                     const parti = formula.split('+').map(p => p.trim());
@@ -9999,8 +10018,108 @@
 
         // Validazione B-C per cassonetti
         function validateCassonettoBC(projectId, posId) {
-            // ⚡ FASE 024B: NO render - validazione già eseguita
-            // I messaggi di validazione sono già nel DOM tramite validateAltezzeRealTime
+            // ✅ v4.86: Aggiorna controllo B-C in tempo reale
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const pos = project.positions.find(p => p.id === posId);
+            if (!pos || !pos.cassonetto) return;
+            
+            const cas = pos.cassonetto;
+            const validationDiv = document.getElementById(`bc-validation-${posId}`);
+            if (!validationDiv) return;
+            
+            // Leggi valori aggiornati dai campi input (non da cas che potrebbe non essere ancora aggiornato)
+            const bInput = validationDiv.parentElement.querySelector('input[onchange*="\'B\'"]');
+            const cInput = validationDiv.parentElement.querySelector('input[onchange*="\'C\'"]');
+            
+            const b = bInput ? parseFloat(bInput.value) || 0 : parseFloat(cas.B) || 0;
+            const c = cInput ? parseFloat(cInput.value) || 0 : parseFloat(cas.C) || 0;
+            const diff = b - c;
+            
+            // Prendi Prof. Muro Int (override o globale)
+            const profMuroInt = pos.caratteristicheMuroOverride?.profMuroInt 
+                ? parseFloat(pos.caratteristicheMuroOverride.profMuroInt) 
+                : parseFloat(project.caratteristicheMuro?.profMuroInt) || 0;
+            
+            let html = '';
+            
+            if (b === 0 || c === 0 || profMuroInt === 0) {
+                html = `
+                    <div class="mt-3 bg-gray-100 border-l-4 border-gray-400 p-3">
+                        <p class="text-sm text-gray-600">
+                            ℹ️ Inserisci B, C e Prof. Muro Int per attivare il controllo
+                        </p>
+                    </div>
+                `;
+            } else {
+                const differenza = Math.abs(diff - profMuroInt);
+                const isValid = differenza <= 10;
+                
+                if (isValid) {
+                    html = `
+                        <div class="mt-3 bg-green-100 border-l-4 border-green-500 p-3">
+                            <p class="text-sm text-green-800">
+                                ✅ <strong>Controllo OK:</strong> B - C = ${diff.toFixed(1)}mm | Prof. Muro Int = ${profMuroInt}mm | Differenza = ${differenza.toFixed(1)}mm ✓
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    html = `
+                        <div class="mt-3 bg-red-100 border-l-4 border-red-500 p-3">
+                            <p class="text-sm text-red-800">
+                                ⚠️ <strong>ATTENZIONE:</strong> B - C = ${diff.toFixed(1)}mm | Prof. Muro Int = ${profMuroInt}mm | Differenza = ${differenza.toFixed(1)}mm (Tolleranza ±10mm superata!)
+                            </p>
+                        </div>
+                    `;
+                }
+            }
+            
+            validationDiv.innerHTML = html;
+        }
+
+        // ✅ v4.87: Gestione radio button ZSX (Spazio Sinistra)
+        function updateZSXTipo(projectId, posId, tipo) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const pos = project.positions.find(p => p.id === posId);
+            if (!pos || !pos.cassonetto) return;
+            
+            pos.cassonetto.ZSX_tipo = tipo;
+            
+            // Se muro o libero, ZSX non serve (imposta a 0 o valore speciale)
+            if (tipo === 'muro') {
+                pos.cassonetto.ZSX = '0';
+            } else if (tipo === 'libero') {
+                pos.cassonetto.ZSX = '999'; // Valore che indica "spazio illimitato"
+            }
+            // Se limitato, mantieni il valore esistente o aspetta input
+            
+            saveState();
+            render();
+        }
+        
+        // ✅ v4.87: Gestione radio button ZDX (Spazio Destra)
+        function updateZDXTipo(projectId, posId, tipo) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const pos = project.positions.find(p => p.id === posId);
+            if (!pos || !pos.cassonetto) return;
+            
+            pos.cassonetto.ZDX_tipo = tipo;
+            
+            // Se muro o libero, ZDX non serve (imposta a 0 o valore speciale)
+            if (tipo === 'muro') {
+                pos.cassonetto.ZDX = '0';
+            } else if (tipo === 'libero') {
+                pos.cassonetto.ZDX = '999'; // Valore che indica "spazio illimitato"
+            }
+            // Se limitato, mantieni il valore esistente o aspetta input
+            
+            saveState();
+            render();
         }
 
         // Validazione in tempo reale per le altezze (mentre scrivi)
@@ -16554,12 +16673,35 @@
                                                onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'SRSX', this.value)"
                                                class="w-full compact-input border rounded mt-1">
                                     </div>
-                                    <div>
-                                        <label class="text-xs font-medium">ZSX</label>
-                                        <input type="number" value="${cas.ZSX || '0'}"
-                                               placeholder="0"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'ZSX', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
+                                    <!-- ✅ v4.87: ZSX con radio button -->
+                                    <div class="bg-blue-50 p-2 rounded border border-blue-200">
+                                        <label class="text-xs font-medium text-blue-800">ZSX (Spazio SX)</label>
+                                        <div class="flex flex-col gap-1 mt-1">
+                                            <label class="flex items-center gap-1 text-xs cursor-pointer">
+                                                <input type="radio" name="zsx-tipo-${pos.id}" value="muro"
+                                                       ${(cas.ZSX_tipo === 'muro' || (!cas.ZSX_tipo && cas.ZSX === '0')) ? 'checked' : ''}
+                                                       onchange="updateZSXTipo('${project.id}', '${pos.id}', 'muro')">
+                                                <span>🧱 Muro (attaccato)</span>
+                                            </label>
+                                            <label class="flex items-center gap-1 text-xs cursor-pointer">
+                                                <input type="radio" name="zsx-tipo-${pos.id}" value="libero"
+                                                       ${cas.ZSX_tipo === 'libero' ? 'checked' : ''}
+                                                       onchange="updateZSXTipo('${project.id}', '${pos.id}', 'libero')">
+                                                <span>✅ Libero (&gt;50mm)</span>
+                                            </label>
+                                            <label class="flex items-center gap-1 text-xs cursor-pointer">
+                                                <input type="radio" name="zsx-tipo-${pos.id}" value="limitato"
+                                                       ${cas.ZSX_tipo === 'limitato' ? 'checked' : ''}
+                                                       onchange="updateZSXTipo('${project.id}', '${pos.id}', 'limitato')">
+                                                <span>⚠️ Limitato:</span>
+                                                <input type="number" value="${cas.ZSX_tipo === 'limitato' ? (cas.ZSX || '') : ''}"
+                                                       placeholder="mm"
+                                                       ${cas.ZSX_tipo !== 'limitato' ? 'disabled' : ''}
+                                                       onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'ZSX', this.value)"
+                                                       class="w-16 px-1 py-0.5 border rounded text-xs ${cas.ZSX_tipo !== 'limitato' ? 'bg-gray-100' : ''}">
+                                                <span class="text-xs">mm</span>
+                                            </label>
+                                        </div>
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium">SRDX</label>
@@ -16568,12 +16710,35 @@
                                                onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'SRDX', this.value)"
                                                class="w-full compact-input border rounded mt-1">
                                     </div>
-                                    <div>
-                                        <label class="text-xs font-medium">ZDX</label>
-                                        <input type="number" value="${cas.ZDX || '0'}"
-                                               placeholder="0"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'ZDX', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
+                                    <!-- ✅ v4.87: ZDX con radio button -->
+                                    <div class="bg-purple-50 p-2 rounded border border-purple-200">
+                                        <label class="text-xs font-medium text-purple-800">ZDX (Spazio DX)</label>
+                                        <div class="flex flex-col gap-1 mt-1">
+                                            <label class="flex items-center gap-1 text-xs cursor-pointer">
+                                                <input type="radio" name="zdx-tipo-${pos.id}" value="muro"
+                                                       ${(cas.ZDX_tipo === 'muro' || (!cas.ZDX_tipo && cas.ZDX === '0')) ? 'checked' : ''}
+                                                       onchange="updateZDXTipo('${project.id}', '${pos.id}', 'muro')">
+                                                <span>🧱 Muro (attaccato)</span>
+                                            </label>
+                                            <label class="flex items-center gap-1 text-xs cursor-pointer">
+                                                <input type="radio" name="zdx-tipo-${pos.id}" value="libero"
+                                                       ${cas.ZDX_tipo === 'libero' ? 'checked' : ''}
+                                                       onchange="updateZDXTipo('${project.id}', '${pos.id}', 'libero')">
+                                                <span>✅ Libero (&gt;50mm)</span>
+                                            </label>
+                                            <label class="flex items-center gap-1 text-xs cursor-pointer">
+                                                <input type="radio" name="zdx-tipo-${pos.id}" value="limitato"
+                                                       ${cas.ZDX_tipo === 'limitato' ? 'checked' : ''}
+                                                       onchange="updateZDXTipo('${project.id}', '${pos.id}', 'limitato')">
+                                                <span>⚠️ Limitato:</span>
+                                                <input type="number" value="${cas.ZDX_tipo === 'limitato' ? (cas.ZDX || '') : ''}"
+                                                       placeholder="mm"
+                                                       ${cas.ZDX_tipo !== 'limitato' ? 'disabled' : ''}
+                                                       onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'ZDX', this.value)"
+                                                       class="w-16 px-1 py-0.5 border rounded text-xs ${cas.ZDX_tipo !== 'limitato' ? 'bg-gray-100' : ''}">
+                                                <span class="text-xs">mm</span>
+                                            </label>
+                                        </div>
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium">HCASS</label>
@@ -16605,6 +16770,8 @@
                                     </div>
                                 </div>
                                 
+                                <!-- ✅ v4.86: Controllo B-C con ID per aggiornamento real-time -->
+                                <div id="bc-validation-${pos.id}">
                                 ${(() => {
                                     // Validazione B - C = Prof. Muro Int ± 10mm
                                     const b = parseFloat(cas.B) || 0;
@@ -16647,6 +16814,7 @@
                                         `;
                                     }
                                 })()}
+                                </div>
                                 
                                 ${(() => {
                                     // ⚠️ CONTROLLI ALTEZZE CON CASSONETTO
@@ -16732,7 +16900,7 @@
                                 
                                 <div class="mt-3 bg-blue-100 border-l-4 border-blue-500 p-3">
                                     <p class="text-sm text-blue-800">
-                                        📝 <strong>Note:</strong> Se SRSX = ZSX → Muro a SX | Se SRDX = ZDX → Muro a DX
+                                        📝 <strong>ZSX/ZDX:</strong> Muro = cassonetto attaccato | Libero = spazio &gt;50mm | Limitato = inserisci mm esatti (10-50mm)
                                     </p>
                                 </div>
                             </div>
