@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.87 - RADIO BUTTON ZSX/ZDX CASSONETTI ✅
+    Open Porte v4.88 - CONTROLLI ALTEZZE CASSONETTI MIGLIORATI ✅
+    
+    🔧 AGGIORNAMENTI v4.88 (26 NOV 2025):
+       - CONTROLLO 1 (PF): HSoffitto > HMT + HCASS
+       - CONTROLLO 2 (F): HParapettoSoffitto > HMT + HCASS (FIX: era HPavimentoParapetto)
+       - CONTROLLO 4 (NUOVO): BRM_H Infisso + BRM_H Cassonetto <= Spazio disponibile
+         • PF: confronta con HSoffitto
+         • F: confronta con HParapettoSoffitto
+       - Messaggi di errore più chiari e specifici
     
     🔧 AGGIORNAMENTI v4.87 (26 NOV 2025):
        - ZSX/ZDX Cassonetti: Sostituiti campi numerici con radio button
@@ -1670,7 +1678,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.87 - Radio Button ZSX/ZDX Cassonetti</title>
+    <title>Open Porte v4.88 - Controlli Altezze Cassonetti</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2884,8 +2892,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.87';
-        const APP_VERSION_NOTE = 'Radio Button ZSX/ZDX Cassonetti + BRM Dinamico';
+        const APP_VERSION = '4.88';
+        const APP_VERSION_NOTE = 'Controlli Altezze Cassonetti Migliorati';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -16860,6 +16868,10 @@
                                     const hPavParapetto = parseFloat(pos.misure?.HPavimentoParapetto) || 0;
                                     const hParapettoSoff = parseFloat(pos.misure?.HParapettoSoffitto) || 0;
                                     
+                                    // BRM altezze per controllo 4
+                                    const brmHInfisso = parseFloat(pos.infisso?.BRM_H) || 0;
+                                    const brmHCassonetto = parseFloat(cas.BRM_H) || 0;
+                                    
                                     // Determina se è PF o F dal tipo infisso
                                     const tipoInfisso = pos.infisso?.tipo || '';
                                     const isPF = tipoInfisso.includes('PF');
@@ -16867,34 +16879,34 @@
                                     
                                     let warnings = [];
                                     
-                                    // ✅ CONTROLLO 1: PF → HMT + HCASS < HSoffitto
+                                    // ✅ CONTROLLO 1: PF → HSoffitto > HMT + HCASS
                                     if (isPF && hmt > 0 && hcass > 0 && hsoffitto > 0) {
                                         const somma = hmt + hcass;
-                                        if (somma < hsoffitto) {
+                                        if (hsoffitto > somma) {
                                             warnings.push({
                                                 type: 'success',
-                                                msg: `✅ <strong>PF OK:</strong> HMT + HCASS (${hmt} + ${hcass} = ${somma}mm) < HSoffitto (${hsoffitto}mm) ✓`
+                                                msg: `✅ <strong>PF OK:</strong> HSoffitto (${hsoffitto}mm) > HMT + HCASS (${hmt} + ${hcass} = ${somma}mm) ✓`
                                             });
                                         } else {
                                             warnings.push({
                                                 type: 'error',
-                                                msg: `⚠️ <strong>PF ERRORE:</strong> HMT + HCASS (${hmt} + ${hcass} = ${somma}mm) >= HSoffitto (${hsoffitto}mm)!`
+                                                msg: `⚠️ <strong>PF ERRORE:</strong> HSoffitto (${hsoffitto}mm) <= HMT + HCASS (${hmt} + ${hcass} = ${somma}mm)!`
                                             });
                                         }
                                     }
                                     
-                                    // ✅ CONTROLLO 2: F → HPavimentoParapetto + HMT + HCASS <= HSoffitto
-                                    if (isF && hPavParapetto > 0 && hmt > 0 && hcass > 0 && hsoffitto > 0) {
-                                        const somma = hPavParapetto + hmt + hcass;
-                                        if (somma <= hsoffitto) {
+                                    // ✅ CONTROLLO 2: F → HParapettoSoffitto > HMT + HCASS (v4.88 FIX)
+                                    if (isF && hParapettoSoff > 0 && hmt > 0 && hcass > 0) {
+                                        const somma = hmt + hcass;
+                                        if (hParapettoSoff > somma) {
                                             warnings.push({
                                                 type: 'success',
-                                                msg: `✅ <strong>F OK:</strong> HPav/Parap + HMT + HCASS (${hPavParapetto} + ${hmt} + ${hcass} = ${somma}mm) <= HSoffitto (${hsoffitto}mm) ✓`
+                                                msg: `✅ <strong>F OK:</strong> HParapettoSoffitto (${hParapettoSoff}mm) > HMT + HCASS (${hmt} + ${hcass} = ${somma}mm) ✓`
                                             });
                                         } else {
                                             warnings.push({
                                                 type: 'error',
-                                                msg: `⚠️ <strong>F ERRORE:</strong> HPav/Parap + HMT + HCASS (${hPavParapetto} + ${hmt} + ${hcass} = ${somma}mm) > HSoffitto (${hsoffitto}mm)!`
+                                                msg: `⚠️ <strong>F ERRORE:</strong> HParapettoSoffitto (${hParapettoSoff}mm) <= HMT + HCASS (${hmt} + ${hcass} = ${somma}mm)!`
                                             });
                                         }
                                     }
@@ -16913,6 +16925,27 @@
                                                 type: 'error',
                                                 msg: `⚠️ <strong>ALTEZZE ERRORE:</strong> HPav/Parap + HParap/Soff (${hPavParapetto} + ${hParapettoSoff} = ${somma}mm) ≠ HSoffitto (${hsoffitto}mm) | Diff: ${diff.toFixed(1)}mm (Tolleranza ±10mm superata!)`
                                             });
+                                        }
+                                    }
+                                    
+                                    // ✅ CONTROLLO 4 (v4.88): BRM_H Infisso + BRM_H Cassonetto <= Spazio disponibile
+                                    if (brmHInfisso > 0 && brmHCassonetto > 0) {
+                                        const sommaBRM = brmHInfisso + brmHCassonetto;
+                                        const spazioDisponibile = isPF ? hsoffitto : hParapettoSoff;
+                                        const tipoSpazio = isPF ? 'HSoffitto' : 'HParapettoSoffitto';
+                                        
+                                        if (spazioDisponibile > 0) {
+                                            if (sommaBRM <= spazioDisponibile) {
+                                                warnings.push({
+                                                    type: 'success',
+                                                    msg: `✅ <strong>BRM OK:</strong> BRM_H Infisso + BRM_H Cass (${brmHInfisso} + ${brmHCassonetto} = ${sommaBRM}mm) <= ${tipoSpazio} (${spazioDisponibile}mm) ✓`
+                                                });
+                                            } else {
+                                                warnings.push({
+                                                    type: 'error',
+                                                    msg: `⚠️ <strong>BRM ERRORE:</strong> BRM_H Infisso + BRM_H Cass (${brmHInfisso} + ${brmHCassonetto} = ${sommaBRM}mm) > ${tipoSpazio} (${spazioDisponibile}mm)!`
+                                                });
+                                            }
                                         }
                                     }
                                     
