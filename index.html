@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.80 - CAMPO CERNIERE AGGIUNTO ✅
+    Open Porte v4.81 - RIMOSSO codTagli RIDONDANTE ✅
+    
+    🔧 AGGIORNAMENTI v4.81 (25 NOV 2025):
+    - 🗑️ Rimosso codTagli ridondante dal JSON (es. "SOTTO")
+    - ✅ tagliTelaio indica la posizione → codTagli generato al volo
+    - ✅ Solo codTagliValues salvato (contiene i codici es. "128")
+    - ✅ Retrocompatibile con progetti esistenti
     
     🔧 AGGIORNAMENTI v4.80 (25 NOV 2025):
     - 🔩 Nuovo campo "Cerniere" (a-vista / a-scomparsa)
@@ -2835,8 +2841,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.80';
-        const APP_VERSION_NOTE = 'Campo Cerniere aggiunto';
+        const APP_VERSION = '4.81';
+        const APP_VERSION_NOTE = 'Rimosso codTagli ridondante dal JSON';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -2860,6 +2866,23 @@
         // Funzione helper per ottenere codici disponibili
         function getCodiciTaglioPerTelaio(telaio) {
             return CODICI_TAGLIO_PER_TELAIO[telaio] || [];
+        }
+        
+        // 🆕 v4.81: Genera array posizioni tagli da tagliTelaio (non serve più salvare codTagli)
+        function getPosizioniTagli(tagliTelaio) {
+            const tagliMap = {
+                'nessuno': [],
+                'sopra': ['SOPRA'],
+                'sotto': ['SOTTO'],
+                'dx': ['DX'],
+                'sx': ['SX'],
+                'sopra-sotto': ['SOPRA', 'SOTTO'],
+                'dx-sx': ['SX', 'DX'],
+                '4-lati': ['SOPRA', 'SOTTO', 'SX', 'DX'],
+                'sopra-laterali': ['SOPRA', 'SX', 'DX'],
+                'sotto-laterali': ['SOTTO', 'SX', 'DX']
+            };
+            return tagliMap[tagliTelaio] || [];
         }
 
         // 📄 Aggiorna title dinamicamente
@@ -6239,7 +6262,7 @@
                         tipoAnta: updatedProject.configInfissi?.tipoAnta || '',
                         vetro: updatedProject.configInfissi?.vetro || '',
                         tagliTelaio: updatedProject.configInfissi?.tagliTelaio || '',
-                        codTagli: updatedProject.configInfissi?.codTagli || [],
+                        // 🆕 v4.81: codTagli rimosso, generato da tagliTelaio
                         codTagliValues: updatedProject.configInfissi?.codTagliValues || []
                     },
                     
@@ -9472,7 +9495,7 @@
                         vetro: project.configInfissi?.vetro || '',
                         cerniere: project.configInfissi?.cerniere || '',  // 🆕 v4.80
                         tagliTelaio: project.configInfissi?.tagliTelaio || '',
-                        codTagli: project.configInfissi?.codTagli ? [...project.configInfissi.codTagli] : [],
+                        // 🆕 v4.81: codTagli rimosso - generato al volo da tagliTelaio
                         codTagliValues: project.configInfissi?.codTagliValues ? [...project.configInfissi.codTagliValues] : [],
                         maniglia: project.configInfissi?.maniglia || '',
                         coloreManiglia: project.configInfissi?.coloreManiglia || '',
@@ -9722,7 +9745,7 @@
                 vetro: project.configInfissi?.vetro || '',
                 cerniere: project.configInfissi?.cerniere || '',  // 🆕 v4.80
                 tagliTelaio: project.configInfissi?.tagliTelaio || '',
-                codTagli: project.configInfissi?.codTagli ? [...project.configInfissi.codTagli] : [],
+                // 🆕 v4.81: codTagli rimosso - generato al volo da tagliTelaio
                 codTagliValues: project.configInfissi?.codTagliValues ? [...project.configInfissi.codTagliValues] : [],
                 maniglia: project.configInfissi?.maniglia || '',
                 coloreManiglia: project.configInfissi?.coloreManiglia || '',
@@ -9827,30 +9850,16 @@
                         }
                     }
                     
-                    // INFISSI: Se cambia tagliTelaio, RESET dei codTagli per aggiornamento immediato
+                    // INFISSI: Se cambia tagliTelaio, RESET dei codTagliValues per aggiornamento immediato
                     if (productType === 'infisso' && field === 'tagliTelaio') {
-                        const tagliMap = {
-                            'sopra': ['SOPRA'],
-                            'sotto': ['SOTTO'],
-                            'dx': ['DX'],
-                            'sx': ['SX'],
-                            'sopra-sotto': ['SOPRA', 'SOTTO'],
-                            'dx-sx': ['SX', 'DX'],
-                            '4-lati': ['SOPRA', 'SOTTO', 'SX', 'DX'],
-                            'sopra-laterali': ['SOPRA', 'SX', 'DX'],
-                            'sotto-laterali': ['SOTTO', 'SX', 'DX']
-                        };
-                        // Copia i valori dalla config globale se esistono, altrimenti usa default
-                        const defaultTagli = tagliMap[value] || [];
-                        pos[productType].codTagli = project.configInfissi?.codTagli?.length === defaultTagli.length
-                            ? [...project.configInfissi.codTagli]
-                            : [...defaultTagli];
+                        // 🆕 v4.81: Usa getPosizioniTagli() invece di salvare codTagli
+                        const posizioniTagli = getPosizioniTagli(value);
                         
-                        // Sincronizza anche codTagliValues
-                        if (project.configInfissi?.codTagliValues?.length === defaultTagli.length) {
+                        // Sincronizza codTagliValues
+                        if (project.configInfissi?.codTagliValues?.length === posizioniTagli.length) {
                             pos[productType].codTagliValues = [...project.configInfissi.codTagliValues];
                         } else {
-                            pos[productType].codTagliValues = new Array(defaultTagli.length).fill('');
+                            pos[productType].codTagliValues = new Array(posizioniTagli.length).fill('');
                         }
                     }
                     
@@ -10375,25 +10384,13 @@
                 
                 // Se cambia tagliTelaio, RESET immediato dei codTagli per forzare aggiornamento
                 if (field === 'tagliTelaio') {
-                    const tagliMap = {
-                        'nessuno': [],
-                        'sopra': ['SOPRA'],
-                        'sotto': ['SOTTO'],
-                        'dx': ['DX'],
-                        'sx': ['SX'],
-                        'sopra-sotto': ['SOPRA', 'SOTTO'],
-                        'dx-sx': ['SX', 'DX'],
-                        '4-lati': ['SOPRA', 'SOTTO', 'SX', 'DX'],
-                        'sopra-laterali': ['SOPRA', 'SX', 'DX'],
-                        'sotto-laterali': ['SOTTO', 'SX', 'DX']
-                    };
-                    // RESET esplicito per forzare il render a mostrare i nuovi campi
-                    project.configInfissi.codTagli = [...(tagliMap[value] || [])];
+                    // 🆕 v4.81: Usa getPosizioniTagli() invece di salvare codTagli
+                    const posizioniTagli = getPosizioniTagli(value);
                     
-                    // Inizializza codTagliValues con stringhe vuote
-                    project.configInfissi.codTagliValues = new Array(project.configInfissi.codTagli.length).fill('');
+                    // Inizializza codTagliValues con stringhe vuote (basato su numero posizioni)
+                    project.configInfissi.codTagliValues = new Array(posizioniTagli.length).fill('');
                     
-                    console.log('   codTagli auto-impostati:', project.configInfissi.codTagli);
+                    console.log('   posizioniTagli generate:', posizioniTagli);
                     console.log('   codTagliValues inizializzati:', project.configInfissi.codTagliValues);
                     
                     // 🆕 SYNC AUTOMATICO tagliTelaio A TUTTE LE POSIZIONI
@@ -10403,20 +10400,18 @@
                             if (pos.infisso) {
                                 // Aggiorna tagliTelaio
                                 pos.infisso.tagliTelaio = value;
-                                // Aggiorna codTagli
-                                pos.infisso.codTagli = [...(tagliMap[value] || [])];
+                                // 🆕 v4.81: Non salva più codTagli, lo genera al volo
                                 // Reset codTagliValues se numero diverso, altrimenti mantieni
-                                if (pos.infisso.codTagliValues?.length !== pos.infisso.codTagli.length) {
-                                    pos.infisso.codTagliValues = new Array(pos.infisso.codTagli.length).fill('');
+                                if (pos.infisso.codTagliValues?.length !== posizioniTagli.length) {
+                                    pos.infisso.codTagliValues = new Array(posizioniTagli.length).fill('');
                                 }
                                 posizioniAggiornate++;
                             }
                         });
-                        console.log(`✅ Aggiornati tagliTelaio e codTagli in ${posizioniAggiornate} posizioni`);
+                        console.log(`✅ Aggiornati tagliTelaio in ${posizioniAggiornate} posizioni`);
                     }
                     
-                    // Sincronizza codTagli con le posizioni
-                    syncConfigToPositions(project, 'infisso', 'codTagli', project.configInfissi.codTagli, null);
+                    // Sincronizza codTagliValues con le posizioni
                     syncConfigToPositions(project, 'infisso', 'codTagliValues', project.configInfissi.codTagliValues, null);
                     
                     // 🆕 RENDER IMMEDIATO per aggiornare i campi codice
@@ -10485,7 +10480,7 @@
             const campiDaSincronizzare = [
                 'azienda', 'tipoAnta', 'finituraInt', 'finituraEst', 
                 'coloreInt', 'coloreEst', 'telaio', 'allarme', 'vetro', 'cerniere',
-                'tagliTelaio', 'codTagli', 'codTagliValues', 'maniglia', 'coloreManiglia'
+                'tagliTelaio', 'codTagliValues', 'maniglia', 'coloreManiglia'  // 🆕 v4.81: rimosso codTagli
             ];
             
             project.positions.forEach(pos => {
@@ -10544,10 +10539,11 @@
             if (project) {
                 const pos = project.positions.find(p => p.id === posId);
                 if (pos && pos.infisso) {
-                    if (!pos.infisso.codTagli) {
-                        pos.infisso.codTagli = [];
+                    // 🆕 v4.81: Aggiorna codTagliValues (non più codTagli)
+                    if (!pos.infisso.codTagliValues) {
+                        pos.infisso.codTagliValues = [];
                     }
-                    pos.infisso.codTagli[index] = value;
+                    pos.infisso.codTagliValues[index] = value;
                     saveState();
                     // Non fare render completo per mantenere il focus
                 }
@@ -12589,10 +12585,11 @@
                                 <label class="block text-base font-bold mb-1 text-gray-800">14. COD.TAGLI</label>
                                 ${(() => {
                                     const tagliTelaio = project.configInfissi?.tagliTelaio || '';
-                                    const codTagli = project.configInfissi?.codTagli || [];
+                                    // 🆕 v4.81: Genera posizioni tagli da tagliTelaio (non più salvato)
+                                    const codTagli = getPosizioniTagli(tagliTelaio);
                                     
                                     // Se non ha selezionato nulla, non mostrare niente
-                                    if (!tagliTelaio || tagliTelaio === '' || codTagli.length === 0) {
+                                    if (!tagliTelaio || tagliTelaio === '' || tagliTelaio === 'nessuno' || codTagli.length === 0) {
                                         return '';
                                     }
                                     
@@ -14823,10 +14820,12 @@
                                     </div>
                                     <div class="grid gap-2" style="grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));">
                                         ${(() => {
-                                            const codTagli = inf.codTagli || [];
+                                            // 🆕 v4.81: Genera posizioni da tagliTelaio (fallback a codTagli per retrocompatibilità)
+                                            const tagliTelaio = inf.tagliTelaio || '';
+                                            const codTagli = getPosizioniTagli(tagliTelaio);
                                             const codTagliValues = inf.codTagliValues || [];
                                             
-                                            if (codTagli.length === 0) {
+                                            if (codTagli.length === 0 || tagliTelaio === 'nessuno') {
                                                 return '<input type="text" readonly placeholder="Seleziona Tagli Telaio" class="w-full px-2 py-1 border rounded bg-gray-50 text-gray-700 text-xs">';
                                             }
                                             
