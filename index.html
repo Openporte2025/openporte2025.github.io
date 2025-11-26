@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.88 - CONTROLLI ALTEZZE CASSONETTI MIGLIORATI ✅
+    Open Porte v4.89 - COLORI TAPPARELLE PLASTICINO DINAMICI ✅
+    
+    🔧 AGGIORNAMENTI v4.89 (26 NOV 2025):
+       - Colori Tapparelle: Aggiunta mappa colori Plasticino per modello
+       - ALLUMINIO COIBENTATO: Tinta Unita (21 colori) + Legno (6) + Raffaello (4)
+       - PVC: 16 colori specifici inclusi con clausole garanzia (*)
+       - Dropdown colore si aggiorna automaticamente quando cambi modello
+       - Modelli supportati: ALUPROFIL MD/AD, STEELPROFIL, ANTIGRANDINE, PESANTE, 
+         MINI 8/10, ALUBLIND, COMBI, ORIENTA, ESTELLA CLASSIC
     
     🔧 AGGIORNAMENTI v4.88 (26 NOV 2025):
        - CONTROLLO 1 (PF): HSoffitto > HMT + HCASS
@@ -1678,7 +1686,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.88 - Controlli Altezze Cassonetti</title>
+    <title>Open Porte v4.89 - Colori Tapparelle Plasticino</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2892,8 +2900,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.88';
-        const APP_VERSION_NOTE = 'Controlli Altezze Cassonetti Migliorati';
+        const APP_VERSION = '4.89';
+        const APP_VERSION_NOTE = 'Colori Tapparelle Plasticino Dinamici';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -4486,6 +4494,124 @@
             showNotification(`✅ Nome dispositivo impostato: ${name}`, 'success');
         }
 
+        // ───────────────────────────────────────────────────────────────
+        // 🎨 COLORI TAPPARELLE PLASTICINO - v4.88
+        // ───────────────────────────────────────────────────────────────
+        
+        const COLORI_TAPPARELLE_PLASTICINO = {
+            // ALLUMINIO COIBENTATO - Tinta Unita
+            'ALLUMINIO_UNITA': [
+                'Bianco 01', 'Bianco 9010', 'Avorio 34', 'Crema 39', 
+                'Grigio 07', 'Argento 05', 'Grigio 10', 'Grigio 23',
+                'Salmone 06', 'Ocra 03', 'Marrone 08', 'Marrone 04', 
+                'Marrone 48', 'Marrone 79', 'Verde 43', 'Verde 09',
+                'Verde 83', 'Verde 29', 'Rosso 02', 'Blu 35', 'Noce 61'
+            ],
+            // ALLUMINIO COIBENTATO - Tinta Legno
+            'ALLUMINIO_LEGNO': [
+                'Pino 52', 'Rovere 56', 'Teak 44', 'Ciliegio 33', 
+                'Ciliegio 60', 'Noce 47'
+            ],
+            // ALLUMINIO COIBENTATO - Tinta Raffaello
+            'ALLUMINIO_RAFFAELLO': [
+                'Grigio Raffaello R94', 'Verde Raffaello R99', 
+                'Marrone Raffaello R91', 'Rosso Raffaello R66'
+            ],
+            // PVC
+            'PVC': [
+                'Bianco 01', 'Avorio 34', 'Beige 17', 'Beige 502',
+                'Grigio 07', 'Grigio 10', 'Marrone 81*', 'Marrone 0197*',
+                'Verde 06', 'Noce 37*', 'Nero 88*', 'Blu 15*', 'Blu 95*',
+                'Bruno 68', 'Bronzo', 'Ocra 84'
+            ]
+        };
+        
+        // Mappa modello → categoria colori
+        const MODELLO_TO_COLORI_MAP = {
+            // Alluminio Coibentato Media Densità
+            'TA01': ['ALLUMINIO_UNITA', 'ALLUMINIO_LEGNO', 'ALLUMINIO_RAFFAELLO'],
+            'TA05': ['ALLUMINIO_UNITA', 'ALLUMINIO_LEGNO', 'ALLUMINIO_RAFFAELLO'],
+            'TA42': ['ALLUMINIO_UNITA', 'ALLUMINIO_LEGNO', 'ALLUMINIO_RAFFAELLO'],
+            'TA07': ['ALLUMINIO_UNITA', 'ALLUMINIO_LEGNO', 'ALLUMINIO_RAFFAELLO'],
+            // Alluminio Coibentato Alta Densità
+            'TA25': ['ALLUMINIO_UNITA', 'ALLUMINIO_LEGNO', 'ALLUMINIO_RAFFAELLO'],
+            'TA30': ['ALLUMINIO_UNITA', 'ALLUMINIO_LEGNO', 'ALLUMINIO_RAFFAELLO'],
+            // Acciaio Coibentato
+            'TA15': ['ALLUMINIO_UNITA', 'ALLUMINIO_LEGNO', 'ALLUMINIO_RAFFAELLO'],
+            'TA20': ['ALLUMINIO_UNITA', 'ALLUMINIO_LEGNO', 'ALLUMINIO_RAFFAELLO'],
+            // PVC
+            'A01': ['PVC'],
+            'A10': ['PVC'],
+            'A16': ['PVC'],
+            'A15': ['PVC'],
+            // Alluminio Estruso
+            'TA10': ['ALLUMINIO_UNITA'],
+            'TA13': ['ALLUMINIO_UNITA'],
+            // Combi (Alluminio/PVC)
+            'A18': ['ALLUMINIO_UNITA', 'PVC'],
+            'A20': ['ALLUMINIO_UNITA', 'PVC'],
+            // Orientabili / Estella
+            'A40': ['ALLUMINIO_UNITA'],
+            'A50': ['ALLUMINIO_UNITA']
+        };
+        
+        // Funzione per ottenere colori disponibili per un modello
+        function getColoriTapparella(modello) {
+            if (!modello) return COLORI_TAPPARELLE_PLASTICINO['PVC']; // Default PVC
+            
+            // Estrai codice modello (es. "TA01" da "TA01 - Tipo ALUPROFIL MD 13x55")
+            const codiceMatch = modello.match(/^([A-Z0-9]+)/);
+            const codice = codiceMatch ? codiceMatch[1] : '';
+            
+            // Trova categorie per questo modello
+            const categorie = MODELLO_TO_COLORI_MAP[codice] || ['PVC'];
+            
+            // Unisci tutti i colori delle categorie
+            let colori = [];
+            categorie.forEach(cat => {
+                if (COLORI_TAPPARELLE_PLASTICINO[cat]) {
+                    colori = colori.concat(COLORI_TAPPARELLE_PLASTICINO[cat]);
+                }
+            });
+            
+            // Rimuovi duplicati
+            return [...new Set(colori)];
+        }
+        
+        // Funzione per aggiornare datalist colori tapparella (POSIZIONI)
+        function updateColoriTapparellaDatalist(posId, modello) {
+            const datalistId = `colore-tap-list-${posId}`;
+            const datalist = document.getElementById(datalistId);
+            
+            if (!datalist) {
+                console.warn(`⚠️ Datalist non trovato: ${datalistId}`);
+                return;
+            }
+            
+            const colori = getColoriTapparella(modello);
+            
+            // Aggiorna opzioni
+            datalist.innerHTML = colori.map(c => `<option value="${c}">`).join('\n');
+            console.log(`🎨 Colori tapparella aggiornati per ${modello}: ${colori.length} opzioni`);
+        }
+        
+        // Funzione per aggiornare datalist colori tapparella (CONFIG GLOBALE)
+        function updateColoriTapparellaDatalistConfig(projectId, modello) {
+            const datalistId = `config-colore-tap-list-${projectId}`;
+            const datalist = document.getElementById(datalistId);
+            
+            if (!datalist) {
+                console.warn(`⚠️ Datalist config non trovato: ${datalistId}`);
+                return;
+            }
+            
+            const colori = getColoriTapparella(modello);
+            
+            // Aggiorna opzioni
+            datalist.innerHTML = colori.map(c => `<option value="${c}">`).join('\n');
+            console.log(`🎨 Colori tapparella CONFIG aggiornati per ${modello}: ${colori.length} opzioni`);
+        }
+        
         // ───────────────────────────────────────────────────────────────
         // 📋 SEZIONE 2: METADATA & VERSIONING
         // ───────────────────────────────────────────────────────────────
@@ -7476,7 +7602,7 @@
                     <h1 class="app-title">
                         ${project.clientName || 'Nuovo Progetto'}
                         ${project.ambiente ? ` - ${project.ambiente}` : ''}
-                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v4.61</span>
+                        <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v${APP_VERSION}</span>
                     </h1>
                     <div class="header-actions">
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
@@ -12992,23 +13118,48 @@
                             )}
                             
                             <!-- 2. MODELLO -->
-                            ${renderSelectWithCustom(
-                                'modello',
-                                project.configTapparelle?.modello || '',
-                                ['TA01 - Tipo ALUPROFIL MD 13x55', 'TA25 - Tipo ALUPROFIL AD 13x55', 'TA15 - Tipo STEELPROFIL 13x55', 'A01 - Tipo ANTIGRANDINE 14x50', 'A10 - Tipo PESANTE 14x50', 'A16 - Tipo MINI 10 11x32', 'A15 - Tipo MINI 8 8x33', 'TA10 - Tipo ALUBLIND 13x45', 'TA13 - Tipo ALUBLIND 9x27', 'A18 - Tipo COMBI 13x53', 'A20 - Tipo COMBI 10x39', 'A40 - Tipo ORIENTA', 'A50 - Tipo ESTELLA CLASSIC (A)', 'A50 - Tipo ESTELLA CLASSIC (B)'],
-                                project.id,
-                                null,
-                                'tapparella',
-                                '2. Modello'
-                            )}
-                            
-                            <!-- 3. COLORE -->
                             <div>
-                                <label class="block text-sm font-medium mb-1">3. Colore</label>
-                                <input type="text" placeholder="Es: Bianco, Grigio"
+                                <label class="block text-sm font-medium mb-1">2. Modello</label>
+                                <input type="text" 
+                                       id="config-tap-modello-${project.id}"
+                                       value="${project.configTapparelle?.modello || ''}"
+                                       placeholder="Seleziona modello"
+                                       list="config-modello-tap-list-${project.id}"
+                                       onchange="updateConfigTapparelle('${project.id}', 'modello', this.value); updateColoriTapparellaDatalistConfig('${project.id}', this.value);"
+                                       class="w-full px-3 py-2 border rounded-lg">
+                                <datalist id="config-modello-tap-list-${project.id}">
+                                    <option value="TA01 - Tipo ALUPROFIL MD 13x55">
+                                    <option value="TA25 - Tipo ALUPROFIL AD 13x55">
+                                    <option value="TA15 - Tipo STEELPROFIL 13x55">
+                                    <option value="A01 - Tipo ANTIGRANDINE 14x50">
+                                    <option value="A10 - Tipo PESANTE 14x50">
+                                    <option value="A16 - Tipo MINI 10 11x32">
+                                    <option value="A15 - Tipo MINI 8 8x33">
+                                    <option value="TA10 - Tipo ALUBLIND 13x45">
+                                    <option value="TA13 - Tipo ALUBLIND 9x27">
+                                    <option value="A18 - Tipo COMBI 13x53">
+                                    <option value="A20 - Tipo COMBI 10x39">
+                                    <option value="A40 - Tipo ORIENTA">
+                                    <option value="A50 - Tipo ESTELLA CLASSIC (A)">
+                                    <option value="A50 - Tipo ESTELLA CLASSIC (B)">
+                                </datalist>
+                            </div>
+                            
+                            <!-- 3. COLORE TELO -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">3. Colore Telo</label>
+                                <input type="text" placeholder="Seleziona colore"
+                                       id="config-tap-colore-${project.id}"
                                        value="${project.configTapparelle?.colore || ''}"
+                                       list="config-colore-tap-list-${project.id}"
                                        onchange="updateConfigTapparelle('${project.id}', 'colore', this.value)"
                                        class="w-full px-3 py-2 border rounded-lg">
+                                <datalist id="config-colore-tap-list-${project.id}">
+                                    ${(() => {
+                                        const colori = getColoriTapparella(project.configTapparelle?.modello);
+                                        return colori.map(c => `<option value="${c}">`).join('\n');
+                                    })()}
+                                </datalist>
                             </div>
                             
                             <!-- 4. TIPO TAPPARELLA (3 OPZIONI SEMPRE VISIBILI) -->
@@ -15742,7 +15893,7 @@
                                         <input type="text" value="${tap.modello || ''}"
                                                placeholder="Mini"
                                                list="modello-tap-list-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'modello', this.value)"
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'modello', this.value); updateColoriTapparellaDatalist('${pos.id}', this.value);"
                                                class="w-full compact-input border rounded mt-1">
                                         <datalist id="modello-tap-list-${pos.id}">
                                             <option value="TA01 - Tipo ALUPROFIL MD 13x55">
@@ -15762,16 +15913,17 @@
                                         </datalist>
                                     </div>
                                     <div>
-                                        <label class="text-xs font-medium">Colore</label>
+                                        <label class="text-xs font-medium">Colore Telo</label>
                                         <input type="text" value="${tap.colore || ''}"
-                                               placeholder="marrone 79"
+                                               placeholder="Bianco 01"
                                                list="colore-tap-list-${pos.id}"
                                                onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'colore', this.value)"
                                                class="w-full compact-input border rounded mt-1">
                                         <datalist id="colore-tap-list-${pos.id}">
-                                            <option value="marrone 79">
-                                            <option value="bianco">
-                                            <option value="grigio">
+                                            ${(() => {
+                                                const colori = getColoriTapparella(tap.modello);
+                                                return colori.map(c => `<option value="${c}">`).join('\n');
+                                            })()}
                                         </datalist>
                                     </div>
                                     
@@ -20439,9 +20591,9 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             }
         });
         
-        // 🚨 NOTIFICA VISIVA VERSIONE v4.61
+        // 🚨 NOTIFICA VISIVA VERSIONE DINAMICA
         setTimeout(() => {
-            showNotification('🚪 v4.61 ✅ Cancellazione completa - App elimina anche da GitHub', 'success', 5000);
+            showNotification(`🚪 v${APP_VERSION} ✅ ${APP_VERSION_NOTE}`, 'success', 5000);
         }, 1000);
         
         // Aggiungi animazioni CSS
