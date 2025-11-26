@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.81 - RIMOSSO codTagli RIDONDANTE ✅
+    Open Porte v4.82 - FIX TAB NAVIGAZIONE MISURE ✅
+    
+    🔧 AGGIORNAMENTI v4.82 (25 NOV 2025):
+    - ⌨️ FIX navigazione TAB in Misure Principali (LVT→HVT→LF→HF→TMV→HMT→L4→H4)
+    - ✅ Rimosso handler che bloccava TAB nativo
+    - ✅ Aggiunto tabindex 100-107 per sequenza corretta
+    - ✅ Altezze già funzionanti (tabindex 108-110)
     
     🔧 AGGIORNAMENTI v4.81 (25 NOV 2025):
     - 🗑️ Rimosso codTagli ridondante dal JSON (es. "SOTTO")
@@ -2841,8 +2847,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.81';
-        const APP_VERSION_NOTE = 'Rimosso codTagli ridondante dal JSON';
+        const APP_VERSION = '4.82';
+        const APP_VERSION_NOTE = 'Fix TAB navigazione misure';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -14287,7 +14293,7 @@
                                     <input type="number" placeholder="-"
                                            value="${pos.misure?.[field] || ''}"
                                            onchange="updateMisuraWithValidation('${project.id}', '${pos.id}', '${field}', this.value)"
-                                           onkeydown="handleMisureTabNavigation(event, '${pos.id}', ${index}, 8)"
+                                           tabindex="${100 + index}"
                                            data-field-index="${index}"
                                            class="w-full compact-input border rounded mt-1 font-semibold ${getFieldValidationClass(project, pos, field)}">
                                     ${getFieldValidationMessage(project, pos, field)}
