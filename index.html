@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.84 - FIX SYNC GITHUB CAMPI MANCANTI ✅
+    Open Porte v4.85 - FIX ERRORE ADDINFISSO ✅
+    
+    🔧 AGGIORNAMENTI v4.85 (26 NOV 2025):
+    - 🐛 FIX CRITICO: Errore "codTagli undefined" che bloccava addInfisso
+    - ✅ Aggiungere infisso ora funziona senza dover uscire/rientrare
+    - ✅ Corretti tutti i riferimenti a codTagli (rimosso in v4.81)
+    - ✅ Usato tagliTelaio per i check invece di codTagli
     
     🔧 AGGIORNAMENTI v4.84 (26 NOV 2025):
     - 🔄 FIX: Sync GitHub ora include campi mancanti in configInfissi
@@ -2857,8 +2863,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.84';
-        const APP_VERSION_NOTE = 'Fix sync GitHub campi mancanti configInfissi';
+        const APP_VERSION = '4.85';
+        const APP_VERSION_NOTE = 'Fix errore codTagli undefined in addInfisso';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -9491,7 +9497,8 @@
                         project.configInfissi.azienda ||
                         project.configInfissi.telaio ||
                         project.configInfissi.coloreInt ||
-                        (project.configInfissi.codTagli && project.configInfissi.codTagli.length > 0)
+                        // 🆕 v4.85: Usa tagliTelaio invece di codTagli (rimosso)
+                        project.configInfissi.tagliTelaio
                     );
                     
                     if (configVuota || !configHaValori) {
@@ -9538,7 +9545,8 @@
                         coloreInt: pos.infisso.coloreInt || '❌ VUOTO',
                         coloreEst: pos.infisso.coloreEst || '❌ VUOTO',
                         vetro: pos.infisso.vetro || '❌ VUOTO',
-                        codTagli: pos.infisso.codTagli.length > 0 ? `✅ ${pos.infisso.codTagli.length} taglio/i` : '❌ VUOTO'
+                        // 🆕 v4.85: Corretto - usa codTagliValues invece di codTagli (rimosso in v4.81)
+                        codTagliValues: pos.infisso.codTagliValues?.length > 0 ? `✅ ${pos.infisso.codTagliValues.length} valore/i` : '❌ VUOTO'
                     });
                     console.log('═══════════════════════════════════════');
                     
@@ -10494,7 +10502,8 @@
                 project.configInfissi.azienda ||
                 project.configInfissi.telaio ||
                 project.configInfissi.coloreInt ||
-                (project.configInfissi.codTagli && project.configInfissi.codTagli.length > 0)
+                // 🆕 v4.85: Usa tagliTelaio invece di codTagli (rimosso)
+                project.configInfissi.tagliTelaio
             );
             
             if (!configHaValori) {
@@ -17667,7 +17676,8 @@
                 project.configInfissi.azienda ||
                 project.configInfissi.telaio ||
                 project.configInfissi.coloreInt ||
-                (project.configInfissi.codTagli && project.configInfissi.codTagli.length > 0)
+                // 🆕 v4.85: Usa tagliTelaio invece di codTagli (rimosso)
+                project.configInfissi.tagliTelaio
             );
             
             if (!configHaValori) return false;
@@ -17688,10 +17698,10 @@
                         }
                     });
                     
-                    // Check codTagli separatamente
-                    const codTagliEmpty = !pos.infisso.codTagli || pos.infisso.codTagli.length === 0;
-                    const codTagliHasValue = project.configInfissi.codTagli && project.configInfissi.codTagli.length > 0;
-                    if (codTagliEmpty && codTagliHasValue) {
+                    // 🆕 v4.85: Check tagliTelaio invece di codTagli (rimosso)
+                    const tagliEmpty = !pos.infisso.tagliTelaio || pos.infisso.tagliTelaio === '';
+                    const tagliHasValue = project.configInfissi.tagliTelaio && project.configInfissi.tagliTelaio !== '';
+                    if (tagliEmpty && tagliHasValue) {
                         campiVuoti++;
                     }
                 }
@@ -18936,7 +18946,8 @@
                                 allarme: pos.infisso.allarme || '',
                                 vetro: pos.infisso.vetro || '',
                                 tagli_telaio: pos.infisso.tagliTelaio || '',
-                                cod_tagli: pos.infisso.codTagli || {},
+                                // 🆕 v4.85: Usa codTagliValues invece di codTagli (rimosso)
+                                cod_tagli_values: pos.infisso.codTagliValues || [],
                                 maniglia: pos.infisso.maniglia || '',
                                 colore_maniglia: pos.infisso.coloreManiglia || ''
                             };
