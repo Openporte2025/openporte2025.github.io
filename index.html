@@ -1,12 +1,28 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.75 - PULIZIA DATI PRODOTTI DISATTIVATI ✅
+    Open Porte v4.78 - SYNC COLORI PVC/PVC ✅
+    
+    🔧 AGGIORNAMENTI v4.78 (25 NOV 2025):
+    - 🎨 Se PVC/PVC: coloreInt e coloreEst sempre sincronizzati
+    - ✅ Cambi coloreInt → coloreEst si aggiorna automaticamente
+    - ✅ Funziona sia in Config Globale che nelle singole Posizioni
+    
+    🔧 AGGIORNAMENTI v4.77 (25 NOV 2025):
+    - 🔧 FIX COD.TAGLI in posizione: ora mostra valore (es. "128") invece del nome ("SOTTO")
+    - ✅ Aggiunta etichetta sopra il campo (es. "SOTTO") 
+    - ✅ Campo input mostra il codice corretto
+    
+    🔧 AGGIORNAMENTI v4.76 (25 NOV 2025):
+    - 💾 Auto-save dati cantiere mentre digiti (debounce 500ms)
+    - ✅ Non perdi più dati se chiudi browser mentre scrivi
+    - ✅ Nessun disturbo UI (solo localStorage, no render)
     
     🔧 AGGIORNAMENTI v4.75 (25 NOV 2025):
     - 🧹 Quando disattivi un prodotto, pulisce automaticamente tutti i dati correlati
     - ✅ Pulisce config globale, BRM, rilievo preesistente
     - ✅ Pulisce tutte le posizioni (imposta a null)
     - ✅ Dashboard non mostra più prodotti fantasma
+    - 🔧 FIX: Rimosso motoreAzienda/motoreModello da infissi (erano solo per tapparelle)
     - 🔧 FIX: finituraInt e finituraEst ora salvati correttamente nel JSON
     - ✅ Rimosso vecchio campo finIntEst, sostituito con campi separati
     
@@ -2805,7 +2821,7 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.75';
+        const APP_VERSION = '4.78';
         const APP_VERSION_NOTE = 'Sync periodico ogni 2 minuti';
 
         // 📄 Aggiorna title dinamicamente
@@ -9421,8 +9437,6 @@
                         codTagliValues: project.configInfissi?.codTagliValues ? [...project.configInfissi.codTagliValues] : [],
                         maniglia: project.configInfissi?.maniglia || '',
                         coloreManiglia: project.configInfissi?.coloreManiglia || '',
-                        motoreAzienda: project.configInfissi?.motoreAzienda || '',
-                        motoreModello: project.configInfissi?.motoreModello || '',
                         BRM_L: brm.L,
                         BRM_H: brm.H,
                         note: '',
@@ -9672,8 +9686,6 @@
                 codTagliValues: project.configInfissi?.codTagliValues ? [...project.configInfissi.codTagliValues] : [],
                 maniglia: project.configInfissi?.maniglia || '',
                 coloreManiglia: project.configInfissi?.coloreManiglia || '',
-                motoreAzienda: project.configInfissi?.motoreAzienda || '',
-                motoreModello: project.configInfissi?.motoreModello || '',
                 BRM_L: savedBRM_L, // Mantieni BRM
                 BRM_H: savedBRM_H,
                 note: savedNote, // Mantieni note
@@ -9758,6 +9770,22 @@
                 if (pos && pos[productType]) {
                     // 🆕 FASE 016: qta=0 è VALIDO - prodotto rimane visibile e modificabile
                     pos[productType][field] = value;
+                    
+                    // 🆕 v4.78: Se PVC/PVC, sincronizza coloreInt e coloreEst nella posizione
+                    if (productType === 'infisso') {
+                        const inf = pos.infisso;
+                        const isPvcPvc = inf.finituraInt === 'pvc' && inf.finituraEst === 'pvc';
+                        
+                        if (isPvcPvc) {
+                            if (field === 'coloreInt') {
+                                inf.coloreEst = value;
+                                console.log('🎨 v4.78: PVC/PVC posizione → coloreEst sincronizzato');
+                            } else if (field === 'coloreEst') {
+                                inf.coloreInt = value;
+                                console.log('🎨 v4.78: PVC/PVC posizione → coloreInt sincronizzato');
+                            }
+                        }
+                    }
                     
                     // INFISSI: Se cambia tagliTelaio, RESET dei codTagli per aggiornamento immediato
                     if (productType === 'infisso' && field === 'tagliTelaio') {
@@ -10287,6 +10315,24 @@
                 
                 project.configInfissi[field] = value;
                 
+                // 🆕 v4.78: Se PVC/PVC, sincronizza coloreInt e coloreEst
+                const isPvcPvc = project.configInfissi.finituraInt === 'pvc' && 
+                                 project.configInfissi.finituraEst === 'pvc';
+                
+                if (isPvcPvc) {
+                    if (field === 'coloreInt') {
+                        project.configInfissi.coloreEst = value;
+                        console.log('🎨 v4.78: PVC/PVC → coloreEst sincronizzato a:', value);
+                        // Sincronizza anche coloreEst alle posizioni
+                        syncConfigToPositions(project, 'infisso', 'coloreEst', value, oldValue);
+                    } else if (field === 'coloreEst') {
+                        project.configInfissi.coloreInt = value;
+                        console.log('🎨 v4.78: PVC/PVC → coloreInt sincronizzato a:', value);
+                        // Sincronizza anche coloreInt alle posizioni
+                        syncConfigToPositions(project, 'infisso', 'coloreInt', value, oldValue);
+                    }
+                }
+                
                 // Se cambia tagliTelaio, RESET immediato dei codTagli per forzare aggiornamento
                 if (field === 'tagliTelaio') {
                     const tagliMap = {
@@ -10399,8 +10445,7 @@
             const campiDaSincronizzare = [
                 'azienda', 'tipoAnta', 'finituraInt', 'finituraEst', 
                 'coloreInt', 'coloreEst', 'telaio', 'allarme', 'vetro', 
-                'tagliTelaio', 'codTagli', 'codTagliValues', 'maniglia', 'coloreManiglia',
-                'motoreAzienda', 'motoreModello'
+                'tagliTelaio', 'codTagli', 'codTagliValues', 'maniglia', 'coloreManiglia'
             ];
             
             project.positions.forEach(pos => {
@@ -11457,35 +11502,35 @@
                             <label class="block text-sm font-medium mb-1">Città</label>
                             <input type="text" placeholder="Milano" 
                                    value="${project.clientData?.citta || ''}"
-                                   onchange="updateClientData('${project.id}', 'citta', this.value)"
+                                   oninput="updateClientData('${project.id}', 'citta', this.value)"
                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">Via/Indirizzo</label>
                             <input type="text" placeholder="Via Roma, 1" 
                                    value="${project.clientData?.via || ''}"
-                                   onchange="updateClientData('${project.id}', 'via', this.value)"
+                                   oninput="updateClientData('${project.id}', 'via', this.value)"
                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">Telefono</label>
                             <input type="tel" placeholder="+39 333 1234567" 
                                    value="${project.clientData?.telefono || ''}"
-                                   onchange="updateClientData('${project.id}', 'telefono', this.value)"
+                                   oninput="updateClientData('${project.id}', 'telefono', this.value)"
                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">Email</label>
                             <input type="email" placeholder="cliente@email.com" 
                                    value="${project.clientData?.email || ''}"
-                                   onchange="updateClientData('${project.id}', 'email', this.value)"
+                                   oninput="updateClientData('${project.id}', 'email', this.value)"
                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">Note</label>
                             <input type="text" placeholder="Note aggiuntive..." 
                                    value="${project.clientData?.note || ''}"
-                                   onchange="updateClientData('${project.id}', 'note', this.value)"
+                                   oninput="updateClientData('${project.id}', 'note', this.value)"
                                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
                         </div>
                     </div>
@@ -14702,19 +14747,25 @@
                                     <div class="grid gap-2" style="grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));">
                                         ${(() => {
                                             const codTagli = inf.codTagli || [];
+                                            const codTagliValues = inf.codTagliValues || [];
                                             
                                             if (codTagli.length === 0) {
                                                 return '<input type="text" readonly placeholder="Seleziona Tagli Telaio" class="w-full px-2 py-1 border rounded bg-gray-50 text-gray-700 text-xs">';
                                             }
                                             
-                                            // Mostra direttamente i campi basati su codTagli (già corretto da updateProduct)
-                                            return codTagli.map((taglio, idx) => `
-                                                <input type="text" 
-                                                       value="${taglio}"
-                                                       onchange="updateCodTagliPosizione('${project.id}', '${pos.id}', ${idx}, this.value)"
-                                                       placeholder="${taglio}"
-                                                       class="w-full px-2 py-1 border-2 border-blue-300 rounded text-gray-700 text-xs text-center font-bold focus:ring-2 focus:ring-blue-500">
-                                            `).join('');
+                                            // 🔧 v4.77 FIX: Mostra etichetta sopra e valore nel campo
+                                            return codTagli.map((taglio, idx) => {
+                                                const valore = codTagliValues[idx] || '';
+                                                return `
+                                                <div class="flex flex-col">
+                                                    <label class="text-xs font-bold text-gray-600 mb-1">${taglio}</label>
+                                                    <input type="text" 
+                                                           value="${valore}"
+                                                           onchange="updateCodTagliPosizione('${project.id}', '${pos.id}', ${idx}, this.value)"
+                                                           placeholder="Codice"
+                                                           class="w-full px-2 py-1 border-2 border-blue-300 rounded text-gray-700 text-xs text-center font-bold focus:ring-2 focus:ring-blue-500">
+                                                </div>
+                                            `}).join('');
                                         })()}
                                     </div>
                                     <p class="text-xs text-gray-400 mt-1">💡 Valori copiati da Config Globale (modificabili qui)</p>
@@ -17168,6 +17219,16 @@
             }
         };
 
+        // 🆕 v4.76: Debounce per auto-save dati cantiere (500ms)
+        let clientDataSaveTimer = null;
+        function saveStateDebounced(delay = 500) {
+            clearTimeout(clientDataSaveTimer);
+            clientDataSaveTimer = setTimeout(() => {
+                saveState();
+                console.log('💾 Auto-save dati cantiere (debounce 500ms)');
+            }, delay);
+        }
+        
         window.updateClientData = (projectId, field, value) => {
             markUserTyping(); // ⚡ FASE 024B: Track digitazione per sync silenzioso
             const project = state.projects.find(p => p.id === projectId);
@@ -17180,7 +17241,8 @@
                         if (!pos.piano) pos.piano = value;
                     });
                 }
-                saveState();
+                // 🆕 v4.76: Auto-save con debounce 500ms
+                saveStateDebounced();
             }
         };
 
