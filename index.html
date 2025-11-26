@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.90 - GUIDE PLASTICINO + COLORI DINAMICI ✅
+    Open Porte v4.91 - SOSTITUZIONE COMPONENTI SELETTIVA ✅
+    
+    🔧 AGGIORNAMENTI v4.91 (26 NOV 2025):
+       - NUOVA SEZIONE: Sostituzione Componenti Tapparella
+       - 3 modalità: Sost. TUTTO / Solo Telo / Selettiva
+       - 9 accessori selezionabili: Rullo, Supporti, Calotta, Puleggia, 
+         Avvolgitore, Cintino, Passacinghia, Ganci, Guide
+       - Guide + Colore Guida appaiono SOLO se checkbox Guide selezionato
+       - UI con checkbox colorati e feedback visivo immediato
     
     🔧 AGGIORNAMENTI v4.90 (26 NOV 2025):
        - GUIDE PLASTICINO: 12 modelli (TG15/TG10/TG30, TG25/TG20/TG35, RIB, PF ferro)
@@ -1693,7 +1701,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.90 - Guide Plasticino</title>
+    <title>Open Porte v4.91 - Sostituzione Componenti</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2907,8 +2915,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.90';
-        const APP_VERSION_NOTE = 'Guide Plasticino + Colori Dinamici';
+        const APP_VERSION = '4.91';
+        const APP_VERSION_NOTE = 'Sostituzione Componenti Selettiva';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -4575,6 +4583,260 @@
                 ...COLORI_GUIDE_PLASTICINO['VERNICIATO'],
                 'RAL a richiesta'
             ];
+        }
+        
+        // ───────────────────────────────────────────────────────────────
+        // 🔧 ACCESSORI TAPPARELLA MANUALE - v4.91
+        // ───────────────────────────────────────────────────────────────
+        
+        const ACCESSORI_TAPPARELLA = [
+            { id: 'rullo', label: 'Rullo ottagonale', icon: '🔄' },
+            { id: 'supporti', label: 'Supporti + Cuscinetti', icon: '🔩' },
+            { id: 'calotta', label: 'Calotta regolabile', icon: '🎩' },
+            { id: 'puleggia', label: 'Puleggia', icon: '⚙️' },
+            { id: 'avvolgitore', label: 'Avvolgitore + Cassetta', icon: '📦' },
+            { id: 'cintino', label: 'Cintino', icon: '🎗️' },
+            { id: 'passacinghia', label: 'Passacinghia', icon: '🔗' },
+            { id: 'ganci', label: 'Ganci a molla', icon: '🪝' },
+            { id: 'guide', label: 'Guide', icon: '🛤️' }
+        ];
+        
+        // Funzione per renderizzare sezione sostituzione componenti
+        function renderSostituzioneComponenti(projectId, posId, tap) {
+            const sostTipo = tap.sostTipo || 'tutto';
+            const accessori = tap.accessoriDaSostituire || {};
+            
+            // Se "tutto", tutti selezionati. Se "niente", tutti deselezionati.
+            const isDisabled = sostTipo !== 'selettiva';
+            const allChecked = sostTipo === 'tutto';
+            const noneChecked = sostTipo === 'niente';
+            
+            return `
+                <div class="mt-4 p-3 bg-gray-50 rounded-lg border">
+                    <label class="block text-sm font-bold mb-3">🔧 Sostituzione Componenti</label>
+                    
+                    <!-- Radio buttons -->
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'tutto' ? 'bg-blue-100 border-2 border-blue-500' : 'bg-white border'}">
+                            <input type="radio" name="sostTipo-${posId}" value="tutto"
+                                   ${sostTipo === 'tutto' ? 'checked' : ''}
+                                   onchange="updateSostTipo('${projectId}', '${posId}', 'tutto')"
+                                   class="w-4 h-4">
+                            <span class="text-sm font-medium">🔄 Sost. TUTTO</span>
+                        </label>
+                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'niente' ? 'bg-gray-200 border-2 border-gray-500' : 'bg-white border'}">
+                            <input type="radio" name="sostTipo-${posId}" value="niente"
+                                   ${sostTipo === 'niente' ? 'checked' : ''}
+                                   onchange="updateSostTipo('${projectId}', '${posId}', 'niente')"
+                                   class="w-4 h-4">
+                            <span class="text-sm font-medium">📄 Solo Telo</span>
+                        </label>
+                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'selettiva' ? 'bg-amber-100 border-2 border-amber-500' : 'bg-white border'}">
+                            <input type="radio" name="sostTipo-${posId}" value="selettiva"
+                                   ${sostTipo === 'selettiva' ? 'checked' : ''}
+                                   onchange="updateSostTipo('${projectId}', '${posId}', 'selettiva')"
+                                   class="w-4 h-4">
+                            <span class="text-sm font-medium">✏️ Selettiva</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Checkbox accessori (visibili solo se non "niente") -->
+                    ${sostTipo !== 'niente' ? `
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
+                            ${ACCESSORI_TAPPARELLA.map(acc => {
+                                const isChecked = allChecked || accessori[acc.id];
+                                const isGuide = acc.id === 'guide';
+                                return `
+                                    <label class="flex items-center gap-2 px-2 py-1.5 rounded ${isChecked ? 'bg-green-100' : 'bg-white'} border cursor-pointer ${isDisabled ? 'opacity-60' : ''}">
+                                        <input type="checkbox" 
+                                               ${isChecked ? 'checked' : ''} 
+                                               ${isDisabled ? 'disabled' : ''}
+                                               onchange="updateAccessorio('${projectId}', '${posId}', '${acc.id}', this.checked)"
+                                               class="w-4 h-4">
+                                        <span class="text-xs">${acc.icon} ${acc.label}</span>
+                                    </label>
+                                `;
+                            }).join('')}
+                        </div>
+                        
+                        <!-- Campi Guide (visibili solo se guide selezionate) -->
+                        ${(allChecked || accessori.guide) ? `
+                            <div class="grid grid-cols-2 gap-2 p-2 bg-blue-50 rounded border border-blue-200">
+                                <div>
+                                    <label class="text-xs font-medium text-blue-700">🛤️ Modello Guida</label>
+                                    <input type="text" value="${tap.guida || ''}"
+                                           placeholder="Seleziona guida"
+                                           list="guida-tap-list-${posId}"
+                                           onchange="updateProduct('${projectId}', '${posId}', 'tapparella', 'guida', this.value)"
+                                           class="w-full compact-input border rounded mt-1">
+                                    <datalist id="guida-tap-list-${posId}">
+                                        ${GUIDE_PLASTICINO.map(g => `<option value="${g}">`).join('\\n')}
+                                    </datalist>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium text-blue-700">🎨 Colore Guida</label>
+                                    <input type="text" value="${tap.coloreGuida || ''}"
+                                           placeholder="Seleziona colore"
+                                           list="colore-guida-list-${posId}"
+                                           onchange="updateProduct('${projectId}', '${posId}', 'tapparella', 'coloreGuida', this.value)"
+                                           class="w-full compact-input border rounded mt-1">
+                                    <datalist id="colore-guida-list-${posId}">
+                                        ${getColoriGuide().map(c => `<option value="${c}">`).join('\\n')}
+                                    </datalist>
+                                </div>
+                            </div>
+                        ` : ''}
+                    ` : `
+                        <p class="text-xs text-gray-500 italic">Solo il telo verrà sostituito, nessun accessorio.</p>
+                    `}
+                </div>
+            `;
+        }
+        
+        // Funzioni di aggiornamento
+        function updateSostTipo(projectId, posId, tipo) {
+            updateProduct(projectId, posId, 'tapparella', 'sostTipo', tipo);
+            // Se "tutto", imposta tutti gli accessori a true
+            if (tipo === 'tutto') {
+                const allAccessori = {};
+                ACCESSORI_TAPPARELLA.forEach(a => allAccessori[a.id] = true);
+                updateProduct(projectId, posId, 'tapparella', 'accessoriDaSostituire', allAccessori);
+            }
+            // Se "niente", imposta tutti a false
+            else if (tipo === 'niente') {
+                const noAccessori = {};
+                ACCESSORI_TAPPARELLA.forEach(a => noAccessori[a.id] = false);
+                updateProduct(projectId, posId, 'tapparella', 'accessoriDaSostituire', noAccessori);
+            }
+            render();
+        }
+        
+        function updateAccessorio(projectId, posId, accessorioId, checked) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            const pos = project.posizioni.find(p => p.id === posId);
+            if (!pos || !pos.tapparella) return;
+            
+            const accessori = pos.tapparella.accessoriDaSostituire || {};
+            accessori[accessorioId] = checked;
+            updateProduct(projectId, posId, 'tapparella', 'accessoriDaSostituire', accessori);
+            render();
+        }
+        
+        // Funzione per Config Globale Sostituzione Componenti
+        function renderSostituzioneComponentiConfig(projectId, configTapparelle) {
+            const sostTipo = configTapparelle?.sostTipo || 'tutto';
+            const accessori = configTapparelle?.accessoriDaSostituire || {};
+            
+            const isDisabled = sostTipo !== 'selettiva';
+            const allChecked = sostTipo === 'tutto';
+            
+            return `
+                <div class="col-span-2 mt-2 p-3 bg-gray-50 rounded-lg border">
+                    <label class="block text-sm font-bold mb-3">🔧 4. Sostituzione Componenti Default</label>
+                    
+                    <!-- Radio buttons -->
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'tutto' ? 'bg-blue-100 border-2 border-blue-500' : 'bg-white border'}">
+                            <input type="radio" name="sostTipoConfig-${projectId}" value="tutto"
+                                   ${sostTipo === 'tutto' ? 'checked' : ''}
+                                   onchange="updateSostTipoConfig('${projectId}', 'tutto')"
+                                   class="w-4 h-4">
+                            <span class="text-sm font-medium">🔄 Sost. TUTTO</span>
+                        </label>
+                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'niente' ? 'bg-gray-200 border-2 border-gray-500' : 'bg-white border'}">
+                            <input type="radio" name="sostTipoConfig-${projectId}" value="niente"
+                                   ${sostTipo === 'niente' ? 'checked' : ''}
+                                   onchange="updateSostTipoConfig('${projectId}', 'niente')"
+                                   class="w-4 h-4">
+                            <span class="text-sm font-medium">📄 Solo Telo</span>
+                        </label>
+                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'selettiva' ? 'bg-amber-100 border-2 border-amber-500' : 'bg-white border'}">
+                            <input type="radio" name="sostTipoConfig-${projectId}" value="selettiva"
+                                   ${sostTipo === 'selettiva' ? 'checked' : ''}
+                                   onchange="updateSostTipoConfig('${projectId}', 'selettiva')"
+                                   class="w-4 h-4">
+                            <span class="text-sm font-medium">✏️ Selettiva</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Checkbox accessori -->
+                    ${sostTipo !== 'niente' ? `
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
+                            ${ACCESSORI_TAPPARELLA.map(acc => {
+                                const isChecked = allChecked || accessori[acc.id];
+                                return `
+                                    <label class="flex items-center gap-2 px-2 py-1.5 rounded ${isChecked ? 'bg-green-100' : 'bg-white'} border cursor-pointer ${isDisabled ? 'opacity-60' : ''}">
+                                        <input type="checkbox" 
+                                               ${isChecked ? 'checked' : ''} 
+                                               ${isDisabled ? 'disabled' : ''}
+                                               onchange="updateAccessorioConfig('${projectId}', '${acc.id}', this.checked)"
+                                               class="w-4 h-4">
+                                        <span class="text-xs">${acc.icon} ${acc.label}</span>
+                                    </label>
+                                `;
+                            }).join('')}
+                        </div>
+                        
+                        <!-- Campi Guide -->
+                        ${(allChecked || accessori.guide) ? `
+                            <div class="grid grid-cols-2 gap-2 p-2 bg-blue-50 rounded border border-blue-200">
+                                <div>
+                                    <label class="text-xs font-medium text-blue-700">🛤️ Modello Guida</label>
+                                    <input type="text" 
+                                           value="${configTapparelle?.guida || ''}"
+                                           placeholder="Seleziona guida"
+                                           list="config-guida-tap-list-${projectId}"
+                                           onchange="updateConfigTapparelle('${projectId}', 'guida', this.value)"
+                                           class="w-full px-2 py-1 border rounded mt-1 text-sm">
+                                    <datalist id="config-guida-tap-list-${projectId}">
+                                        ${GUIDE_PLASTICINO.map(g => `<option value="${g}">`).join('\\n')}
+                                    </datalist>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium text-blue-700">🎨 Colore Guida</label>
+                                    <input type="text" 
+                                           value="${configTapparelle?.coloreGuida || ''}"
+                                           placeholder="Seleziona colore"
+                                           list="config-colore-guida-list-${projectId}"
+                                           onchange="updateConfigTapparelle('${projectId}', 'coloreGuida', this.value)"
+                                           class="w-full px-2 py-1 border rounded mt-1 text-sm">
+                                    <datalist id="config-colore-guida-list-${projectId}">
+                                        ${getColoriGuide().map(c => `<option value="${c}">`).join('\\n')}
+                                    </datalist>
+                                </div>
+                            </div>
+                        ` : ''}
+                    ` : `
+                        <p class="text-xs text-gray-500 italic">Default: Solo il telo verrà sostituito.</p>
+                    `}
+                </div>
+            `;
+        }
+        
+        // Funzioni di aggiornamento Config
+        function updateSostTipoConfig(projectId, tipo) {
+            updateConfigTapparelle(projectId, 'sostTipo', tipo);
+            if (tipo === 'tutto') {
+                const allAccessori = {};
+                ACCESSORI_TAPPARELLA.forEach(a => allAccessori[a.id] = true);
+                updateConfigTapparelle(projectId, 'accessoriDaSostituire', allAccessori);
+            } else if (tipo === 'niente') {
+                const noAccessori = {};
+                ACCESSORI_TAPPARELLA.forEach(a => noAccessori[a.id] = false);
+                updateConfigTapparelle(projectId, 'accessoriDaSostituire', noAccessori);
+            }
+            render();
+        }
+        
+        function updateAccessorioConfig(projectId, accessorioId, checked) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const accessori = project.configTapparelle?.accessoriDaSostituire || {};
+            accessori[accessorioId] = checked;
+            updateConfigTapparelle(projectId, 'accessoriDaSostituire', accessori);
+            render();
         }
         
         // Mappa modello → categoria colori
@@ -13213,35 +13475,12 @@
                                 </datalist>
                             </div>
                             
-                            <!-- 4. GUIDA -->
-                            <div>
-                                <label class="block text-sm font-medium mb-1">4. Guida</label>
-                                <input type="text" placeholder="Seleziona guida"
-                                       value="${project.configTapparelle?.guida || ''}"
-                                       list="config-guida-tap-list-${project.id}"
-                                       onchange="updateConfigTapparelle('${project.id}', 'guida', this.value)"
-                                       class="w-full px-3 py-2 border rounded-lg">
-                                <datalist id="config-guida-tap-list-${project.id}">
-                                    ${GUIDE_PLASTICINO.map(g => `<option value="${g}">`).join('\n')}
-                                </datalist>
-                            </div>
+                            <!-- 4. SOSTITUZIONE COMPONENTI -->
+                            ${renderSostituzioneComponentiConfig(project.id, project.configTapparelle)}
                             
-                            <!-- 5. COLORE GUIDA -->
-                            <div>
-                                <label class="block text-sm font-medium mb-1">5. Colore Guida</label>
-                                <input type="text" placeholder="Seleziona colore guida"
-                                       value="${project.configTapparelle?.coloreGuida || ''}"
-                                       list="config-colore-guida-list-${project.id}"
-                                       onchange="updateConfigTapparelle('${project.id}', 'coloreGuida', this.value)"
-                                       class="w-full px-3 py-2 border rounded-lg">
-                                <datalist id="config-colore-guida-list-${project.id}">
-                                    ${getColoriGuide().map(c => `<option value="${c}">`).join('\n')}
-                                </datalist>
-                            </div>
-                            
-                            <!-- 6. TIPO TAPPARELLA (3 OPZIONI SEMPRE VISIBILI) -->
+                            <!-- 5. TIPO TAPPARELLA (3 OPZIONI SEMPRE VISIBILI) -->
                             <div class="col-span-2">
-                                <label class="block text-sm font-medium mb-2">6. Tipo Tapparella</label>
+                                <label class="block text-sm font-medium mb-2">5. Tipo Tapparella</label>
                                 <div class="space-y-3">
                                     <!-- Opzione 1: Manuale -->
                                     <div class="flex items-center gap-3 bg-white p-3 rounded-lg border-2 ${(!project.configTapparelle?.nuovaAutomazione || project.configTapparelle?.nuovaAutomazione === 'Manuale') ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}">
@@ -13325,7 +13564,7 @@
                                 project.id,
                                 null,
                                 'tapparella',
-                                '7. Sost. Esistente'
+                                '6. Sost. Esistente'
                             )}
                         </div>
                     </div>
@@ -15986,31 +16225,8 @@
                                         </datalist>
                                     </div>
                                     
-                                    <!-- GUIDA E COLORE GUIDA -->
-                                    <div class="grid grid-cols-2 gap-2 mt-2">
-                                        <div>
-                                            <label class="text-xs font-medium">Guida</label>
-                                            <input type="text" value="${tap.guida || ''}"
-                                                   placeholder="TG15 - Guide 30x25x30"
-                                                   list="guida-tap-list-${pos.id}"
-                                                   onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'guida', this.value)"
-                                                   class="w-full compact-input border rounded mt-1">
-                                            <datalist id="guida-tap-list-${pos.id}">
-                                                ${GUIDE_PLASTICINO.map(g => `<option value="${g}">`).join('\n')}
-                                            </datalist>
-                                        </div>
-                                        <div>
-                                            <label class="text-xs font-medium">Colore Guida</label>
-                                            <input type="text" value="${tap.coloreGuida || ''}"
-                                                   placeholder="Argento"
-                                                   list="colore-guida-list-${pos.id}"
-                                                   onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'coloreGuida', this.value)"
-                                                   class="w-full compact-input border rounded mt-1">
-                                            <datalist id="colore-guida-list-${pos.id}">
-                                                ${getColoriGuide().map(c => `<option value="${c}">`).join('\n')}
-                                            </datalist>
-                                        </div>
-                                    </div>
+                                    <!-- 🔧 SEZIONE SOSTITUZIONE COMPONENTI -->
+                                    ${renderSostituzioneComponenti(project.id, pos.id, tap)}
                                     
                                     <!-- 🆕 3 OPZIONI SEMPRE VISIBILI (NON PIÙ CONDIZIONALI) -->
                                     <div class="mt-4">
@@ -16088,32 +16304,6 @@
                                                 ` : ''}
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-
-                                <!-- CAMPI GUIDA E COLORE GUIDA - PLASTICINO -->
-                                <div class="grid md:grid-cols-2 gap-3 mt-3">
-                                    <div>
-                                        <label class="text-xs font-medium">Guida</label>
-                                        <input type="text" value="${tap.guida || ''}"
-                                               placeholder="Seleziona guida"
-                                               list="guida-tap-list2-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'guida', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="guida-tap-list2-${pos.id}">
-                                            ${GUIDE_PLASTICINO.map(g => `<option value="${g}">`).join('\n')}
-                                        </datalist>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Colore Guida</label>
-                                        <input type="text" value="${tap.coloreGuida || ''}"
-                                               placeholder="Seleziona colore"
-                                               list="colore-guida-list2-${pos.id}"
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'coloreGuida', this.value)"
-                                               class="w-full compact-input border rounded mt-1">
-                                        <datalist id="colore-guida-list2-${pos.id}">
-                                            ${getColoriGuide().map(c => `<option value="${c}">`).join('\n')}
-                                        </datalist>
                                     </div>
                                 </div>
                             </div>
@@ -19465,7 +19655,8 @@
                                 modello: pos.tapparella.modello || '',
                                 colore: pos.tapparella.colore || '',
                                 manuale_motorizzato: pos.tapparella.manualeMotoriz || '',
-                                sost_esistente: pos.tapparella.sostEsistente || '',
+                                sost_tipo: pos.tapparella.sostTipo || 'tutto',
+                                accessori_da_sostituire: pos.tapparella.accessoriDaSostituire || {},
                                 guida: pos.tapparella.guida || '',
                                 colore_guida: pos.tapparella.coloreGuida || '',
                                 brm: {  // 📊 Template completo BRM
