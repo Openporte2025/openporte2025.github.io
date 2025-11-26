@@ -7,9 +7,10 @@
        - Opzioni: 🧱 Muro (attaccato) | ✅ Libero (>50mm) | ⚠️ Limitato (inserisci mm)
        - Campo numerico visibile SOLO se "Limitato" selezionato
        - BRM Larghezza DINAMICO: allargamento calcolato automaticamente
+         • Allargamento per lato = valoreL / 2 (es: valoreL=30 → 15mm per lato)
          • ZSX/ZDX = Muro → +0mm (non può allargarsi)
-         • ZSX/ZDX = Libero/Limitato → +20mm (può allargarsi)
-         • Es: Muro+Muro=+0 | Muro+Libero=+20 | Libero+Libero=+40
+         • ZSX/ZDX = Libero/Limitato → +(valoreL/2)mm
+         • Es con valoreL=30: Muro+Muro=+0 | Muro+Libero=+15 | Libero+Libero=+30
        - Ricalcolo BRM automatico quando cambia ZSX_tipo o ZDX_tipo
        - UX migliorata: meno scrittura manuale per casi comuni
     
@@ -1669,7 +1670,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.70 - Logica Cassonetti Condizionale</title>
+    <title>Open Porte v4.87 - Radio Button ZSX/ZDX Cassonetti</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2883,8 +2884,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.85';
-        const APP_VERSION_NOTE = 'Fix errore codTagli undefined in addInfisso';
+        const APP_VERSION = '4.87';
+        const APP_VERSION_NOTE = 'Radio Button ZSX/ZDX Cassonetti + BRM Dinamico';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -9151,12 +9152,13 @@
                     const isCassonetto = misure.LS !== undefined;
                     
                     if (isCassonetto && brmConfig[operazioneLKey] === '+') {
-                        // Allargamento: +20 per ogni lato NON a muro
-                        const allargamentoSX = (misure.ZSX_tipo === 'muro') ? 0 : 20;
-                        const allargamentoDX = (misure.ZDX_tipo === 'muro') ? 0 : 20;
+                        // Allargamento per lato = valoreL / 2 (se valoreL=30 → 15mm per lato)
+                        const allargamentoPerLato = (parseFloat(brmConfig[valoreLKey]) || 0) / 2;
+                        const allargamentoSX = (misure.ZSX_tipo === 'muro') ? 0 : allargamentoPerLato;
+                        const allargamentoDX = (misure.ZDX_tipo === 'muro') ? 0 : allargamentoPerLato;
                         const allargamentoTotale = allargamentoSX + allargamentoDX;
                         L = baseL + allargamentoTotale;
-                        console.log(`🔧 BRM Cassonetto: base=${baseL}, ZSX=${misure.ZSX_tipo}(+${allargamentoSX}), ZDX=${misure.ZDX_tipo}(+${allargamentoDX}) → L=${L}`);
+                        console.log(`🔧 BRM Cassonetto: base=${baseL}, valoreL=${brmConfig[valoreLKey]}→per lato=${allargamentoPerLato}, ZSX=${misure.ZSX_tipo}(+${allargamentoSX}), ZDX=${misure.ZDX_tipo}(+${allargamentoDX}) → L=${L}`);
                     } else if (brmConfig[operazioneLKey] === '+') {
                         L = baseL + valoreL;
                     } else {
@@ -16980,8 +16982,10 @@
                                             <!-- ✅ v4.87: Nota allargamento dinamico -->
                                             <div class="text-xs mt-1 ${(cas.ZSX_tipo === 'muro' || cas.ZDX_tipo === 'muro') ? 'text-orange-600' : 'text-gray-500'}">
                                                 📐 Allargamento: ${(() => {
-                                                    const allSX = (cas.ZSX_tipo === 'muro') ? 0 : 20;
-                                                    const allDX = (cas.ZDX_tipo === 'muro') ? 0 : 20;
+                                                    const valoreL = parseFloat(project.brmConfigCassonetti?.valoreL) || 0;
+                                                    const perLato = valoreL / 2;
+                                                    const allSX = (cas.ZSX_tipo === 'muro') ? 0 : perLato;
+                                                    const allDX = (cas.ZDX_tipo === 'muro') ? 0 : perLato;
                                                     const tot = allSX + allDX;
                                                     return `SX +${allSX}mm (${cas.ZSX_tipo || 'libero'}) | DX +${allDX}mm (${cas.ZDX_tipo || 'libero'}) = +${tot}mm`;
                                                 })()}
