@@ -1,7 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.93 - RISTRUTTURAZIONE ACCESSORI + SOLO ACCESSORI ✅
+    Open Porte v4.94 - ACCESSORI PERSIANE (Cardini + Fermapersiane) ✅
     
+    🔧 AGGIORNAMENTI v4.94 (27 NOV 2025):
+       - ✅ ACCESSORI PERSIANE: Nuova sezione Cardini + Fermapersiane
+       - ✅ CARDINI: Calcolo automatico da tipologia (F1→2, F2→3, PF1→3, PF2→6, ecc.)
+       - ✅ FERMAPERSIANE: 1 per anta automatico
+       - ✅ MODELLI: 7 cardini + 6 fermapersiane da listino Punto Persiane
+       - ✅ APERTURA LIBRO: +1 cardine se apertura /A o LIB
+
     🔧 AGGIORNAMENTI v4.93 (27 NOV 2025):
        - ✅ NUOVA OPZIONE: "🔧 Solo Accessori" (no telo, solo componenti)
        - ✅ AGGIUNTO: Motore nella lista accessori selezionabili
@@ -1712,7 +1719,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.93 - Ristrutturazione Accessori</title>
+    <title>Open Porte v4.94 - Accessori Persiane</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2926,8 +2933,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.93';
-        const APP_VERSION_NOTE = 'Ristrutturazione Accessori + Solo Accessori';
+        const APP_VERSION = '4.94';
+        const APP_VERSION_NOTE = 'Accessori Persiane + Tapparelle';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -3028,6 +3035,47 @@
             'CPFRGG4 - Ruggine EVO',
             'CPF744L - Grigio seta tipo RAL 7044 opaco'
         ];
+
+        // 🔩 COSTANTE CARDINI PUNTO PERSIANE (pag. 190)
+        const CARDINI_PUNTO_PERSIANE = [
+            { codice: 'C.SAF90', nome: 'Cardine SAF 90mm (facciata)', prezzo: 0 },
+            { codice: 'C.SAF150', nome: 'Cardine SAF 150mm (cappotto)', prezzo: 0 },
+            { codice: 'C.SAF240', nome: 'Cardine SAF 240mm (cappotto spesso)', prezzo: 0 },
+            { codice: 'C.SAF320', nome: 'Cardine SAF 320mm (cappotto XL)', prezzo: 0 },
+            { codice: 'C.REG.SAF90', nome: 'Cardine Regolabile 90mm', prezzo: 0 },
+            { codice: 'C.REG.SAF150', nome: 'Cardine Regolabile 150mm', prezzo: 0 },
+            { codice: 'CHA.1', nome: 'Cardine mensola lama stretta', prezzo: 18.00 }
+        ];
+
+        // 🔒 COSTANTE FERMAPERSIANE PUNTO PERSIANE (pag. 182)
+        const FERMAPERSIANE_PUNTO_PERSIANE = [
+            { codice: 'K.EASY', nome: 'Ferma KOMFORT a scomparsa', prezzo: 56.00 },
+            { codice: 'F.INC', nome: 'Fermo Piemontese incassato', prezzo: 45.00 },
+            { codice: 'GRILLO', nome: 'Ferma tipo Grillo', prezzo: 0 },
+            { codice: 'SALTARELLO', nome: 'Ferma tipo Saltarello', prezzo: 0 },
+            { codice: 'PIEMONTESE', nome: 'Ferma tipo Piemontese', prezzo: 0 },
+            { codice: 'OMETTO', nome: 'Ferma tipo Ometto (pavimento)', prezzo: 0 }
+        ];
+
+        // 🧮 CALCOLO AUTOMATICO CARDINI PER TIPOLOGIA
+        function calcolaCardiniPersiana(tipologia, aperturaLibro = false) {
+            const cardiniBase = {
+                'F1': 2, 'F2': 3, 'F3': 4, 'F4': 5,
+                'PF1': 3, 'PF2': 6, 'PF3': 8, 'PF4': 10
+            };
+            let qta = cardiniBase[tipologia] || 2;
+            if (aperturaLibro) qta += 1; // +1 se apertura a libro
+            return qta;
+        }
+
+        // 🧮 CALCOLO AUTOMATICO FERMAPERSIANE (1 per anta)
+        function calcolaFermapersiane(tipologia) {
+            const antePerTipo = {
+                'F1': 1, 'F2': 2, 'F3': 3, 'F4': 4,
+                'PF1': 1, 'PF2': 2, 'PF3': 3, 'PF4': 4
+            };
+            return antePerTipo[tipologia] || 1;
+        }
 
         // 📦 FASE 027K: Configurazione GitHub Sync
         const GITHUB_CONFIG = {
@@ -4832,6 +4880,113 @@
             const accessori = pos.tapparella.accessoriDaSostituire || {};
             accessori[accessorioId] = checked;
             updateProduct(projectId, posId, 'tapparella', 'accessoriDaSostituire', accessori);
+            render();
+        }
+        
+        // 🔩 Funzione per Accessori Persiana (Cardini + Fermapersiane)
+        function renderAccessoriPersiana(projectId, posId, per) {
+            const tipologia = per.tipo || 'F2';
+            const aperturaLibro = (per.apertura || '').includes('LIB') || (per.apertura || '').includes('/A');
+            
+            // Calcola quantità suggerite
+            const cardiniSuggeriti = calcolaCardiniPersiana(tipologia, aperturaLibro);
+            const fermaperSuggeriti = calcolaFermapersiane(tipologia);
+            
+            // Valori attuali o default
+            const accessori = per.accessoriPersiana || {};
+            const cardini = accessori.cardini || { qta: cardiniSuggeriti, modello: 'C.SAF90' };
+            const ferma = accessori.fermapersiane || { qta: fermaperSuggeriti, modello: 'K.EASY' };
+            
+            return `
+                <div class="bg-gray-50 border-2 border-gray-300 rounded-lg p-4 mb-3">
+                    <h5 class="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        🔩 Accessori Persiana
+                        <span class="text-xs font-normal text-gray-500">(ESCLUSI dal prezzo base)</span>
+                    </h5>
+                    
+                    <!-- CARDINI -->
+                    <div class="bg-white p-3 rounded-lg border mb-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-sm font-bold text-gray-700">📍 Cardini</span>
+                            <span class="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded">
+                                ${tipologia} ${aperturaLibro ? '(Libro)' : ''} → suggeriti: ${cardiniSuggeriti}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-xs text-gray-600">Quantità</label>
+                                <input type="number" min="0" max="20" value="${cardini.qta}"
+                                       onchange="updateAccessoriPersiana('${projectId}', '${posId}', 'cardini', 'qta', parseInt(this.value))"
+                                       class="w-full compact-input border rounded text-center">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="text-xs text-gray-600">Modello</label>
+                                <select onchange="updateAccessoriPersiana('${projectId}', '${posId}', 'cardini', 'modello', this.value)"
+                                        class="w-full compact-input border rounded">
+                                    ${CARDINI_PUNTO_PERSIANE.map(c => 
+                                        `<option value="${c.codice}" ${cardini.modello === c.codice ? 'selected' : ''}>
+                                            ${c.codice} - ${c.nome} ${c.prezzo > 0 ? '€' + c.prezzo : ''}
+                                        </option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- FERMAPERSIANE -->
+                    <div class="bg-white p-3 rounded-lg border">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-sm font-bold text-gray-700">🔒 Fermapersiane</span>
+                            <span class="text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded">
+                                ${tipologia.replace('PF','').replace('F','')} ante → suggeriti: ${fermaperSuggeriti}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-xs text-gray-600">Quantità</label>
+                                <input type="number" min="0" max="10" value="${ferma.qta}"
+                                       onchange="updateAccessoriPersiana('${projectId}', '${posId}', 'fermapersiane', 'qta', parseInt(this.value))"
+                                       class="w-full compact-input border rounded text-center">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="text-xs text-gray-600">Modello</label>
+                                <select onchange="updateAccessoriPersiana('${projectId}', '${posId}', 'fermapersiane', 'modello', this.value)"
+                                        class="w-full compact-input border rounded">
+                                    ${FERMAPERSIANE_PUNTO_PERSIANE.map(f => 
+                                        `<option value="${f.codice}" ${ferma.modello === f.codice ? 'selected' : ''}>
+                                            ${f.codice} - ${f.nome} ${f.prezzo > 0 ? '€' + f.prezzo : ''}
+                                        </option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Funzione aggiornamento accessori persiana
+        function updateAccessoriPersiana(projectId, posId, tipo, campo, valore) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            const pos = project.posizioni.find(p => p.id === posId);
+            if (!pos || !pos.persiana) return;
+            
+            // Inizializza se non esiste
+            if (!pos.persiana.accessoriPersiana) {
+                pos.persiana.accessoriPersiana = {
+                    cardini: { qta: 0, modello: 'C.SAF90' },
+                    fermapersiane: { qta: 0, modello: 'K.EASY' }
+                };
+            }
+            
+            // Aggiorna il campo specifico
+            if (!pos.persiana.accessoriPersiana[tipo]) {
+                pos.persiana.accessoriPersiana[tipo] = {};
+            }
+            pos.persiana.accessoriPersiana[tipo][campo] = valore;
+            
+            saveState();
             render();
         }
         
@@ -16033,6 +16188,9 @@
                                     )}
                                 </div>
                             </div>
+
+                            <!-- 🔩 ACCESSORI PERSIANA (Cardini + Fermapersiane) -->
+                            ${renderAccessoriPersiana(project.id, pos.id, per)}
 
                             <!-- 📷 FOTO PERSIANA -->
                             <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-3">
