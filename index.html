@@ -3,9 +3,8 @@
     Open Porte v4.95 - FIX Quantità Cardini ✅
     
     🔧 AGGIORNAMENTI v4.95 (27 NOV 2025):
-       - 🔧 FIX: Cardini = 2 per anta (finestre), 3 per anta (porta-finestre)
-       - F2: 4 cardini (non 3), F3: 6, F4: 8
-       - PF3: 9 cardini (non 8), PF4: 12 (non 10)
+       - 🔧 FIX: Cardini da listino Punto Persiane
+       - F1:2, F2:4, F3:5, F4:6 | PF1:3, PF2:6, PF3:7, PF4:8
        - 🆕 AUTO-INIT: accessoriPersiana salvato automaticamente al primo render
        - 🆕 RICALCOLO: Cambiando tipo (F1→F2) ricalcola cardini/fermapersiane
 
@@ -3065,12 +3064,11 @@
         ];
 
         // 🧮 CALCOLO AUTOMATICO CARDINI PER TIPOLOGIA
-        // Finestre (F): 2 cardini per anta
-        // Porta-finestre (PF): 3 cardini per anta
+        // Valori da listino Punto Persiane
         function calcolaCardiniPersiana(tipologia, aperturaLibro = false) {
             const cardiniBase = {
-                'F1': 2, 'F2': 4, 'F3': 6, 'F4': 8,      // 2 per anta
-                'PF1': 3, 'PF2': 6, 'PF3': 9, 'PF4': 12  // 3 per anta
+                'F1': 2, 'F2': 4, 'F3': 5, 'F4': 6,
+                'PF1': 3, 'PF2': 6, 'PF3': 7, 'PF4': 8
             };
             let qta = cardiniBase[tipologia] || 2;
             if (aperturaLibro) qta += 1; // +1 se apertura a libro
