@@ -5010,13 +5010,28 @@
         
         // 🆕 Funzione per aggiornare tipo persiana e ricalcolare accessori
         function updateTipoPersiana(projectId, posId, nuovoTipo) {
+            console.log(`🔧 updateTipoPersiana CHIAMATA: projectId=${projectId}, posId=${posId}, nuovoTipo=${nuovoTipo}`);
+            
             const project = state.projects.find(p => p.id === projectId);
-            if (!project) return;
+            if (!project) {
+                console.error('❌ Progetto non trovato:', projectId);
+                return;
+            }
             const pos = project.posizioni.find(p => p.id === posId);
-            if (!pos || !pos.persiana) return;
+            if (!pos) {
+                console.error('❌ Posizione non trovata:', posId);
+                return;
+            }
+            
+            // 🆕 v4.95 FIX: Inizializza persiana se non esiste
+            if (!pos.persiana) {
+                console.log('🆕 Inizializzo pos.persiana');
+                pos.persiana = { qta: 1 };
+            }
             
             // Aggiorna tipo
             pos.persiana.tipo = nuovoTipo;
+            console.log(`✅ pos.persiana.tipo SALVATO: ${pos.persiana.tipo}`);
             
             // Ricalcola accessori suggeriti
             const aperturaLibro = (pos.persiana.apertura || '').includes('LIB') || (pos.persiana.apertura || '').includes('/A');
@@ -5036,6 +5051,11 @@
             
             console.log(`🔄 Tipo ${nuovoTipo}: cardini=${cardiniSuggeriti}, ferma=${fermaperSuggeriti}`);
             saveState();
+            
+            // Verifica dopo saveState
+            const verifica = state.projects.find(p => p.id === projectId)?.posizioni.find(p => p.id === posId);
+            console.log(`🔍 VERIFICA dopo save: pos.persiana.tipo = ${verifica?.persiana?.tipo}`);
+            
             render();
         }
         
@@ -8840,10 +8860,15 @@
         }
 
         function handleProductSelectWithCustom(projectId, posId, productType, field, selectId, inputId, value) {
+            console.log(`🎯 handleProductSelectWithCustom: productType=${productType}, field=${field}, value=${value}`);
+            
             const select = document.getElementById(selectId);
             const input = document.getElementById(inputId);
             
-            if (!select || !input) return;
+            if (!select || !input) {
+                console.error('❌ Select o input non trovati:', selectId, inputId);
+                return;
+            }
             
             // 🆕 v4.24: Feedback visivo immediato per campo tipo obbligatorio
             if (field === 'tipo' && (productType === 'infisso' || productType === 'persiana')) {
@@ -8869,6 +8894,7 @@
                 
                 // 🆕 v4.95: Se cambia tipo persiana, ricalcola accessori
                 if (productType === 'persiana' && field === 'tipo') {
+                    console.log(`📌 Chiamo updateTipoPersiana con value=${value}`);
                     updateTipoPersiana(projectId, posId, value);
                 } else {
                     updateProduct(projectId, posId, productType, field, value);
