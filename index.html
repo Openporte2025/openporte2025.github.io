@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.91 - SOSTITUZIONE COMPONENTI SELETTIVA ✅
+    Open Porte v4.92 - FIX EXPORT SOSTITUZIONE COMPONENTI ✅
+    
+    🔧 AGGIORNAMENTI v4.92 (26 NOV 2025):
+       - FIX: Rimosso vecchio campo "sostEsistente" che creava conflitto
+       - Ora export JSON usa SOLO: sostTipo + accessoriDaSostituire
+       - Rimossa select "Sost. Esistente" dalla Config Globale (sostituita da sezione checkbox)
     
     🔧 AGGIORNAMENTI v4.91 (26 NOV 2025):
        - NUOVA SEZIONE: Sostituzione Componenti Tapparella
@@ -1701,7 +1706,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.91 - Sostituzione Componenti</title>
+    <title>Open Porte v4.92 - Fix Export Sostituzione</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2915,8 +2920,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.91';
-        const APP_VERSION_NOTE = 'Sostituzione Componenti Selettiva';
+        const APP_VERSION = '4.92';
+        const APP_VERSION_NOTE = 'Fix Export Sostituzione Componenti';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -3274,6 +3279,9 @@
                     console.log('🧹 ESEGUENDO cleanCorruptedProjects...');
                     cleanCorruptedProjects(); // 🔧 v4.57: Rimuove progetti corrotti (ID mancante/undefined)
                     
+                    console.log('🔄 ESEGUENDO migrateSostituzioneComponenti...');
+                    migrateSostituzioneComponenti(); // 🔧 v4.92: Migra sostEsistente → sostTipo
+                    
                 } catch (e) {
                     console.error('❌ Errore caricando stato da localStorage:', e);
                     console.log('🔄 Resetto allo stato iniziale...');
@@ -3454,6 +3462,85 @@
                     });
                 }
             });
+        }
+
+        // 🔧 v4.92: Migrazione sostEsistente → sostTipo + accessoriDaSostituire
+        function migrateSostituzioneComponenti() {
+            if (!state.projects || !Array.isArray(state.projects)) return;
+            
+            let migratedCount = 0;
+            
+            state.projects.forEach(project => {
+                migratedCount += migrateSingleProjectSostituzione(project);
+            });
+            
+            if (migratedCount > 0) {
+                console.log(`✅ Migrazione sostEsistente → sostTipo: ${migratedCount} elementi aggiornati`);
+                saveState();
+            }
+        }
+        
+        // Helper per migrare singolo progetto
+        function migrateSingleProjectSostituzione(project) {
+            let count = 0;
+            
+            // Migra configTapparelle
+            if (project.configTapparelle) {
+                if (project.configTapparelle.sostEsistente && !project.configTapparelle.sostTipo) {
+                    // Converti vecchio valore in nuovo formato
+                    const oldValue = project.configTapparelle.sostEsistente;
+                    if (oldValue === 'Sost. tutto' || oldValue === 'Sost. Rullo Sì') {
+                        project.configTapparelle.sostTipo = 'tutto';
+                    } else if (oldValue === 'Non Sost. Niente' || oldValue === 'Sost. Rullo No') {
+                        project.configTapparelle.sostTipo = 'niente';
+                    } else {
+                        project.configTapparelle.sostTipo = 'tutto'; // default
+                    }
+                    count++;
+                }
+                // Rimuovi vecchio campo
+                delete project.configTapparelle.sostEsistente;
+            }
+            
+            // Migra posizioni con tapparella
+            if (project.posizioni && Array.isArray(project.posizioni)) {
+                project.posizioni.forEach(pos => {
+                    if (pos.tapparella) {
+                        if (pos.tapparella.sostEsistente && !pos.tapparella.sostTipo) {
+                            // Converti vecchio valore in nuovo formato
+                            const oldValue = pos.tapparella.sostEsistente;
+                            if (oldValue === 'Sost. tutto' || oldValue === 'Sost. Rullo Sì') {
+                                pos.tapparella.sostTipo = 'tutto';
+                                // Imposta tutti gli accessori a true
+                                pos.tapparella.accessoriDaSostituire = {
+                                    rullo: true, supporti: true, calotta: true,
+                                    puleggia: true, avvolgitore: true, cintino: true,
+                                    passacinghia: true, ganci: true, guide: true
+                                };
+                            } else if (oldValue === 'Non Sost. Niente' || oldValue === 'Sost. Rullo No') {
+                                pos.tapparella.sostTipo = 'niente';
+                                pos.tapparella.accessoriDaSostituire = {
+                                    rullo: false, supporti: false, calotta: false,
+                                    puleggia: false, avvolgitore: false, cintino: false,
+                                    passacinghia: false, ganci: false, guide: false
+                                };
+                            } else {
+                                pos.tapparella.sostTipo = 'tutto';
+                                pos.tapparella.accessoriDaSostituire = {
+                                    rullo: true, supporti: true, calotta: true,
+                                    puleggia: true, avvolgitore: true, cintino: true,
+                                    passacinghia: true, ganci: true, guide: true
+                                };
+                            }
+                            count++;
+                        }
+                        // Rimuovi vecchio campo
+                        delete pos.tapparella.sostEsistente;
+                    }
+                });
+            }
+            
+            return count;
         }
 
         // 🔧 v4.57: Pulizia progetti corrotti (ID mancante o undefined)
@@ -6388,6 +6475,9 @@
                             // Migra dati se necessario
                             project = migrateProjectRilievi(project);
                             
+                            // 🔧 v4.92: Migra sostEsistente → sostTipo
+                            migrateSingleProjectSostituzione(project);
+                            
                             if (typeof migrateOldData === 'function') {
                                 migrateOldData();
                             }
@@ -6461,6 +6551,9 @@
                 
                 // Salva stato aggiornato
                 saveState();
+                
+                // 🔧 v4.92: Migra sostEsistente → sostTipo per dati da GitHub
+                migrateSostituzioneComponenti();
                 
                 // Aggiorna timestamp sync
                 if (state.github) {
@@ -13555,17 +13648,6 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- 5. SOST. ESISTENTE -->
-                            ${renderSelectWithCustom(
-                                'sostEsistente',
-                                project.configTapparelle?.sostEsistente || '',
-                                ['Sost. Rullo Sì', 'Sost. Rullo No', 'Sost. tutto', 'Non Sost. Niente'],
-                                project.id,
-                                null,
-                                'tapparella',
-                                '6. Sost. Esistente'
-                            )}
                         </div>
                     </div>
                     
