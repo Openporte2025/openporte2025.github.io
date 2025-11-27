@@ -1,7 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.94 - ACCESSORI PERSIANE (Cardini + Fermapersiane) ✅
+    Open Porte v4.95 - FIX Quantità Cardini ✅
     
+    🔧 AGGIORNAMENTI v4.95 (27 NOV 2025):
+       - 🔧 FIX: Cardini = 2 per anta (finestre), 3 per anta (porta-finestre)
+       - F2: 4 cardini (non 3), F3: 6, F4: 8
+       - PF3: 9 cardini (non 8), PF4: 12 (non 10)
+       - 🆕 AUTO-INIT: accessoriPersiana salvato automaticamente al primo render
+       - 🆕 RICALCOLO: Cambiando tipo (F1→F2) ricalcola cardini/fermapersiane
+
     🔧 AGGIORNAMENTI v4.94 (27 NOV 2025):
        - ✅ ACCESSORI PERSIANE: Nuova sezione Cardini + Fermapersiane
        - ✅ CARDINI: Calcolo automatico da tipologia (F1→2, F2→3, PF1→3, PF2→6, ecc.)
@@ -1719,7 +1726,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.94 - Accessori Persiane</title>
+    <title>Open Porte v4.95 - Fix Cardini</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2933,7 +2940,7 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.94';
+        const APP_VERSION = '4.95';
         const APP_VERSION_NOTE = 'Accessori Persiane + Tapparelle';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
@@ -3058,10 +3065,12 @@
         ];
 
         // 🧮 CALCOLO AUTOMATICO CARDINI PER TIPOLOGIA
+        // Finestre (F): 2 cardini per anta
+        // Porta-finestre (PF): 3 cardini per anta
         function calcolaCardiniPersiana(tipologia, aperturaLibro = false) {
             const cardiniBase = {
-                'F1': 2, 'F2': 3, 'F3': 4, 'F4': 5,
-                'PF1': 3, 'PF2': 6, 'PF3': 8, 'PF4': 10
+                'F1': 2, 'F2': 4, 'F3': 6, 'F4': 8,      // 2 per anta
+                'PF1': 3, 'PF2': 6, 'PF3': 9, 'PF4': 12  // 3 per anta
             };
             let qta = cardiniBase[tipologia] || 2;
             if (aperturaLibro) qta += 1; // +1 se apertura a libro
@@ -4892,8 +4901,19 @@
             const cardiniSuggeriti = calcolaCardiniPersiana(tipologia, aperturaLibro);
             const fermaperSuggeriti = calcolaFermapersiane(tipologia);
             
-            // Valori attuali o default
-            const accessori = per.accessoriPersiana || {};
+            // 🆕 AUTO-INIZIALIZZA se non esiste
+            if (!per.accessoriPersiana) {
+                per.accessoriPersiana = {
+                    cardini: { qta: cardiniSuggeriti, modello: 'C.SAF90' },
+                    fermapersiane: { qta: fermaperSuggeriti, modello: 'K.EASY' }
+                };
+                // Salva subito nel JSON
+                saveState();
+                console.log(`🔩 Auto-init accessoriPersiana per ${tipologia}: cardini=${cardiniSuggeriti}, ferma=${fermaperSuggeriti}`);
+            }
+            
+            // Valori attuali
+            const accessori = per.accessoriPersiana;
             const cardini = accessori.cardini || { qta: cardiniSuggeriti, modello: 'C.SAF90' };
             const ferma = accessori.fermapersiane || { qta: fermaperSuggeriti, modello: 'K.EASY' };
             
@@ -4986,6 +5006,37 @@
             }
             pos.persiana.accessoriPersiana[tipo][campo] = valore;
             
+            saveState();
+            render();
+        }
+        
+        // 🆕 Funzione per aggiornare tipo persiana e ricalcolare accessori
+        function updateTipoPersiana(projectId, posId, nuovoTipo) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            const pos = project.posizioni.find(p => p.id === posId);
+            if (!pos || !pos.persiana) return;
+            
+            // Aggiorna tipo
+            pos.persiana.tipo = nuovoTipo;
+            
+            // Ricalcola accessori suggeriti
+            const aperturaLibro = (pos.persiana.apertura || '').includes('LIB') || (pos.persiana.apertura || '').includes('/A');
+            const cardiniSuggeriti = calcolaCardiniPersiana(nuovoTipo, aperturaLibro);
+            const fermaperSuggeriti = calcolaFermapersiane(nuovoTipo);
+            
+            // Aggiorna quantità (mantiene modello)
+            if (!pos.persiana.accessoriPersiana) {
+                pos.persiana.accessoriPersiana = {
+                    cardini: { qta: cardiniSuggeriti, modello: 'C.SAF90' },
+                    fermapersiane: { qta: fermaperSuggeriti, modello: 'K.EASY' }
+                };
+            } else {
+                pos.persiana.accessoriPersiana.cardini.qta = cardiniSuggeriti;
+                pos.persiana.accessoriPersiana.fermapersiane.qta = fermaperSuggeriti;
+            }
+            
+            console.log(`🔄 Tipo ${nuovoTipo}: cardini=${cardiniSuggeriti}, ferma=${fermaperSuggeriti}`);
             saveState();
             render();
         }
@@ -8817,7 +8868,13 @@
                 // Opzione standard selezionata
                 input.style.display = 'none';
                 input.value = '';
-                updateProduct(projectId, posId, productType, field, value);
+                
+                // 🆕 v4.95: Se cambia tipo persiana, ricalcola accessori
+                if (productType === 'persiana' && field === 'tipo') {
+                    updateTipoPersiana(projectId, posId, value);
+                } else {
+                    updateProduct(projectId, posId, productType, field, value);
+                }
             }
         }
 
