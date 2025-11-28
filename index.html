@@ -16251,42 +16251,22 @@
                             </div>
                         </div>
                         
-                        <!-- CORNICI INTERNE -->
+                        <!-- CORNICI INTERNE FERMA PANNELLO -->
                         <div class="bg-cyan-100 rounded-lg p-3">
-                            <h6 class="font-medium text-cyan-900 mb-2">📐 Cornici Interne</h6>
-                            <div class="grid md:grid-cols-3 gap-2">
+                            <h6 class="font-medium text-cyan-900 mb-2">📐 Cornici in Legno Ferma Pannello (interno)</h6>
+                            <div class="grid md:grid-cols-2 gap-2">
                                 <div>
                                     <label class="flex items-center gap-2 cursor-pointer">
                                         <input type="checkbox" 
-                                               ${bld.corniciInt ? 'checked' : ''}
-                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'corniciInt', this.checked)"
+                                               ${bld.corniciFermaPannello ? 'checked' : ''}
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'corniciFermaPannello', this.checked)"
                                                class="w-4 h-4">
-                                        <span class="text-sm font-medium">Cornici ferma pannello interno</span>
+                                        <span class="text-sm font-medium">Aggiungi cornici ferma pannello</span>
                                     </label>
-                                    <p class="text-xs text-gray-500 mt-1">Prezzo su richiesta</p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        ${bld.tipoAnta === 'doppia' ? '€228 (doppia anta)' : '€114 (anta singola)'} - Luce 0-4
+                                    </p>
                                 </div>
-                                ${bld.corniciInt ? `
-                                    <div>
-                                        <label class="text-xs font-medium">Tipo</label>
-                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'corniciIntTipo', this.value)"
-                                                class="w-full compact-input border rounded mt-1 text-sm">
-                                            <option value="">Seleziona...</option>
-                                            <option value="CF1" ${bld.corniciIntTipo === 'CF1' ? 'selected' : ''}>CF1 70x10mm</option>
-                                            <option value="CF2" ${bld.corniciIntTipo === 'CF2' ? 'selected' : ''}>CF2 90x10mm</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Essenza</label>
-                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'corniciIntEssenza', this.value)"
-                                                class="w-full compact-input border rounded mt-1 text-sm">
-                                            <option value="">Seleziona...</option>
-                                            <option value="tangMog" ${bld.corniciIntEssenza === 'tangMog' ? 'selected' : ''}>Tanganica/Mogano</option>
-                                            <option value="rovNoce" ${bld.corniciIntEssenza === 'rovNoce' ? 'selected' : ''}>Rovere/Noce</option>
-                                            <option value="okoume" ${bld.corniciIntEssenza === 'okoume' ? 'selected' : ''}>Okoumè</option>
-                                            <option value="laccRAL" ${bld.corniciIntEssenza === 'laccRAL' ? 'selected' : ''}>Laccato RAL</option>
-                                        </select>
-                                    </div>
-                                ` : ''}
                             </div>
                         </div>
                     </div>
