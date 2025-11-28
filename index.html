@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.06 - 📤 EXPORT JSON BLINDATE COMPLETO ✅
+    Open Porte v5.07 - 🚪 PORTONCINI FINSTRAL - FASE 1 ✅
+    
+    🔧 AGGIORNAMENTI v5.07 (28 NOV 2025):
+    - ✅ NUOVO PRODOTTO: Portoncini Finstral FIN-Door
+    - ✅ CHECKBOX Step 2: Selezionabile come altri prodotti
+    - ✅ configPortoncini: Struttura dati config globale
+    - ✅ Step 9 dedicato: Configurazione Portoncini Default
+    - ✅ EXPORT JSON: configPortoncini incluso in sync GitHub
+    - ⏳ FASE 2: Tab posizioni + addPortoncino() (prossima chat)
     
     🔧 AGGIORNAMENTI v5.06 (28 NOV 2025):
     - ✅ EXPORT configBlindate: Tutti i campi config globale blindate
@@ -3013,8 +3021,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.06';
-        const APP_VERSION_NOTE = 'Export JSON Blindate Completo';
+        const APP_VERSION = '5.07';
+        const APP_VERSION_NOTE = 'Portoncini Finstral FIN-Door';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -7155,7 +7163,8 @@
                         tapparelle: updatedProject.prodotti?.tapparelle || false,
                         zanzariere: updatedProject.prodotti?.zanzariere || false,
                         cassonetti: updatedProject.prodotti?.cassonetti || false,
-                        blindate: updatedProject.prodotti?.blindate || false
+                        blindate: updatedProject.prodotti?.blindate || false,
+                        portoncini: updatedProject.prodotti?.portoncini || false
                     },
                     
                     // CARATTERISTICHE MURO
@@ -7366,6 +7375,42 @@
                         rivestimentoEst: updatedProject.configBlindate.rivestimentoEst || null
                     } : null,
                     
+                    // 🚪 v5.07: CONFIG PORTONCINI FINSTRAL
+                    configPortoncini: updatedProject.configPortoncini ? {
+                        azienda: updatedProject.configPortoncini.azienda || 'Finstral',
+                        // Telaio
+                        tipoTelaio: updatedProject.configPortoncini.tipoTelaio || '',
+                        soglia: updatedProject.configPortoncini.soglia || '',
+                        montante: updatedProject.configPortoncini.montante || '',
+                        traversa: updatedProject.configPortoncini.traversa || '',
+                        // Anta
+                        modelloAnta: updatedProject.configPortoncini.modelloAnta || '',
+                        pannello: updatedProject.configPortoncini.pannello || '',
+                        materialeInt: updatedProject.configPortoncini.materialeInt || '',
+                        materialeEst: updatedProject.configPortoncini.materialeEst || '',
+                        coloreInt: updatedProject.configPortoncini.coloreInt || '',
+                        coloreEst: updatedProject.configPortoncini.coloreEst || '',
+                        // Vetro
+                        tipoVetro: updatedProject.configPortoncini.tipoVetro || '',
+                        vetroOrnamentale: updatedProject.configPortoncini.vetroOrnamentale || '',
+                        fermavetro: updatedProject.configPortoncini.fermavetro || '',
+                        // Ferramenta
+                        codiceFerramenta: updatedProject.configPortoncini.codiceFerramenta || '',
+                        cerniere: updatedProject.configPortoncini.cerniere || '',
+                        cilindro: updatedProject.configPortoncini.cilindro || '',
+                        quantitaChiavi: updatedProject.configPortoncini.quantitaChiavi || '',
+                        // Maniglie
+                        manigliaInt: updatedProject.configPortoncini.manigliaInt || '',
+                        manigliaEst: updatedProject.configPortoncini.manigliaEst || '',
+                        // Accessori
+                        motorApertura: updatedProject.configPortoncini.motorApertura || false,
+                        telecomando: updatedProject.configPortoncini.telecomando || '',
+                        lettoreImpronte: updatedProject.configPortoncini.lettoreImpronte || '',
+                        chiudiporta: updatedProject.configPortoncini.chiudiporta || '',
+                        // Note
+                        note: updatedProject.configPortoncini.note || ''
+                    } : null,
+                    
                     // POSIZIONI (con caratteristiche muro per posizione)
                     positions: (updatedProject.positions || []).map(pos => ({
                         id: pos.id,
@@ -7391,6 +7436,8 @@
                         cassonetto: pos.cassonetto || null,
                         // 🔐 v5.06: Blindata
                         blindata: pos.blindata || null,
+                        // 🚪 v5.07: Portoncino Finstral
+                        portoncino: pos.portoncino || null,
                         
                         // Prodotti assenti
                         prodottiAssenti: pos.prodottiAssenti || [],
@@ -12625,9 +12672,10 @@
                             if (project.prodotti?.zanzariere) steps.push({num: 6, label: 'Config. Zanzariere'});
                             if (project.prodotti?.cassonetti) steps.push({num: 7, label: 'Config. Cassonetti'});
                             if (project.prodotti?.blindate) steps.push({num: 8, label: 'Config. Blindate'});
+                            if (project.prodotti?.portoncini) steps.push({num: 9, label: 'Config. Portoncini'});
                             
                             // Step finale sempre presente
-                            steps.push({num: 9, label: 'Posizioni'});
+                            steps.push({num: 10, label: 'Posizioni'});
                             
                             return steps.map((step, idx) => `
                                 <div class="flex flex-col items-center cursor-pointer flex-shrink-0" onclick="changeSetupStep(${step.num})">
@@ -12649,14 +12697,15 @@
                           state.setupStep === 6 ? renderStep6ConfigZanzariere(project) :
                           state.setupStep === 7 ? renderStep7ConfigCassonetti(project) :
                           state.setupStep === 8 ? renderStep8ConfigBlindate(project) :
-                          renderStep9Positions(project)}
+                          state.setupStep === 9 ? renderStep9ConfigPortoncini(project) :
+                          renderStep10Positions(project)}
                         
                         <div class="flex justify-between mt-6 pt-4 border-t">
                             <button onclick="goToPrevStep('${project.id}')" 
                                     class="px-4 py-2 border rounded-lg hover:bg-gray-50 ${state.setupStep === 1 ? 'invisible' : ''}">
                                 ← Indietro
                             </button>
-                            ${state.setupStep < 9 ? `
+                            ${state.setupStep < 10 ? `
                                 <button onclick="goToNextStep('${project.id}')" 
                                         class="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:shadow-lg">
                                     Avanti →
@@ -12880,6 +12929,19 @@
                             <div>
                                 <div class="font-semibold">Porte Blindate</div>
                                 <div class="text-xs opacity-75">Oikos</div>
+                            </div>
+                        </label>
+
+                        <label class="product-pill ${project.prodotti?.portoncini ? 'selected bg-teal-50 border-teal-500 text-teal-700' : 'border-gray-300'}">
+                            <input type="checkbox" 
+                                   ${project.prodotti?.portoncini ? 'checked' : ''}
+                                   onchange="updateProdotti('${project.id}', 'portoncini', this.checked)"
+                                   onclick="event.stopPropagation()"
+                                   class="sr-only">
+                            <span class="text-xl">🚪</span>
+                            <div>
+                                <div class="font-semibold">Portoncini</div>
+                                <div class="text-xs opacity-75">Finstral FIN-Door</div>
                             </div>
                         </label>
                     </div>
@@ -14728,7 +14790,7 @@
             `;
         }
 
-        function renderStep9Positions(project) {
+        function renderStep10Positions(project) {
             
             return `
                 <div>
@@ -14809,6 +14871,409 @@
                 </div>
             `;
         }
+
+        // ========================
+        // 🚪 STEP 9: CONFIG PORTONCINI FINSTRAL
+        // ========================
+        function renderStep9ConfigPortoncini(project) {
+            if (!project.prodotti?.portoncini) {
+                return `<div class="text-center py-8"><p class="text-gray-500">I portoncini non sono stati selezionati. Salta questo step.</p></div>`;
+            }
+            
+            // Inizializza configPortoncini se non esiste
+            if (!project.configPortoncini) {
+                project.configPortoncini = {
+                    azienda: 'Finstral',
+                    // Telaio
+                    tipoTelaio: '',
+                    soglia: '',
+                    montante: '',
+                    traversa: '',
+                    // Anta
+                    modelloAnta: '',
+                    pannello: '',
+                    materialeInt: '',
+                    materialeEst: '',
+                    coloreInt: '',
+                    coloreEst: '',
+                    // Vetro
+                    tipoVetro: '',
+                    vetroOrnamentale: '',
+                    fermavetro: '',
+                    // Ferramenta
+                    codiceFerramenta: '',
+                    cerniere: '',
+                    cilindro: '',
+                    quantitaChiavi: 3,
+                    // Maniglie
+                    manigliaInt: '',
+                    manigliaEst: '',
+                    // Accessori
+                    motorApertura: false,
+                    telecomando: '',
+                    lettoreImpronte: '',
+                    chiudiporta: '',
+                    // Note
+                    note: ''
+                };
+                saveState();
+            }
+            
+            const cfg = project.configPortoncini;
+            
+            return `
+                <div>
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="text-2xl">🚪</span> Configurazione Portoncini Finstral Default
+                    </h2>
+                    <p class="text-gray-600 mb-4">Imposta i valori di default per tutti i portoncini (Listino FIN-Door):</p>
+                    
+                    <!-- ⚙️ TELAIO -->
+                    <div class="bg-teal-50 border-2 border-teal-300 rounded-lg p-4 mb-4">
+                        <h3 class="font-semibold text-teal-800 mb-3 flex items-center gap-2">
+                            <span>🏗️</span> Telaio
+                        </h3>
+                        <div class="grid md:grid-cols-4 gap-3">
+                            <!-- AZIENDA -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">1. Azienda</label>
+                                <select class="w-full px-3 py-2 border rounded-lg bg-gray-100" disabled>
+                                    <option value="Finstral" selected>Finstral</option>
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Al momento solo Finstral</p>
+                            </div>
+                            
+                            <!-- TIPO TELAIO -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">2. Tipo Telaio</label>
+                                <select onchange="updateConfigPortoncini('${project.id}', 'tipoTelaio', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona...</option>
+                                    <option value="L" ${cfg.tipoTelaio === 'L' ? 'selected' : ''}>L - Standard</option>
+                                    <option value="Z" ${cfg.tipoTelaio === 'Z' ? 'selected' : ''}>Z - Ribassato</option>
+                                    <option value="T" ${cfg.tipoTelaio === 'T' ? 'selected' : ''}>T - Termico</option>
+                                </select>
+                            </div>
+                            
+                            <!-- SOGLIA -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">3. Soglia</label>
+                                <select onchange="updateConfigPortoncini('${project.id}', 'soglia', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona...</option>
+                                    <option value="standard" ${cfg.soglia === 'standard' ? 'selected' : ''}>Standard</option>
+                                    <option value="ribassata" ${cfg.soglia === 'ribassata' ? 'selected' : ''}>Ribassata</option>
+                                    <option value="filo-pavimento" ${cfg.soglia === 'filo-pavimento' ? 'selected' : ''}>Filo Pavimento</option>
+                                </select>
+                            </div>
+                            
+                            <!-- MONTANTE -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">4. Montante (mm)</label>
+                                <input type="text" 
+                                       value="${cfg.montante || ''}"
+                                       onchange="updateConfigPortoncini('${project.id}', 'montante', this.value)"
+                                       placeholder="Es: 110"
+                                       class="w-full px-3 py-2 border rounded-lg">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🚪 ANTA E PANNELLO -->
+                    <div class="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mb-4">
+                        <h3 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                            <span>🚪</span> Anta e Pannello
+                        </h3>
+                        <div class="grid md:grid-cols-3 gap-3">
+                            <!-- MODELLO ANTA -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">5. Modello Anta</label>
+                                <select onchange="updateConfigPortoncini('${project.id}', 'modelloAnta', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona...</option>
+                                    <option value="D101" ${cfg.modelloAnta === 'D101' ? 'selected' : ''}>D101 - Base</option>
+                                    <option value="D102" ${cfg.modelloAnta === 'D102' ? 'selected' : ''}>D102 - Con vetro</option>
+                                    <option value="D201" ${cfg.modelloAnta === 'D201' ? 'selected' : ''}>D201 - Premium</option>
+                                    <option value="D202" ${cfg.modelloAnta === 'D202' ? 'selected' : ''}>D202 - Premium vetro</option>
+                                    <option value="D301" ${cfg.modelloAnta === 'D301' ? 'selected' : ''}>D301 - Design</option>
+                                    <option value="D401" ${cfg.modelloAnta === 'D401' ? 'selected' : ''}>D401 - Top</option>
+                                </select>
+                            </div>
+                            
+                            <!-- PANNELLO -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">6. Pannello</label>
+                                <select onchange="updateConfigPortoncini('${project.id}', 'pannello', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona...</option>
+                                    <option value="liscio" ${cfg.pannello === 'liscio' ? 'selected' : ''}>Liscio</option>
+                                    <option value="bugna" ${cfg.pannello === 'bugna' ? 'selected' : ''}>Bugna</option>
+                                    <option value="design" ${cfg.pannello === 'design' ? 'selected' : ''}>Design</option>
+                                    <option value="personalizzato" ${cfg.pannello === 'personalizzato' ? 'selected' : ''}>Personalizzato</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🎨 MATERIALI E COLORI -->
+                    <div class="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mb-4">
+                        <h3 class="font-semibold text-yellow-800 mb-3 flex items-center gap-2">
+                            <span>🎨</span> Materiali e Colori
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <!-- INTERNO -->
+                            <div class="bg-yellow-100 p-3 rounded-lg">
+                                <h4 class="font-semibold text-yellow-900 mb-2">Interno</h4>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-xs font-medium mb-1">7. Materiale Int</label>
+                                        <select onchange="updateConfigPortoncini('${project.id}', 'materialeInt', this.value)"
+                                                class="w-full px-2 py-1 text-sm border rounded-lg">
+                                            <option value="">Seleziona...</option>
+                                            <option value="pvc" ${cfg.materialeInt === 'pvc' ? 'selected' : ''}>PVC</option>
+                                            <option value="alluminio" ${cfg.materialeInt === 'alluminio' ? 'selected' : ''}>Alluminio</option>
+                                            <option value="legno" ${cfg.materialeInt === 'legno' ? 'selected' : ''}>Legno</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium mb-1">8. Colore Int</label>
+                                        <input type="text" 
+                                               value="${cfg.coloreInt || ''}"
+                                               onchange="updateConfigPortoncini('${project.id}', 'coloreInt', this.value)"
+                                               placeholder="Es: RAL9016"
+                                               class="w-full px-2 py-1 text-sm border rounded-lg">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- ESTERNO -->
+                            <div class="bg-yellow-100 p-3 rounded-lg">
+                                <h4 class="font-semibold text-yellow-900 mb-2">Esterno</h4>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-xs font-medium mb-1">9. Materiale Est</label>
+                                        <select onchange="updateConfigPortoncini('${project.id}', 'materialeEst', this.value)"
+                                                class="w-full px-2 py-1 text-sm border rounded-lg">
+                                            <option value="">Seleziona...</option>
+                                            <option value="pvc" ${cfg.materialeEst === 'pvc' ? 'selected' : ''}>PVC</option>
+                                            <option value="alluminio" ${cfg.materialeEst === 'alluminio' ? 'selected' : ''}>Alluminio</option>
+                                            <option value="legno" ${cfg.materialeEst === 'legno' ? 'selected' : ''}>Legno</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium mb-1">10. Colore Est</label>
+                                        <input type="text" 
+                                               value="${cfg.coloreEst || ''}"
+                                               onchange="updateConfigPortoncini('${project.id}', 'coloreEst', this.value)"
+                                               placeholder="Es: RAL7016"
+                                               class="w-full px-2 py-1 text-sm border rounded-lg">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🪟 VETRO -->
+                    <div class="bg-cyan-50 border-2 border-cyan-300 rounded-lg p-4 mb-4">
+                        <h3 class="font-semibold text-cyan-800 mb-3 flex items-center gap-2">
+                            <span>🪟</span> Vetro
+                        </h3>
+                        <div class="grid md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">11. Tipo Vetro</label>
+                                <select onchange="updateConfigPortoncini('${project.id}', 'tipoVetro', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Nessuno/Seleziona...</option>
+                                    <option value="chiaro" ${cfg.tipoVetro === 'chiaro' ? 'selected' : ''}>Chiaro</option>
+                                    <option value="satinato" ${cfg.tipoVetro === 'satinato' ? 'selected' : ''}>Satinato</option>
+                                    <option value="ornamentale" ${cfg.tipoVetro === 'ornamentale' ? 'selected' : ''}>Ornamentale</option>
+                                    <option value="sicurezza" ${cfg.tipoVetro === 'sicurezza' ? 'selected' : ''}>Sicurezza</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">12. Vetro Ornamentale</label>
+                                <input type="text" 
+                                       value="${cfg.vetroOrnamentale || ''}"
+                                       onchange="updateConfigPortoncini('${project.id}', 'vetroOrnamentale', this.value)"
+                                       placeholder="Es: Delta, Chinchillà"
+                                       class="w-full px-3 py-2 border rounded-lg"
+                                       ${cfg.tipoVetro !== 'ornamentale' ? 'disabled' : ''}>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">13. Fermavetro</label>
+                                <select onchange="updateConfigPortoncini('${project.id}', 'fermavetro', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona...</option>
+                                    <option value="interno" ${cfg.fermavetro === 'interno' ? 'selected' : ''}>Interno</option>
+                                    <option value="esterno" ${cfg.fermavetro === 'esterno' ? 'selected' : ''}>Esterno</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🔩 FERRAMENTA -->
+                    <div class="bg-gray-50 border-2 border-gray-300 rounded-lg p-4 mb-4">
+                        <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <span>🔩</span> Ferramenta
+                        </h3>
+                        <div class="grid md:grid-cols-4 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">14. Codice Ferramenta</label>
+                                <input type="text" 
+                                       value="${cfg.codiceFerramenta || ''}"
+                                       onchange="updateConfigPortoncini('${project.id}', 'codiceFerramenta', this.value)"
+                                       placeholder="Es: FD-3000"
+                                       class="w-full px-3 py-2 border rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">15. Cerniere</label>
+                                <select onchange="updateConfigPortoncini('${project.id}', 'cerniere', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona...</option>
+                                    <option value="standard" ${cfg.cerniere === 'standard' ? 'selected' : ''}>Standard</option>
+                                    <option value="3d" ${cfg.cerniere === '3d' ? 'selected' : ''}>3D Regolabili</option>
+                                    <option value="nascoste" ${cfg.cerniere === 'nascoste' ? 'selected' : ''}>Nascoste</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">16. Cilindro</label>
+                                <select onchange="updateConfigPortoncini('${project.id}', 'cilindro', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona...</option>
+                                    <option value="standard" ${cfg.cilindro === 'standard' ? 'selected' : ''}>Standard</option>
+                                    <option value="europeo" ${cfg.cilindro === 'europeo' ? 'selected' : ''}>Europeo</option>
+                                    <option value="alta-sicurezza" ${cfg.cilindro === 'alta-sicurezza' ? 'selected' : ''}>Alta Sicurezza</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">17. Qtà Chiavi</label>
+                                <select onchange="updateConfigPortoncini('${project.id}', 'quantitaChiavi', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="3" ${cfg.quantitaChiavi == '3' ? 'selected' : ''}>3</option>
+                                    <option value="4" ${cfg.quantitaChiavi == '4' ? 'selected' : ''}>4</option>
+                                    <option value="5" ${cfg.quantitaChiavi == '5' ? 'selected' : ''}>5</option>
+                                    <option value="6" ${cfg.quantitaChiavi == '6' ? 'selected' : ''}>6</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🖐️ MANIGLIE -->
+                    <div class="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 mb-4">
+                        <h3 class="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                            <span>🖐️</span> Maniglie
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">18. Maniglia Interna</label>
+                                <input type="text" 
+                                       value="${cfg.manigliaInt || ''}"
+                                       onchange="updateConfigPortoncini('${project.id}', 'manigliaInt', this.value)"
+                                       placeholder="Es: 7040 - Maniglione"
+                                       class="w-full px-3 py-2 border rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">19. Maniglia Esterna</label>
+                                <input type="text" 
+                                       value="${cfg.manigliaEst || ''}"
+                                       onchange="updateConfigPortoncini('${project.id}', 'manigliaEst', this.value)"
+                                       placeholder="Es: Pomolo fisso / Maniglione"
+                                       class="w-full px-3 py-2 border rounded-lg">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ⚡ ACCESSORI -->
+                    <div class="bg-orange-50 border-2 border-orange-300 rounded-lg p-4 mb-4">
+                        <h3 class="font-semibold text-orange-800 mb-3 flex items-center gap-2">
+                            <span>⚡</span> Accessori
+                        </h3>
+                        <div class="grid md:grid-cols-4 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">20. Motor Apertura</label>
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" 
+                                           ${cfg.motorApertura ? 'checked' : ''}
+                                           onchange="updateConfigPortoncini('${project.id}', 'motorApertura', this.checked)"
+                                           class="w-5 h-5 rounded">
+                                    <span>Motorizzata</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">21. Telecomando</label>
+                                <input type="text" 
+                                       value="${cfg.telecomando || ''}"
+                                       onchange="updateConfigPortoncini('${project.id}', 'telecomando', this.value)"
+                                       placeholder="Es: 2 telecomandi"
+                                       class="w-full px-3 py-2 border rounded-lg"
+                                       ${!cfg.motorApertura ? 'disabled' : ''}>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">22. Lettore Impronte</label>
+                                <select onchange="updateConfigPortoncini('${project.id}', 'lettoreImpronte', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Nessuno</option>
+                                    <option value="base" ${cfg.lettoreImpronte === 'base' ? 'selected' : ''}>Base</option>
+                                    <option value="smart" ${cfg.lettoreImpronte === 'smart' ? 'selected' : ''}>Smart (con App)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">23. Chiudiporta</label>
+                                <select onchange="updateConfigPortoncini('${project.id}', 'chiudiporta', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Nessuno</option>
+                                    <option value="standard" ${cfg.chiudiporta === 'standard' ? 'selected' : ''}>Standard</option>
+                                    <option value="incasso" ${cfg.chiudiporta === 'incasso' ? 'selected' : ''}>Ad incasso</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 📝 NOTE -->
+                    <div class="bg-white border-2 border-gray-200 rounded-lg p-4">
+                        <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <span>📝</span> Note Generali
+                        </h3>
+                        <textarea 
+                            onchange="updateConfigPortoncini('${project.id}', 'note', this.value)"
+                            placeholder="Note aggiuntive per la configurazione portoncini..."
+                            class="w-full px-3 py-2 border rounded-lg h-24">${cfg.note || ''}</textarea>
+                    </div>
+                    
+                    <!-- RIEPILOGO -->
+                    <div class="mt-4 p-4 bg-teal-100 border-2 border-teal-400 rounded-lg">
+                        <h3 class="font-semibold text-teal-900 mb-2">📋 Riepilogo Configurazione</h3>
+                        <div class="grid md:grid-cols-3 gap-2 text-sm">
+                            <div><strong>Azienda:</strong> ${cfg.azienda || '-'}</div>
+                            <div><strong>Telaio:</strong> ${cfg.tipoTelaio || '-'}</div>
+                            <div><strong>Modello:</strong> ${cfg.modelloAnta || '-'}</div>
+                            <div><strong>Materiale Int:</strong> ${cfg.materialeInt || '-'}</div>
+                            <div><strong>Materiale Est:</strong> ${cfg.materialeEst || '-'}</div>
+                            <div><strong>Vetro:</strong> ${cfg.tipoVetro || 'Nessuno'}</div>
+                            <div><strong>Cilindro:</strong> ${cfg.cilindro || '-'}</div>
+                            <div><strong>Motorizzata:</strong> ${cfg.motorApertura ? 'Sì' : 'No'}</div>
+                            <div><strong>Lettore Impronte:</strong> ${cfg.lettoreImpronte || 'No'}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Funzione per aggiornare configPortoncini
+        window.updateConfigPortoncini = (projectId, field, value) => {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            if (!project.configPortoncini) {
+                project.configPortoncini = { azienda: 'Finstral' };
+            }
+            
+            project.configPortoncini[field] = value;
+            console.log(`🚪 configPortoncini.${field} = ${value}`);
+            
+            saveState();
+            render();
+        };
 
 
         function PositionDetail() {
