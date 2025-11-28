@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.14 - 🧹 PULIZIA CODICE BLINDATE ✅
+    Open Porte v5.15 - 🔐 NON DI SERIE RIVESTIMENTI ✅
+    
+    📋 CHANGELOG v5.15:
+    - 🔐 AGGIUNTO: Modello "Non di serie" in Linea Piano
+    - ✅ ESSENZE: Rovere, Tanganica, Castagno, Douglas, Pino, Noce Canaletto, Teak, Laccato RAL, Altre Essenze
+    - ✅ PREZZI: Differenziati per essenza (Noce Canaletto +€53, Teak +€115, Altre +€81)
+    - ✅ CALCOLO: calcolaPrezzoRivestimento() ora accetta parametro essenza
+    - ✅ LISTINO: Prezzi da pag. 99 EVO 2025
+    
+    📋 CHANGELOG v5.14:
     
     🔧 AGGIORNAMENTI v5.14 (28 NOV 2025):
     - 🗑️ RIMOSSO renderStep8ConfigBlindate() - config globale non più usata
@@ -1835,7 +1844,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.14 - Porte Blindate Oikos</title>
+    <title>Open Porte v5.15 - Non di serie Rivestimenti</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3049,7 +3058,7 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.14';
+        const APP_VERSION = '5.15';
         const APP_VERSION_NOTE = 'Pulizia codice - Rimosso tab Blindate vecchio';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
@@ -16686,9 +16695,11 @@
         const OIKOS_RIVESTIMENTI = {
             // LINEA PIANO
             Piano: {
-                modelli: ['Di Serie', 'Materici', 'Orizzontale', 'Verticale', 'Gres', 'Riflessi Vetro'],
+                modelli: ['Di Serie', 'Non di serie', 'Materici', 'Orizzontale', 'Verticale', 'Gres', 'Riflessi Vetro'],
                 essenze: {
                     'Di Serie': ['Tanganica 1-2', 'Mogano 2-3', 'Laccato Bianco Oikos', 'Rovere 1', 'Noce Nazionale 2', 'MDF da Laccare', 'Supporto Cliente'],
+                    // 🔐 v5.15: Non di serie - Impiallacciati verticale tranciato legno
+                    'Non di serie': ['Rovere Naturale 2-3', 'Rovere Miele', 'Rovere Wengè', 'Rovere Sbiancato', 'Tanganica 3', 'Castagno 2-3', 'Douglas 2', 'Pino 2', 'Noce Canaletto', 'Teak', 'Laccato RAL', 'Altre Essenze'],
                     'Materici': ['Bianco Talco', 'Grigio Talco', 'Bianco Sablè', 'Grigio Sablè', 'Bianco Rovere Sablè', 'Grigio Rovere Sablè'],
                     'Orizzontale': ['Rovere Naturale', 'Rovere Miele', 'Rovere Wengè', 'Rovere Sbiancato', 'Tanganica', 'Noce Canaletto', 'Teak', 'Laccato RAL'],
                     'Verticale': ['Laccato Tendenza Poro Aperto', 'Spazzolato Rovere', 'Laccato Metallizzato', 'Rovere Raw'],
@@ -16702,6 +16713,24 @@
                 },
                 prezziBase: {
                     'Di Serie': { luce0: 192, luce1: 192, luce2: 235, luce3: 346, luce4: 414 },
+                    // 🔐 v5.15: Non di serie - Prezzi ANTA UNICA (pag. 99 listino EVO 2025)
+                    // Luce 5/6 = Doppia Anta Tekno, Luce 3/4 = Doppia Anta Evolution
+                    'Non di serie': { 
+                        luce0: 405, luce1: 405, luce2: 483, // Rovere/Tanganica/Castagno/Douglas/Pino/Laccato RAL
+                        luce5: 526, luce6: 585, luce3: 626, luce4: 811, luce7: 1104, luce8: 1333 
+                    },
+                    'Non di serie Noce Canaletto': { 
+                        luce0: 458, luce1: 458, luce2: 545, 
+                        luce5: 594, luce6: 660, luce3: 700, luce4: 889, luce7: 1101, luce8: 1317 
+                    },
+                    'Non di serie Teak': { 
+                        luce0: 520, luce1: 520, luce2: 620, 
+                        luce5: 675, luce6: 750, luce3: 782, luce4: 1005, luce7: 1243, luce8: 1488 
+                    },
+                    'Non di serie Altre Essenze': { 
+                        luce0: 486, luce1: 486, luce2: 579, 
+                        luce5: 631, luce6: 702, luce3: 751, luce4: 973, luce7: 1324, luce8: 1599 
+                    },
                     'Materici': { luce0: 170, luce1: 170, luce2: 170 },
                     'Orizzontale': { luce0: 543, luce1: 543, luce2: 647 },
                     'Verticale': { luce0: 459, luce1: 459, luce2: 547 },
@@ -16956,11 +16985,28 @@
             return [];
         }
         
-        // 🔐 v5.02: Calcola prezzo rivestimento per linea/modello/luce
-        function calcolaPrezzoRivestimento(linea, modello, luce) {
+        // 🔐 v5.15: Calcola prezzo rivestimento per linea/modello/luce/essenza
+        function calcolaPrezzoRivestimento(linea, modello, luce, essenza = null) {
             if (!linea || !modello) return 0;
             const dati = OIKOS_RIVESTIMENTI[linea];
             if (!dati || !dati.prezziBase) return 0;
+            
+            // 🔐 v5.15: Gestione speciale per "Non di serie" con prezzi diversi per essenza
+            if (modello === 'Non di serie' && essenza) {
+                let keyPrezzo = 'Non di serie'; // Default
+                if (essenza.includes('Noce Canaletto')) {
+                    keyPrezzo = 'Non di serie Noce Canaletto';
+                } else if (essenza.includes('Teak')) {
+                    keyPrezzo = 'Non di serie Teak';
+                } else if (essenza.includes('Altre Essenze')) {
+                    keyPrezzo = 'Non di serie Altre Essenze';
+                }
+                const prezziModello = dati.prezziBase[keyPrezzo];
+                if (prezziModello) {
+                    return prezziModello[luce] || prezziModello['luce0'] || 0;
+                }
+            }
+            
             const prezziModello = dati.prezziBase[modello];
             if (!prezziModello) return 0;
             return prezziModello[luce] || prezziModello['luce0'] || 0;
