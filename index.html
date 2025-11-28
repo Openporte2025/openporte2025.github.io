@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.99 - 🔐 CONFIG GLOBALE BLINDATE ✅
+    Open Porte v5.00 - 🎨 RIVESTIMENTI OIKOS DINAMICI ✅
+    
+    🔧 AGGIORNAMENTI v5.00 (28 NOV 2025):
+    - ✅ DATABASE RIVESTIMENTI: OIKOS_RIVESTIMENTI con 7 linee complete
+    - ✅ DROPDOWN DINAMICI: Modello/Essenza cambiano in base a Linea selezionata
+    - ✅ HELPER FUNCTIONS: getModelliRivestimento(), getEssenzeRivestimento(), getTinteRivestimento()
+    - ✅ UI MIGLIORATA: Sezioni separate per Riv. Interno e Riv. Esterno
+    - ✅ PULIZIA AUTOMATICA: Cambiando Linea si puliscono Modello/Essenza/Tinta
+    - ✅ PREZZI BASE: Inclusi per ogni linea/modello/luce
     
     🔧 AGGIORNAMENTI v4.99 (28 NOV 2025):
     - ✅ STEP 8: Config Globale Porte Blindate
@@ -15268,7 +15276,153 @@
         }
 
         // ============================================
-        // 🔐 STEP 8: CONFIG PORTE BLINDATE (v4.98)
+        // 🔐 DATABASE RIVESTIMENTI OIKOS (v5.00)
+        // ============================================
+        const OIKOS_RIVESTIMENTI = {
+            // LINEA PIANO
+            Piano: {
+                modelli: ['Di Serie', 'Materici', 'Orizzontale', 'Verticale', 'Gres', 'Riflessi Vetro'],
+                essenze: {
+                    'Di Serie': ['Tanganica 1-2', 'Mogano 2-3', 'Laccato Bianco Oikos', 'Rovere 1', 'Noce Nazionale 2', 'MDF da Laccare', 'Supporto Cliente'],
+                    'Materici': ['Bianco Talco', 'Grigio Talco', 'Bianco Sablè', 'Grigio Sablè', 'Bianco Rovere Sablè', 'Grigio Rovere Sablè'],
+                    'Orizzontale': ['Rovere Naturale', 'Rovere Miele', 'Rovere Wengè', 'Rovere Sbiancato', 'Tanganica', 'Noce Canaletto', 'Teak', 'Laccato RAL'],
+                    'Verticale': ['Laccato Tendenza Poro Aperto', 'Spazzolato Rovere', 'Laccato Metallizzato', 'Rovere Raw'],
+                    'Gres': ['Neve', 'Nero Assoluto', 'Calce Bianco', 'Calce Grigio', 'Calce Tortora', 'Cor-Ten Ruggine', 'Cemento Liscio', 'Ardesia', 'Pietra Piasentina'],
+                    'Riflessi Vetro': ['Bianco Panna', 'Bianco', 'Bianco Gesso', 'Grigio', 'Bronzo', 'Tabacco', 'Moka', 'Nero', 'Platino', 'Oro']
+                },
+                tinte: {
+                    'Rovere': ['Naturale', '1', '2', '3', 'Miele', 'Wengè', 'Sbiancato'],
+                    'Laccato': ['Bianco', 'RAL a richiesta'],
+                    'Spazzolato': ['Bianco Gesso', 'Madreperla', 'Grigio Agata', 'Tabacco', 'Quercia Antica', 'Grigio Piombo']
+                },
+                prezziBase: {
+                    'Di Serie': { luce0: 192, luce1: 192, luce2: 235, luce3: 346, luce4: 414 },
+                    'Materici': { luce0: 170, luce1: 170, luce2: 170 },
+                    'Orizzontale': { luce0: 543, luce1: 543, luce2: 647 },
+                    'Verticale': { luce0: 459, luce1: 459, luce2: 547 },
+                    'Gres': { luce0: 1304, luce1: 1347, luce2: 1436 },
+                    'Riflessi Vetro': { luce0: 1197, luce1: 1322, luce2: 1534 }
+                }
+            },
+            // LINEA FUGATO
+            Fugato: {
+                modelli: ['Verticale', 'HTF', 'HTA', 'Scala'],
+                essenze: {
+                    'Verticale': ['Mogano 2-3', 'Tanganica 2', 'Pino Nodo 2', 'Douglas 2', 'Rovere 1-2-3', 'Laccato RAL'],
+                    'HTF': ['Tanganica 1', 'Mogano 2', 'Rovere 1-2-3', 'Laccato Tendenza', 'Spazzolato Rovere', 'Rovere Raw'],
+                    'HTA': ['Tanganica 1', 'Mogano 2', 'Rovere 1-2-3', 'Laccato RAL', 'Spazzolato Rovere', 'Rovere Raw'],
+                    'Scala': ['Mogano 2-3', 'Tanganica 2', 'Pino Nodo 2', 'Douglas 2', 'Rovere 1-2-3', 'Laccato RAL']
+                },
+                tinte: {
+                    'Rovere': ['Naturale', '1', '2', '3', 'Miele', 'Wengè', 'Sbiancato'],
+                    'Laccato': ['RAL a richiesta']
+                },
+                prezziBase: {
+                    'Verticale': { luce0: 592, luce1: 592, luce2: 706, luce3: 894, luce4: 1156 },
+                    'HTF': { luce0: 636, luce1: 636, luce2: 758, luce3: 1092, luce4: 1317 },
+                    'HTA': { luce0: 786, luce1: 786, luce2: 908, luce3: 1242, luce4: 1467 },
+                    'Scala': { luce0: 821, luce1: 821, luce2: 979, luce3: 1222, luce4: 1579 }
+                }
+            },
+            // LINEA PANTOGRAFATO
+            Pantografato: {
+                modelli: ['NP Country', 'SR Country', 'MDF Laccato'],
+                essenze: {
+                    'NP Country': ['Okoumè Tinta 6-7-8', 'Okoumè Mogano', 'Okoumè Laccato RAL'],
+                    'SR Country': ['Okoumè Tinta 6-7-8', 'Okoumè Mogano', 'Okoumè Laccato RAL'],
+                    'MDF Laccato': ['MDF Laccato RAL']
+                },
+                disegni: ['Toscana', 'Milano', 'Gardenia', 'Impero', 'Genova', 'Isola', '800 Veneto', 'Classica', 'Victoria', 'Geranio', 'Glicine', 'Ciclamino', 'Giglio', 'Iris', 'Narciso'],
+                prezziBase: {
+                    'NP Country': { luce0: 791, luce1: 791, luce2: 968, luce3: 1235, luce4: 1477 },
+                    'SR Country': { luce0: 908, luce1: 908, luce2: 1104, luce3: 1399, luce4: 1688 },
+                    'MDF Laccato': { luce0: 622, luce1: 622, luce2: 728, luce3: 903, luce4: 1166 }
+                }
+            },
+            // LINEA TEKNO
+            Tekno: {
+                modelli: ['HTA', 'HTO', 'HT1'],
+                essenze: {
+                    'HTA': ['Rovere Naturale', 'Rovere 1-2-3', 'Mogano 2', 'Tanganica 1', 'Laccato RAL', 'Laccato Tendenza', 'Spazzolato Rovere', 'Rovere Raw'],
+                    'HTO': ['Rovere Naturale', 'Rovere 1-2-3', 'Mogano 2', 'Tanganica 1', 'Laccato RAL', 'Laccato Tendenza', 'Spazzolato Rovere', 'Rovere Raw'],
+                    'HT1': ['Rovere Naturale', 'Rovere 1-2-3', 'Mogano 2', 'Tanganica 1', 'Laccato RAL', 'Laccato Tendenza', 'Spazzolato Rovere']
+                },
+                tinte: {
+                    'Rovere': ['Naturale', '1', '2', '3', 'Miele', 'Wengè', 'Sbiancato'],
+                    'Laccato Tendenza': ['Bianco Seta', 'Bianco', 'Bianco Gesso', 'Grigio Ghiaia', 'Grigio Muschio', 'Moka', 'Grigio Piombo', 'Tabacco', 'Bronzo', 'Platino', 'Fumo', 'Oro', 'Rame'],
+                    'Spazzolato': ['Bianco Gesso', 'Madreperla', 'Grigio Agata', 'Tabacco', 'Quercia Antica', 'Grigio Piombo']
+                },
+                prezziBase: {
+                    'HTA': { luce0: 909, luce1: 1000, luce2: 1192 },
+                    'HTO': { luce0: 833, luce1: 915, luce2: 1091 },
+                    'HT1': { luce0: 909, luce1: 1000, luce2: 1192 }
+                }
+            },
+            // LINEA LEGNO VIVO
+            LegnoVivo: {
+                modelli: ['Musa', 'Rialto', '800 Veneto', 'Classica', 'Toscana', 'Laguna'],
+                essenze: {
+                    'standard': ['Bianco Gesso', 'Madreperla', 'Tabacco', 'Grigio Agata', 'Grigio Piombo', 'Quercia Antica', 'Rovere Naturale', 'Rovere 1', 'Rovere 2', 'Rovere 3', 'Rovere Miele', 'Laccato RAL']
+                },
+                note: 'Rovere Spazzolato - Verniciatura esterni compresa',
+                prezziBase: {
+                    'Musa': { luce0: 1183, luce1: 1183, luce2: 1411, luce3: 1788, luce4: 2304 },
+                    'Rialto': { luce0: 1183, luce1: 1183, luce2: 1411, luce3: 1788, luce4: 2304 },
+                    '800 Veneto': { luce0: 1183, luce1: 1183, luce2: 1411, luce3: 1788, luce4: 2304 },
+                    'Classica': { luce0: 1281, luce1: 1281, luce2: 1527, luce3: 1928, luce4: 2484 },
+                    'Toscana': { luce0: 1281, luce1: 1281, luce2: 1527, luce3: 1928, luce4: 2484 },
+                    'Laguna': { luce0: 1561, luce1: 1561, luce2: 1860, luce3: 2327, luce4: 2999 }
+                }
+            },
+            // LINEA MASSELLO
+            Massello: {
+                modelli: ['Massello Standard'],
+                essenze: {
+                    'Massello Standard': ['Rovere', 'Noce', 'Castagno', 'Frassino']
+                },
+                note: 'Prezzi su richiesta'
+            },
+            // ALLUMINIO
+            Alluminio: {
+                modelli: ['Satinato', 'Spazzolato', 'Verniciato RAL'],
+                colori: {
+                    'Satinato': ['Argento', 'Bronzo', 'Champagne'],
+                    'Spazzolato': ['Argento', 'Bronzo', 'Champagne', 'Nero'],
+                    'Verniciato RAL': ['RAL a richiesta']
+                },
+                note: 'Prezzi su richiesta'
+            }
+        };
+
+        // Helper per ottenere modelli per linea
+        function getModelliRivestimento(linea) {
+            return OIKOS_RIVESTIMENTI[linea]?.modelli || [];
+        }
+        
+        // Helper per ottenere essenze per linea/modello
+        function getEssenzeRivestimento(linea, modello) {
+            const dati = OIKOS_RIVESTIMENTI[linea];
+            if (!dati) return [];
+            if (dati.essenze[modello]) return dati.essenze[modello];
+            if (dati.essenze['standard']) return dati.essenze['standard'];
+            return Object.values(dati.essenze)[0] || [];
+        }
+        
+        // Helper per ottenere tinte per linea/essenza
+        function getTinteRivestimento(linea, essenza) {
+            const dati = OIKOS_RIVESTIMENTI[linea];
+            if (!dati || !dati.tinte) return [];
+            // Cerca la categoria dell'essenza
+            for (const [cat, tinte] of Object.entries(dati.tinte)) {
+                if (essenza.toLowerCase().includes(cat.toLowerCase())) {
+                    return tinte;
+                }
+            }
+            return [];
+        }
+
+        // ============================================
+        // 🔐 STEP 8: CONFIG PORTE BLINDATE (v5.00)
         // ============================================
         function renderStep8ConfigBlindate(project) {
             if (!project.prodotti?.blindate) {
@@ -15412,51 +15566,126 @@
                                     <option value="OIKOS_Liquido" ${cfg.coloreTelaio === 'OIKOS_Liquido' ? 'selected' : ''}>OIKOS a Liquido (+€492)</option>
                                 </select>
                             </div>
-                            
-                            <!-- RIVESTIMENTO INTERNO - LINEA -->
-                            <div>
-                                <label class="block text-sm font-medium mb-1">8. Riv. Interno - Linea</label>
-                                <select onchange="updateConfigBlindateRiv('${project.id}', 'Int', 'linea', this.value)"
-                                        class="w-full px-3 py-2 border rounded-lg">
-                                    <option value="">Seleziona linea...</option>
-                                    <option value="Piano" ${cfg.rivestimentoInt?.linea === 'Piano' ? 'selected' : ''}>Piano</option>
-                                    <option value="Fugato" ${cfg.rivestimentoInt?.linea === 'Fugato' ? 'selected' : ''}>Fugato</option>
-                                    <option value="Pantografato" ${cfg.rivestimentoInt?.linea === 'Pantografato' ? 'selected' : ''}>Pantografato</option>
-                                    <option value="Tekno" ${cfg.rivestimentoInt?.linea === 'Tekno' ? 'selected' : ''}>Tekno</option>
-                                    <option value="LegnoVivo" ${cfg.rivestimentoInt?.linea === 'LegnoVivo' ? 'selected' : ''}>Legno Vivo</option>
-                                    <option value="Massello" ${cfg.rivestimentoInt?.linea === 'Massello' ? 'selected' : ''}>Massello</option>
-                                    <option value="Riflessi" ${cfg.rivestimentoInt?.linea === 'Riflessi' ? 'selected' : ''}>Riflessi</option>
-                                    <option value="Gres" ${cfg.rivestimentoInt?.linea === 'Gres' ? 'selected' : ''}>Gres</option>
-                                    <option value="Alluminio" ${cfg.rivestimentoInt?.linea === 'Alluminio' ? 'selected' : ''}>Alluminio</option>
-                                </select>
+                        </div>
+                        
+                        <!-- RIVESTIMENTO INTERNO -->
+                        <div class="mt-4 p-3 bg-yellow-100 rounded-lg">
+                            <h4 class="font-semibold text-yellow-900 mb-2">📋 Rivestimento INTERNO</h4>
+                            <div class="grid md:grid-cols-4 gap-2">
+                                <!-- LINEA INT -->
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">8. Linea</label>
+                                    <select id="riv-int-linea-${project.id}"
+                                            onchange="updateConfigBlindateRiv('${project.id}', 'Int', 'linea', this.value); updateRivDropdowns('${project.id}', 'Int');"
+                                            class="w-full px-2 py-1.5 border rounded text-sm">
+                                        <option value="">Seleziona...</option>
+                                        <option value="Piano" ${cfg.rivestimentoInt?.linea === 'Piano' ? 'selected' : ''}>Piano</option>
+                                        <option value="Fugato" ${cfg.rivestimentoInt?.linea === 'Fugato' ? 'selected' : ''}>Fugato</option>
+                                        <option value="Pantografato" ${cfg.rivestimentoInt?.linea === 'Pantografato' ? 'selected' : ''}>Pantografato</option>
+                                        <option value="Tekno" ${cfg.rivestimentoInt?.linea === 'Tekno' ? 'selected' : ''}>Tekno</option>
+                                        <option value="LegnoVivo" ${cfg.rivestimentoInt?.linea === 'LegnoVivo' ? 'selected' : ''}>Legno Vivo</option>
+                                        <option value="Massello" ${cfg.rivestimentoInt?.linea === 'Massello' ? 'selected' : ''}>Massello</option>
+                                        <option value="Alluminio" ${cfg.rivestimentoInt?.linea === 'Alluminio' ? 'selected' : ''}>Alluminio</option>
+                                    </select>
+                                </div>
+                                <!-- MODELLO INT -->
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Modello</label>
+                                    <select id="riv-int-modello-${project.id}"
+                                            onchange="updateConfigBlindateRiv('${project.id}', 'Int', 'modello', this.value); updateRivDropdowns('${project.id}', 'Int');"
+                                            class="w-full px-2 py-1.5 border rounded text-sm">
+                                        <option value="">Seleziona...</option>
+                                        ${getModelliRivestimento(cfg.rivestimentoInt?.linea).map(m => 
+                                            `<option value="${m}" ${cfg.rivestimentoInt?.modello === m ? 'selected' : ''}>${m}</option>`
+                                        ).join('')}
+                                    </select>
+                                </div>
+                                <!-- ESSENZA INT -->
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Essenza</label>
+                                    <select id="riv-int-essenza-${project.id}"
+                                            onchange="updateConfigBlindateRiv('${project.id}', 'Int', 'essenza', this.value)"
+                                            class="w-full px-2 py-1.5 border rounded text-sm">
+                                        <option value="">Seleziona...</option>
+                                        ${getEssenzeRivestimento(cfg.rivestimentoInt?.linea, cfg.rivestimentoInt?.modello).map(e => 
+                                            `<option value="${e}" ${cfg.rivestimentoInt?.essenza === e ? 'selected' : ''}>${e}</option>`
+                                        ).join('')}
+                                    </select>
+                                </div>
+                                <!-- TINTA INT -->
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Tinta</label>
+                                    <input type="text" 
+                                           value="${cfg.rivestimentoInt?.tinta || ''}"
+                                           onchange="updateConfigBlindateRiv('${project.id}', 'Int', 'tinta', this.value)"
+                                           placeholder="es. Naturale, RAL..."
+                                           class="w-full px-2 py-1.5 border rounded text-sm">
+                                </div>
                             </div>
-                            
-                            <!-- RIVESTIMENTO ESTERNO - LINEA -->
-                            <div>
-                                <label class="block text-sm font-medium mb-1">9. Riv. Esterno - Linea</label>
-                                <select onchange="updateConfigBlindateRiv('${project.id}', 'Est', 'linea', this.value)"
-                                        class="w-full px-3 py-2 border rounded-lg">
-                                    <option value="">Seleziona linea...</option>
-                                    <option value="Piano" ${cfg.rivestimentoEst?.linea === 'Piano' ? 'selected' : ''}>Piano</option>
-                                    <option value="Fugato" ${cfg.rivestimentoEst?.linea === 'Fugato' ? 'selected' : ''}>Fugato</option>
-                                    <option value="Pantografato" ${cfg.rivestimentoEst?.linea === 'Pantografato' ? 'selected' : ''}>Pantografato</option>
-                                    <option value="Tekno" ${cfg.rivestimentoEst?.linea === 'Tekno' ? 'selected' : ''}>Tekno</option>
-                                    <option value="LegnoVivo" ${cfg.rivestimentoEst?.linea === 'LegnoVivo' ? 'selected' : ''}>Legno Vivo</option>
-                                    <option value="Massello" ${cfg.rivestimentoEst?.linea === 'Massello' ? 'selected' : ''}>Massello</option>
-                                    <option value="Riflessi" ${cfg.rivestimentoEst?.linea === 'Riflessi' ? 'selected' : ''}>Riflessi</option>
-                                    <option value="Gres" ${cfg.rivestimentoEst?.linea === 'Gres' ? 'selected' : ''}>Gres</option>
-                                    <option value="Alluminio" ${cfg.rivestimentoEst?.linea === 'Alluminio' ? 'selected' : ''}>Alluminio</option>
-                                </select>
+                        </div>
+                        
+                        <!-- RIVESTIMENTO ESTERNO -->
+                        <div class="mt-3 p-3 bg-orange-100 rounded-lg">
+                            <h4 class="font-semibold text-orange-900 mb-2">📋 Rivestimento ESTERNO</h4>
+                            <div class="grid md:grid-cols-4 gap-2">
+                                <!-- LINEA EST -->
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">9. Linea</label>
+                                    <select id="riv-est-linea-${project.id}"
+                                            onchange="updateConfigBlindateRiv('${project.id}', 'Est', 'linea', this.value); updateRivDropdowns('${project.id}', 'Est');"
+                                            class="w-full px-2 py-1.5 border rounded text-sm">
+                                        <option value="">Seleziona...</option>
+                                        <option value="Piano" ${cfg.rivestimentoEst?.linea === 'Piano' ? 'selected' : ''}>Piano</option>
+                                        <option value="Fugato" ${cfg.rivestimentoEst?.linea === 'Fugato' ? 'selected' : ''}>Fugato</option>
+                                        <option value="Pantografato" ${cfg.rivestimentoEst?.linea === 'Pantografato' ? 'selected' : ''}>Pantografato</option>
+                                        <option value="Tekno" ${cfg.rivestimentoEst?.linea === 'Tekno' ? 'selected' : ''}>Tekno</option>
+                                        <option value="LegnoVivo" ${cfg.rivestimentoEst?.linea === 'LegnoVivo' ? 'selected' : ''}>Legno Vivo</option>
+                                        <option value="Massello" ${cfg.rivestimentoEst?.linea === 'Massello' ? 'selected' : ''}>Massello</option>
+                                        <option value="Alluminio" ${cfg.rivestimentoEst?.linea === 'Alluminio' ? 'selected' : ''}>Alluminio</option>
+                                    </select>
+                                </div>
+                                <!-- MODELLO EST -->
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Modello</label>
+                                    <select id="riv-est-modello-${project.id}"
+                                            onchange="updateConfigBlindateRiv('${project.id}', 'Est', 'modello', this.value); updateRivDropdowns('${project.id}', 'Est');"
+                                            class="w-full px-2 py-1.5 border rounded text-sm">
+                                        <option value="">Seleziona...</option>
+                                        ${getModelliRivestimento(cfg.rivestimentoEst?.linea).map(m => 
+                                            `<option value="${m}" ${cfg.rivestimentoEst?.modello === m ? 'selected' : ''}>${m}</option>`
+                                        ).join('')}
+                                    </select>
+                                </div>
+                                <!-- ESSENZA EST -->
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Essenza</label>
+                                    <select id="riv-est-essenza-${project.id}"
+                                            onchange="updateConfigBlindateRiv('${project.id}', 'Est', 'essenza', this.value)"
+                                            class="w-full px-2 py-1.5 border rounded text-sm">
+                                        <option value="">Seleziona...</option>
+                                        ${getEssenzeRivestimento(cfg.rivestimentoEst?.linea, cfg.rivestimentoEst?.modello).map(e => 
+                                            `<option value="${e}" ${cfg.rivestimentoEst?.essenza === e ? 'selected' : ''}>${e}</option>`
+                                        ).join('')}
+                                    </select>
+                                </div>
+                                <!-- TINTA EST -->
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Tinta</label>
+                                    <input type="text" 
+                                           value="${cfg.rivestimentoEst?.tinta || ''}"
+                                           onchange="updateConfigBlindateRiv('${project.id}', 'Est', 'tinta', this.value)"
+                                           placeholder="es. Naturale, RAL..."
+                                           class="w-full px-2 py-1.5 border rounded text-sm">
+                                </div>
                             </div>
-                            
                             <!-- VERNICIATURA ESTERNI -->
-                            <div class="md:col-span-3">
+                            <div class="mt-2">
                                 <label class="flex items-center gap-2 cursor-pointer">
                                     <input type="checkbox" 
                                            ${cfg.rivestimentoEst?.verniciatura ? 'checked' : ''}
                                            onchange="updateConfigBlindateRiv('${project.id}', 'Est', 'verniciatura', this.checked)"
-                                           class="w-5 h-5">
-                                    <span class="font-medium">Verniciatura per esterni (maggiorazione)</span>
+                                           class="w-4 h-4">
+                                    <span class="text-sm font-medium">🌧️ Verniciatura per esterni (maggiorazione)</span>
                                 </label>
                             </div>
                         </div>
@@ -15540,8 +15769,28 @@
             }
             
             project.configBlindate[rivKey][field] = value;
+            
+            // 🔐 v5.00: Pulisci campi dipendenti quando cambia linea
+            if (field === 'linea') {
+                project.configBlindate[rivKey].modello = '';
+                project.configBlindate[rivKey].essenza = '';
+                project.configBlindate[rivKey].tinta = '';
+            }
+            // Pulisci essenza quando cambia modello
+            if (field === 'modello') {
+                project.configBlindate[rivKey].essenza = '';
+                project.configBlindate[rivKey].tinta = '';
+            }
+            
             saveState();
             render();
+        }
+        
+        // 🔐 v5.00: Aggiorna dropdown rivestimenti (chiamata da onchange)
+        function updateRivDropdowns(projectId, tipo) {
+            // I dropdown si aggiornano automaticamente con il render()
+            // Questa funzione è un placeholder per eventuali logiche future
+            console.log(`[v5.00] Aggiornati dropdown rivestimento ${tipo} per progetto ${projectId}`);
         }
 
         function renderMisureTab(project, pos) {
