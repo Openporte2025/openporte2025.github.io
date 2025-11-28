@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.98 - 🔐 PORTE BLINDATE OIKOS ✅
+    Open Porte v4.99 - 🔐 CONFIG GLOBALE BLINDATE ✅
+    
+    🔧 AGGIORNAMENTI v4.99 (28 NOV 2025):
+    - ✅ STEP 8: Config Globale Porte Blindate
+    - ✅ Configurazione Base: Versione, Tipo Anta, Verso, Controtelaio, Cilindro
+    - ✅ Colori e Finiture: Telaio, Rivestimento Int/Est, Verniciatura
+    - ✅ Prestazioni: Acustica, Termica
+    - ✅ Riepilogo configurazione in tempo reale
+    - ✅ Navigazione Step 8 nel menu laterale
     
     🔧 AGGIORNAMENTI v4.98 (28 NOV 2025):
     - ✅ NUOVO PRODOTTO: Porte Blindate con listino Oikos 2025
@@ -8799,6 +8807,7 @@
             if (project.prodotti?.tapparelle) steps.push(5);
             if (project.prodotti?.zanzariere) steps.push(6);
             if (project.prodotti?.cassonetti) steps.push(7);
+            if (project.prodotti?.blindate) steps.push(8);
             
             // Step finale sempre presente
             steps.push(9);
@@ -12540,6 +12549,7 @@
                             if (project.prodotti?.tapparelle) steps.push({num: 5, label: 'Config. Tapparelle'});
                             if (project.prodotti?.zanzariere) steps.push({num: 6, label: 'Config. Zanzariere'});
                             if (project.prodotti?.cassonetti) steps.push({num: 7, label: 'Config. Cassonetti'});
+                            if (project.prodotti?.blindate) steps.push({num: 8, label: 'Config. Blindate'});
                             
                             // Step finale sempre presente
                             steps.push({num: 9, label: 'Posizioni'});
@@ -12563,6 +12573,7 @@
                           state.setupStep === 5 ? renderStep5ConfigTapparelle(project) :
                           state.setupStep === 6 ? renderStep6ConfigZanzariere(project) :
                           state.setupStep === 7 ? renderStep7ConfigCassonetti(project) :
+                          state.setupStep === 8 ? renderStep8ConfigBlindate(project) :
                           renderStep9Positions(project)}
                         
                         <div class="flex justify-between mt-6 pt-4 border-t">
@@ -15254,6 +15265,283 @@
                     </div>
                 </div>
             `;
+        }
+
+        // ============================================
+        // 🔐 STEP 8: CONFIG PORTE BLINDATE (v4.98)
+        // ============================================
+        function renderStep8ConfigBlindate(project) {
+            if (!project.prodotti?.blindate) {
+                return `<div class="text-center py-8"><p class="text-gray-500">Le porte blindate non sono state selezionate. Salta questo step.</p></div>`;
+            }
+            
+            // Inizializza configBlindate se non esiste
+            if (!project.configBlindate) {
+                project.configBlindate = {
+                    azienda: 'Oikos',
+                    versione: 'E3',
+                    tipoAnta: 'singola',
+                    sensoApertura: '',
+                    versoApertura: 'spingere',
+                    controtelaio: 'si',
+                    cilindro: 'BASIC',
+                    coloreTelaio: 'RAL8022',
+                    acustica: 'serie',
+                    termica: 'serie',
+                    // Rivestimento interno
+                    rivestimentoInt: {
+                        linea: 'Piano',
+                        modello: '',
+                        essenza: '',
+                        tinta: ''
+                    },
+                    // Rivestimento esterno
+                    rivestimentoEst: {
+                        linea: 'Piano',
+                        modello: '',
+                        essenza: '',
+                        tinta: '',
+                        verniciatura: false
+                    }
+                };
+                saveState();
+            }
+            
+            const cfg = project.configBlindate;
+            
+            return `
+                <div>
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="text-2xl">🔐</span> Configurazione Porte Blindate Default
+                    </h2>
+                    <p class="text-gray-600 mb-4">Imposta i valori di default per tutte le porte blindate (Listino Oikos 2025):</p>
+                    
+                    <!-- ⚙️ CONFIGURAZIONE BASE -->
+                    <div class="bg-red-50 border-2 border-red-300 rounded-lg p-4 mb-4">
+                        <h3 class="font-semibold text-red-800 mb-3 flex items-center gap-2">
+                            <span>⚙️</span> Configurazione Base
+                        </h3>
+                        <div class="grid md:grid-cols-3 gap-3">
+                            <!-- AZIENDA (fisso Oikos) -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">1. Azienda</label>
+                                <select class="w-full px-3 py-2 border rounded-lg bg-gray-100" disabled>
+                                    <option value="Oikos" selected>Oikos</option>
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Al momento solo Oikos disponibile</p>
+                            </div>
+                            
+                            <!-- VERSIONE -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">2. Versione</label>
+                                <select onchange="updateConfigBlindate('${project.id}', 'versione', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona...</option>
+                                    <option value="E3" ${cfg.versione === 'E3' ? 'selected' : ''}>E3 - Evolution 3 (Classe 3)</option>
+                                    <option value="E4" ${cfg.versione === 'E4' ? 'selected' : ''}>E4 - Evolution 4 (Classe 4)</option>
+                                    <option value="E3D" ${cfg.versione === 'E3D' ? 'selected' : ''}>E3D - Doppia Anta</option>
+                                    <option value="E3EI30" ${cfg.versione === 'E3EI30' ? 'selected' : ''}>E3 EI 30 - Fuoco 30min</option>
+                                    <option value="E3EI45" ${cfg.versione === 'E3EI45' ? 'selected' : ''}>E3 EI 45 - Fuoco 45min</option>
+                                    <option value="E3EI60" ${cfg.versione === 'E3EI60' ? 'selected' : ''}>E3 EI 60 - Fuoco 60min</option>
+                                    <option value="E3TT086" ${cfg.versione === 'E3TT086' ? 'selected' : ''}>E3 TT U=0.86 (Taglio Termico)</option>
+                                    <option value="E3TT1" ${cfg.versione === 'E3TT1' ? 'selected' : ''}>E3 TT U=1.0 (Taglio Termico)</option>
+                                    <option value="P3" ${cfg.versione === 'P3' ? 'selected' : ''}>P3 - Project (Rasomuro)</option>
+                                    <option value="T3" ${cfg.versione === 'T3' ? 'selected' : ''}>T3 - Tekno (Alta gamma)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- TIPO ANTA -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">3. Tipo Anta</label>
+                                <select onchange="updateConfigBlindate('${project.id}', 'tipoAnta', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="singola" ${cfg.tipoAnta === 'singola' ? 'selected' : ''}>Singola</option>
+                                    <option value="doppia" ${cfg.tipoAnta === 'doppia' ? 'selected' : ''}>Doppia</option>
+                                </select>
+                            </div>
+                            
+                            <!-- VERSO APERTURA -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">4. Verso Apertura</label>
+                                <select onchange="updateConfigBlindate('${project.id}', 'versoApertura', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona...</option>
+                                    <option value="spingere" ${cfg.versoApertura === 'spingere' ? 'selected' : ''}>Spingere</option>
+                                    <option value="tirare" ${cfg.versoApertura === 'tirare' ? 'selected' : ''}>Tirare</option>
+                                </select>
+                            </div>
+                            
+                            <!-- CONTROTELAIO -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">5. Controtelaio</label>
+                                <select onchange="updateConfigBlindate('${project.id}', 'controtelaio', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="si" ${cfg.controtelaio === 'si' ? 'selected' : ''}>Sì, con porta</option>
+                                    <option value="fornito" ${cfg.controtelaio === 'fornito' ? 'selected' : ''}>Già fornito</option>
+                                    <option value="no" ${cfg.controtelaio === 'no' ? 'selected' : ''}>No</option>
+                                </select>
+                            </div>
+                            
+                            <!-- CILINDRO -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">6. Cilindro</label>
+                                <select onchange="updateConfigBlindate('${project.id}', 'cilindro', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="BASIC" ${cfg.cilindro === 'BASIC' ? 'selected' : ''}>Basic (€123)</option>
+                                    <option value="SEKUR" ${cfg.cilindro === 'SEKUR' ? 'selected' : ''}>Sekur (€238)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🎨 COLORI E FINITURE -->
+                    <div class="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mb-4">
+                        <h3 class="font-semibold text-yellow-800 mb-3 flex items-center gap-2">
+                            <span>🎨</span> Colori e Finiture
+                        </h3>
+                        <div class="grid md:grid-cols-3 gap-3">
+                            <!-- COLORE TELAIO -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">7. Colore Telaio</label>
+                                <select onchange="updateConfigBlindate('${project.id}', 'coloreTelaio', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="RAL8022" ${cfg.coloreTelaio === 'RAL8022' ? 'selected' : ''}>RAL 8022 (base, incluso)</option>
+                                    <option value="OIKOS_Polveri" ${cfg.coloreTelaio === 'OIKOS_Polveri' ? 'selected' : ''}>OIKOS a Polveri (+€246)</option>
+                                    <option value="OIKOS_Evergreen" ${cfg.coloreTelaio === 'OIKOS_Evergreen' ? 'selected' : ''}>OIKOS Evergreen (+€320)</option>
+                                    <option value="OIKOS_Future" ${cfg.coloreTelaio === 'OIKOS_Future' ? 'selected' : ''}>OIKOS Future (+€384)</option>
+                                    <option value="OIKOS_Liquido" ${cfg.coloreTelaio === 'OIKOS_Liquido' ? 'selected' : ''}>OIKOS a Liquido (+€492)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- RIVESTIMENTO INTERNO - LINEA -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">8. Riv. Interno - Linea</label>
+                                <select onchange="updateConfigBlindateRiv('${project.id}', 'Int', 'linea', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona linea...</option>
+                                    <option value="Piano" ${cfg.rivestimentoInt?.linea === 'Piano' ? 'selected' : ''}>Piano</option>
+                                    <option value="Fugato" ${cfg.rivestimentoInt?.linea === 'Fugato' ? 'selected' : ''}>Fugato</option>
+                                    <option value="Pantografato" ${cfg.rivestimentoInt?.linea === 'Pantografato' ? 'selected' : ''}>Pantografato</option>
+                                    <option value="Tekno" ${cfg.rivestimentoInt?.linea === 'Tekno' ? 'selected' : ''}>Tekno</option>
+                                    <option value="LegnoVivo" ${cfg.rivestimentoInt?.linea === 'LegnoVivo' ? 'selected' : ''}>Legno Vivo</option>
+                                    <option value="Massello" ${cfg.rivestimentoInt?.linea === 'Massello' ? 'selected' : ''}>Massello</option>
+                                    <option value="Riflessi" ${cfg.rivestimentoInt?.linea === 'Riflessi' ? 'selected' : ''}>Riflessi</option>
+                                    <option value="Gres" ${cfg.rivestimentoInt?.linea === 'Gres' ? 'selected' : ''}>Gres</option>
+                                    <option value="Alluminio" ${cfg.rivestimentoInt?.linea === 'Alluminio' ? 'selected' : ''}>Alluminio</option>
+                                </select>
+                            </div>
+                            
+                            <!-- RIVESTIMENTO ESTERNO - LINEA -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">9. Riv. Esterno - Linea</label>
+                                <select onchange="updateConfigBlindateRiv('${project.id}', 'Est', 'linea', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona linea...</option>
+                                    <option value="Piano" ${cfg.rivestimentoEst?.linea === 'Piano' ? 'selected' : ''}>Piano</option>
+                                    <option value="Fugato" ${cfg.rivestimentoEst?.linea === 'Fugato' ? 'selected' : ''}>Fugato</option>
+                                    <option value="Pantografato" ${cfg.rivestimentoEst?.linea === 'Pantografato' ? 'selected' : ''}>Pantografato</option>
+                                    <option value="Tekno" ${cfg.rivestimentoEst?.linea === 'Tekno' ? 'selected' : ''}>Tekno</option>
+                                    <option value="LegnoVivo" ${cfg.rivestimentoEst?.linea === 'LegnoVivo' ? 'selected' : ''}>Legno Vivo</option>
+                                    <option value="Massello" ${cfg.rivestimentoEst?.linea === 'Massello' ? 'selected' : ''}>Massello</option>
+                                    <option value="Riflessi" ${cfg.rivestimentoEst?.linea === 'Riflessi' ? 'selected' : ''}>Riflessi</option>
+                                    <option value="Gres" ${cfg.rivestimentoEst?.linea === 'Gres' ? 'selected' : ''}>Gres</option>
+                                    <option value="Alluminio" ${cfg.rivestimentoEst?.linea === 'Alluminio' ? 'selected' : ''}>Alluminio</option>
+                                </select>
+                            </div>
+                            
+                            <!-- VERNICIATURA ESTERNI -->
+                            <div class="md:col-span-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" 
+                                           ${cfg.rivestimentoEst?.verniciatura ? 'checked' : ''}
+                                           onchange="updateConfigBlindateRiv('${project.id}', 'Est', 'verniciatura', this.checked)"
+                                           class="w-5 h-5">
+                                    <span class="font-medium">Verniciatura per esterni (maggiorazione)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🔧 PRESTAZIONI -->
+                    <div class="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mb-4">
+                        <h3 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                            <span>🔧</span> Prestazioni
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <!-- ACUSTICA -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">10. Acustica</label>
+                                <select onchange="updateConfigBlindate('${project.id}', 'acustica', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="serie" ${cfg.acustica === 'serie' ? 'selected' : ''}>Di serie (40 dB)</option>
+                                    <option value="maggiorata" ${cfg.acustica === 'maggiorata' ? 'selected' : ''}>Maggiorata 45 dB (+€120)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- TERMICA -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">11. Termica (U W/m²K)</label>
+                                <select onchange="updateConfigBlindate('${project.id}', 'termica', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="serie" ${cfg.termica === 'serie' ? 'selected' : ''}>Di serie (U=1.9)</option>
+                                    <option value="1.2" ${cfg.termica === '1.2' ? 'selected' : ''}>U=1.2 (+€272-354)</option>
+                                    <option value="1.0" ${cfg.termica === '1.0' ? 'selected' : ''}>U=1.0 (+€496-624)</option>
+                                </select>
+                                ${cfg.versione?.includes('TT') ? `
+                                    <p class="text-xs text-blue-600 mt-1">⚡ Versione TT: termica già inclusa</p>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 📊 RIEPILOGO CONFIG -->
+                    <div class="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+                        <h3 class="font-semibold text-green-800 mb-3">📊 Riepilogo Configurazione Default</h3>
+                        <div class="grid md:grid-cols-2 gap-2 text-sm">
+                            <div><strong>Versione:</strong> ${cfg.versione || '-'}</div>
+                            <div><strong>Tipo Anta:</strong> ${cfg.tipoAnta || '-'}</div>
+                            <div><strong>Verso:</strong> ${cfg.versoApertura || '-'}</div>
+                            <div><strong>Controtelaio:</strong> ${cfg.controtelaio || '-'}</div>
+                            <div><strong>Cilindro:</strong> ${cfg.cilindro || '-'}</div>
+                            <div><strong>Colore Telaio:</strong> ${cfg.coloreTelaio?.replace('_', ' ') || '-'}</div>
+                            <div><strong>Riv. Interno:</strong> ${cfg.rivestimentoInt?.linea || '-'}</div>
+                            <div><strong>Riv. Esterno:</strong> ${cfg.rivestimentoEst?.linea || '-'} ${cfg.rivestimentoEst?.verniciatura ? '(+vern. ext)' : ''}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 🔐 FUNZIONI UPDATE CONFIG BLINDATE
+        function updateConfigBlindate(projectId, field, value) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            if (!project.configBlindate) {
+                project.configBlindate = {};
+            }
+            
+            project.configBlindate[field] = value;
+            saveState();
+            render();
+        }
+        
+        function updateConfigBlindateRiv(projectId, tipo, field, value) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            if (!project.configBlindate) {
+                project.configBlindate = {};
+            }
+            
+            const rivKey = `rivestimento${tipo}`;
+            if (!project.configBlindate[rivKey]) {
+                project.configBlindate[rivKey] = {};
+            }
+            
+            project.configBlindate[rivKey][field] = value;
+            saveState();
+            render();
         }
 
         function renderMisureTab(project, pos) {
@@ -18390,17 +18678,22 @@
             const project = state.projects.find(p => p.id === projectId);
             const position = project.positions.find(p => p.id === positionId);
             
+            // 🔐 v4.99: Eredita dalla config globale se esiste
+            const cfg = project.configBlindate || {};
+            
             position.blindata = {
-                azienda: 'Oikos',
-                versione: '',
-                tipoAnta: 'singola',
-                sensoApertura: '',
-                versoApertura: '',
-                controtelaio: 'si',
-                cilindro: 'BASIC',
-                coloreTelaio: 'RAL8022',
-                acustica: 'serie',
-                termica: 'serie',
+                azienda: cfg.azienda || 'Oikos',
+                versione: cfg.versione || '',
+                tipoAnta: cfg.tipoAnta || 'singola',
+                sensoApertura: '',  // Sempre da specificare per posizione
+                versoApertura: cfg.versoApertura || '',
+                controtelaio: cfg.controtelaio || 'si',
+                cilindro: cfg.cilindro || 'BASIC',
+                coloreTelaio: cfg.coloreTelaio || 'RAL8022',
+                acustica: cfg.acustica || 'serie',
+                termica: cfg.termica || 'serie',
+                rivestimentoInt: cfg.rivestimentoInt ? {...cfg.rivestimentoInt} : { linea: '', modello: '', essenza: '', tinta: '' },
+                rivestimentoEst: cfg.rivestimentoEst ? {...cfg.rivestimentoEst} : { linea: '', modello: '', essenza: '', tinta: '', verniciatura: false },
                 LNP_L: '',
                 LNP_H: '',
                 luceCalcolata: '',
