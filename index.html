@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.96 - FIX BUG positions ✅
+    Open Porte v4.97 - ZSX/ZDX Validazione ✅
+    
+    🔧 AGGIORNAMENTI v4.97 (28 NOV 2025):
+    - ✅ ZSX/ZDX VALIDAZIONE: Controllo ZSX ≤ SRSX e ZDX ≤ SRDX
+    - ✅ Label aggiornate: "A muro (=SRSX)" e "A muro (=SRDX)" per chiarezza
+    - ✅ Input Limitato OBBLIGATORIO: Evidenziato rosso se vuoto
+    - ✅ Errore visivo se ZSX > SRSX o ZDX > SRDX
     
     🔧 AGGIORNAMENTI v4.96 (27 NOV 2025):
     - FIX BUG CRITICO: project.posizioni → project.positions in 4 funzioni
@@ -1730,7 +1736,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v4.96 - Fix positions Bug</title>
+    <title>Open Porte v4.97 - ZSX/ZDX Validazione</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2944,8 +2950,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '4.96';
-        const APP_VERSION_NOTE = 'FIX BUG positions critici';
+        const APP_VERSION = '4.97';
+        const APP_VERSION_NOTE = 'ZSX/ZDX Validazione';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -10981,6 +10987,70 @@
             render();
         }
 
+        // ✅ v4.97: Validazione ZSX - deve essere ≤ SRSX
+        function validateAndUpdateZSX(projectId, posId, value) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const pos = project.positions.find(p => p.id === posId);
+            if (!pos || !pos.cassonetto) return;
+            
+            const zsx = parseInt(value) || 0;
+            const srsx = parseInt(pos.cassonetto.SRSX) || 0;
+            
+            // Salva sempre il valore (la validazione è visiva)
+            pos.cassonetto.ZSX = value;
+            
+            // Log per debug
+            if (zsx > srsx && srsx > 0) {
+                console.warn(`⚠️ ZSX (${zsx}mm) > SRSX (${srsx}mm) - Errore logico!`);
+            }
+            
+            // Ricalcola BRM
+            if (!pos.cassonetto.brmPersonalizzato && project.brmConfigCassonetti) {
+                const brm = calculateBRM(project, pos, pos.cassonetto, project.brmConfigCassonetti);
+                pos.cassonetto.BRM_L = brm.L;
+                pos.cassonetto.BRM_H = brm.H;
+                pos.cassonetto.BRM_C = brm.C;
+                pos.cassonetto.BRM_B = brm.B;
+            }
+            
+            saveState();
+            render();
+        }
+        
+        // ✅ v4.97: Validazione ZDX - deve essere ≤ SRDX
+        function validateAndUpdateZDX(projectId, posId, value) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const pos = project.positions.find(p => p.id === posId);
+            if (!pos || !pos.cassonetto) return;
+            
+            const zdx = parseInt(value) || 0;
+            const srdx = parseInt(pos.cassonetto.SRDX) || 0;
+            
+            // Salva sempre il valore (la validazione è visiva)
+            pos.cassonetto.ZDX = value;
+            
+            // Log per debug
+            if (zdx > srdx && srdx > 0) {
+                console.warn(`⚠️ ZDX (${zdx}mm) > SRDX (${srdx}mm) - Errore logico!`);
+            }
+            
+            // Ricalcola BRM
+            if (!pos.cassonetto.brmPersonalizzato && project.brmConfigCassonetti) {
+                const brm = calculateBRM(project, pos, pos.cassonetto, project.brmConfigCassonetti);
+                pos.cassonetto.BRM_L = brm.L;
+                pos.cassonetto.BRM_H = brm.H;
+                pos.cassonetto.BRM_C = brm.C;
+                pos.cassonetto.BRM_B = brm.B;
+            }
+            
+            saveState();
+            render();
+        }
+
         // Validazione in tempo reale per le altezze (mentre scrivi)
         function validateAltezzeRealTime(projectId, posId) {
             // Leggi i valori dai campi DOM
@@ -17509,7 +17579,7 @@
                                                onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'SRSX', this.value)"
                                                class="w-full compact-input border rounded mt-1">
                                     </div>
-                                    <!-- ✅ v4.87: ZSX con radio button -->
+                                    <!-- ✅ v4.97: ZSX con radio button + validazione -->
                                     <div class="bg-blue-50 p-2 rounded border border-blue-200">
                                         <label class="text-xs font-medium text-blue-800">ZSX (Spazio SX)</label>
                                         <div class="flex flex-col gap-1 mt-1">
@@ -17517,7 +17587,7 @@
                                                 <input type="radio" name="zsx-tipo-${pos.id}" value="muro"
                                                        ${(cas.ZSX_tipo === 'muro' || (!cas.ZSX_tipo && cas.ZSX === '0')) ? 'checked' : ''}
                                                        onchange="updateZSXTipo('${project.id}', '${pos.id}', 'muro')">
-                                                <span>🧱 Muro (attaccato)</span>
+                                                <span>🧱 A muro (=SRSX)</span>
                                             </label>
                                             <label class="flex items-center gap-1 text-xs cursor-pointer">
                                                 <input type="radio" name="zsx-tipo-${pos.id}" value="libero"
@@ -17530,14 +17600,29 @@
                                                        ${cas.ZSX_tipo === 'limitato' ? 'checked' : ''}
                                                        onchange="updateZSXTipo('${project.id}', '${pos.id}', 'limitato')">
                                                 <span>⚠️ Limitato:</span>
-                                                <input type="number" value="${cas.ZSX_tipo === 'limitato' ? (cas.ZSX || '') : ''}"
+                                                <input type="number" 
+                                                       id="zsx-input-${pos.id}"
+                                                       value="${cas.ZSX_tipo === 'limitato' ? (cas.ZSX || '') : ''}"
                                                        placeholder="mm"
+                                                       min="1"
                                                        ${cas.ZSX_tipo !== 'limitato' ? 'disabled' : ''}
-                                                       onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'ZSX', this.value)"
-                                                       class="w-16 px-1 py-0.5 border rounded text-xs ${cas.ZSX_tipo !== 'limitato' ? 'bg-gray-100' : ''}">
+                                                       onchange="validateAndUpdateZSX('${project.id}', '${pos.id}', this.value)"
+                                                       class="w-16 px-1 py-0.5 border rounded text-xs ${cas.ZSX_tipo !== 'limitato' ? 'bg-gray-100' : (cas.ZSX_tipo === 'limitato' && !cas.ZSX ? 'border-red-500 bg-red-50' : '')}">
                                                 <span class="text-xs">mm</span>
                                             </label>
                                         </div>
+                                        <!-- Messaggio errore ZSX > SRSX -->
+                                        ${(() => {
+                                            const zsx = parseInt(cas.ZSX) || 0;
+                                            const srsx = parseInt(cas.SRSX) || 0;
+                                            if (cas.ZSX_tipo === 'limitato' && zsx > 0 && srsx > 0 && zsx > srsx) {
+                                                return '<div class="text-xs text-red-600 font-semibold mt-1">⚠️ ZSX (' + zsx + 'mm) supera SRSX (' + srsx + 'mm)!</div>';
+                                            }
+                                            if (cas.ZSX_tipo === 'limitato' && !cas.ZSX) {
+                                                return '<div class="text-xs text-orange-600 mt-1">⚠️ Inserisci mm disponibili</div>';
+                                            }
+                                            return '';
+                                        })()}
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium">SRDX</label>
@@ -17546,7 +17631,7 @@
                                                onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'SRDX', this.value)"
                                                class="w-full compact-input border rounded mt-1">
                                     </div>
-                                    <!-- ✅ v4.87: ZDX con radio button -->
+                                    <!-- ✅ v4.97: ZDX con radio button + validazione -->
                                     <div class="bg-purple-50 p-2 rounded border border-purple-200">
                                         <label class="text-xs font-medium text-purple-800">ZDX (Spazio DX)</label>
                                         <div class="flex flex-col gap-1 mt-1">
@@ -17554,7 +17639,7 @@
                                                 <input type="radio" name="zdx-tipo-${pos.id}" value="muro"
                                                        ${(cas.ZDX_tipo === 'muro' || (!cas.ZDX_tipo && cas.ZDX === '0')) ? 'checked' : ''}
                                                        onchange="updateZDXTipo('${project.id}', '${pos.id}', 'muro')">
-                                                <span>🧱 Muro (attaccato)</span>
+                                                <span>🧱 A muro (=SRDX)</span>
                                             </label>
                                             <label class="flex items-center gap-1 text-xs cursor-pointer">
                                                 <input type="radio" name="zdx-tipo-${pos.id}" value="libero"
@@ -17567,14 +17652,29 @@
                                                        ${cas.ZDX_tipo === 'limitato' ? 'checked' : ''}
                                                        onchange="updateZDXTipo('${project.id}', '${pos.id}', 'limitato')">
                                                 <span>⚠️ Limitato:</span>
-                                                <input type="number" value="${cas.ZDX_tipo === 'limitato' ? (cas.ZDX || '') : ''}"
+                                                <input type="number" 
+                                                       id="zdx-input-${pos.id}"
+                                                       value="${cas.ZDX_tipo === 'limitato' ? (cas.ZDX || '') : ''}"
                                                        placeholder="mm"
+                                                       min="1"
                                                        ${cas.ZDX_tipo !== 'limitato' ? 'disabled' : ''}
-                                                       onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'ZDX', this.value)"
-                                                       class="w-16 px-1 py-0.5 border rounded text-xs ${cas.ZDX_tipo !== 'limitato' ? 'bg-gray-100' : ''}">
+                                                       onchange="validateAndUpdateZDX('${project.id}', '${pos.id}', this.value)"
+                                                       class="w-16 px-1 py-0.5 border rounded text-xs ${cas.ZDX_tipo !== 'limitato' ? 'bg-gray-100' : (cas.ZDX_tipo === 'limitato' && !cas.ZDX ? 'border-red-500 bg-red-50' : '')}">
                                                 <span class="text-xs">mm</span>
                                             </label>
                                         </div>
+                                        <!-- Messaggio errore ZDX > SRDX -->
+                                        ${(() => {
+                                            const zdx = parseInt(cas.ZDX) || 0;
+                                            const srdx = parseInt(cas.SRDX) || 0;
+                                            if (cas.ZDX_tipo === 'limitato' && zdx > 0 && srdx > 0 && zdx > srdx) {
+                                                return '<div class="text-xs text-red-600 font-semibold mt-1">⚠️ ZDX (' + zdx + 'mm) supera SRDX (' + srdx + 'mm)!</div>';
+                                            }
+                                            if (cas.ZDX_tipo === 'limitato' && !cas.ZDX) {
+                                                return '<div class="text-xs text-orange-600 mt-1">⚠️ Inserisci mm disponibili</div>';
+                                            }
+                                            return '';
+                                        })()}
                                     </div>
                                     <div>
                                         <label class="text-xs font-medium">HCASS</label>
@@ -17761,7 +17861,7 @@
                                 
                                 <div class="mt-3 bg-blue-100 border-l-4 border-blue-500 p-3">
                                     <p class="text-sm text-blue-800">
-                                        📝 <strong>ZSX/ZDX:</strong> Muro = cassonetto attaccato | Libero = spazio &gt;50mm | Limitato = inserisci mm esatti (10-50mm)
+                                        📝 <strong>ZSX/ZDX:</strong> A muro = ZSX=SRSX (attaccato) | Libero = spazio &gt;50mm | Limitato = inserisci mm (deve essere ≤ SRSX/SRDX)
                                     </p>
                                 </div>
                             </div>
