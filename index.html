@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.12 - 🔐 UI COMPLETA BLINDATA IN INGRESSO ✅
+    Open Porte v5.12 - 🔐 UI COMPLETA BLINDATA + EXPORT JSON ✅
     
     🔧 AGGIORNAMENTI v5.12 (28 NOV 2025):
     - ✅ renderBlindataConfig(): UI completa con tutti i campi
@@ -10,6 +10,9 @@
     - ✅ VERNICIATURA ESTERNI: Checkbox per maggiorazione +€150
     - ✅ updateIngressoBlindataOpt(): Gestione optional in ingresso
     - ✅ updateIngressoBlindataRiv(): Gestione rivestimenti in ingresso
+    - ✅ INIZIALIZZAZIONE: Struttura completa con vetro/sopraluce/fiancoluce/rivestimenti
+    - ✅ EXPORT JSON: Ingresso completo con tutti i campi blindata
+    - ✅ TOTALI: Aggiunto n_ingressi, n_blindate, n_portoncini
     
     🔧 AGGIORNAMENTI v5.08 (28 NOV 2025):
     - ✅ RIMOSSI checkbox Blindate/Portoncini da Step 2
@@ -3030,7 +3033,7 @@
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
         const APP_VERSION = '5.12';
-        const APP_VERSION_NOTE = 'UI Completa Blindata in Ingresso';
+        const APP_VERSION_NOTE = 'UI Completa Blindata + Export JSON';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -16176,7 +16179,20 @@
                     pos.ingresso.portoncino = { azienda: 'Finstral' };
                 }
                 if (value === 'blindata' && !pos.ingresso.blindata) {
-                    pos.ingresso.blindata = { azienda: 'Oikos', tipoAnta: 'singola', cilindro: 'BASIC', coloreTelaio: 'RAL8022' };
+                    pos.ingresso.blindata = { 
+                        azienda: 'Oikos', 
+                        tipoAnta: 'singola', 
+                        cilindro: 'BASIC', 
+                        coloreTelaio: 'RAL8022',
+                        acustica: 'serie',
+                        termica: 'serie',
+                        kitAAV: '',
+                        vetro: { attivo: false, tipo: '', finitura: 'trasparente', termico: false },
+                        sopraluce: { attivo: false, altezza: '', sabbiato: false },
+                        fiancoluce: { attivo: false, conVetro: false, sabbiato: false, colore: 'RAL8022' },
+                        rivestimentoInt: { linea: '', modello: '', essenza: '', tinta: '' },
+                        rivestimentoEst: { linea: '', modello: '', essenza: '', tinta: '', verniciatura: false }
+                    };
                 }
             }
             
@@ -23197,6 +23213,47 @@
                             };
                         }
                         
+                        // 🚪 v5.12: INGRESSO (portoncino o blindata)
+                        if (pos.ingresso) {
+                            posData.ingresso = {
+                                tipo: pos.ingresso.tipo || null
+                            };
+                            
+                            // Portoncino Finstral
+                            if (pos.ingresso.portoncino) {
+                                posData.ingresso.portoncino = pos.ingresso.portoncino;
+                            }
+                            
+                            // Blindata Oikos (struttura completa)
+                            if (pos.ingresso.blindata) {
+                                const bld = pos.ingresso.blindata;
+                                posData.ingresso.blindata = {
+                                    azienda: bld.azienda || 'Oikos',
+                                    LNP_L: bld.LNP_L || null,
+                                    LNP_H: bld.LNP_H || null,
+                                    luceCalcolata: bld.luceCalcolata || null,
+                                    versione: bld.versione || '',
+                                    tipoAnta: bld.tipoAnta || 'singola',
+                                    sensoApertura: bld.sensoApertura || '',
+                                    versoApertura: bld.versoApertura || '',
+                                    controtelaio: bld.controtelaio || 'si',
+                                    cilindro: bld.cilindro || 'BASIC',
+                                    coloreTelaio: bld.coloreTelaio || 'RAL8022',
+                                    acustica: bld.acustica || 'serie',
+                                    termica: bld.termica || 'serie',
+                                    kitAAV: bld.kitAAV || '',
+                                    // Optional
+                                    vetro: bld.vetro || { attivo: false },
+                                    sopraluce: bld.sopraluce || { attivo: false },
+                                    fiancoluce: bld.fiancoluce || { attivo: false },
+                                    // Rivestimenti
+                                    rivestimentoInt: bld.rivestimentoInt || {},
+                                    rivestimentoEst: bld.rivestimentoEst || {},
+                                    note: bld.note || ''
+                                };
+                            }
+                        }
+                        
                         return posData;
                     }),
                     totali: {
@@ -23205,7 +23262,10 @@
                         n_persiane: project.positions.filter(p => p.persiana).length,
                         n_tapparelle: project.positions.filter(p => p.tapparella).length,
                         n_zanzariere: project.positions.filter(p => p.zanzariera).length,
-                        n_cassonetti: project.positions.filter(p => p.cassonetto).length
+                        n_cassonetti: project.positions.filter(p => p.cassonetto).length,
+                        n_ingressi: project.positions.filter(p => p.ingresso).length,
+                        n_blindate: project.positions.filter(p => p.ingresso?.tipo === 'blindata').length,
+                        n_portoncini: project.positions.filter(p => p.ingresso?.tipo === 'portoncino').length
                     }
                 };
                 
