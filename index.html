@@ -15508,6 +15508,12 @@
                                     🔐 Blindate
                                 </button>
                             ` : ''}
+                            ${project.prodotti?.portoncini ? `
+                                <button onclick="setPositionTab('${pos.id}', 'portoncini')"
+                                        class="tab-btn ${pos.activeTab === 'portoncini' ? 'active' : ''}">
+                                    🚪 Portoncini
+                                </button>
+                            ` : ''}
                             <button onclick="setPositionTab('${pos.id}', 'foto')"
                                     class="tab-btn ${pos.activeTab === 'foto' ? 'active' : ''}">
                                 📸 Foto (${pos.foto?.length || 0})
@@ -15532,6 +15538,7 @@
             if (tab === 'zanzariere') return renderZanzariereTab(project, pos);
             if (tab === 'cassonetti') return renderCassonettiTab(project, pos);
             if (tab === 'blindate') return renderBlindateTab(project, pos);
+            if (tab === 'portoncini') return renderPortonciniTab(project, pos);
             if (tab === 'foto') return renderFotoTab(project, pos);
 
             return '';
@@ -16569,7 +16576,8 @@
                             'tapparelle': { singolare: 'tapparella', label: '🎚️ Tapparella', icon: '🎚️' },
                             'zanzariere': { singolare: 'zanzariera', label: '🦟 Zanzariera', icon: '🦟' },
                             'cassonetti': { singolare: 'cassonetto', label: '📦 Cassonetto', icon: '📦' },
-                            'blindate': { singolare: 'blindata', label: '🔐 Blindata', icon: '🔐' }
+                            'blindate': { singolare: 'blindata', label: '🔐 Blindata', icon: '🔐' },
+                            'portoncini': { singolare: 'portoncino', label: '🚪 Portoncino', icon: '🚪' }
                         };
                         
                         const prodottiProgetto = [];
@@ -19757,6 +19765,441 @@
                 </div>
             `;
         }
+
+        // ============================================
+        // 🚪 RENDER TAB PORTONCINI FINSTRAL (v5.07)
+        // ============================================
+        function renderPortonciniTab(project, pos) {
+            const ptc = pos.portoncino;
+            
+            return `
+                <div class="space-y-4">
+                    ${!ptc ? `
+                        <!-- 🎯 STATO INIZIALE: Prodotto non ancora creato -->
+                        <div class="text-center py-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                            <p class="text-gray-700 mb-4 font-medium text-lg">Nessun portoncino configurato</p>
+                            <div class="flex flex-col items-center gap-3">
+                                ${!pos.prodottiAssenti?.includes('portoncino') ? `
+                                    <button onclick="addPortoncino('${project.id}', '${pos.id}')"
+                                            class="px-6 py-2 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 shadow-sm hover:shadow-md transition-all">
+                                        + Aggiungi Portoncino Finstral
+                                    </button>
+                                ` : ''}
+                                <label class="flex items-center gap-2 cursor-pointer text-sm bg-white px-4 py-2 rounded-lg border-2 border-yellow-400 shadow-sm hover:shadow-md transition-shadow">
+                                    <input type="checkbox" 
+                                           ${pos.prodottiAssenti?.includes('portoncino') ? 'checked' : ''}
+                                           onchange="toggleProdottoAssente('${project.id}', '${pos.id}', 'portoncini')"
+                                           class="w-4 h-4">
+                                    <span class="text-gray-700 font-medium">⚠️ Non presente in questa posizione</span>
+                                </label>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="product-card">
+                            <div class="flex justify-between items-start mb-3">
+                                <h4 class="font-semibold text-teal-700 text-lg">🚪 Portoncino Finstral</h4>
+                                <button onclick="deleteProduct('${project.id}', '${pos.id}', 'portoncino')"
+                                        class="px-3 py-1.5 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700">
+                                    🗑️ Elimina
+                                </button>
+                            </div>
+                            
+                            <!-- 📐 DIMENSIONI BRM -->
+                            <div class="bg-teal-50 border-2 border-teal-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-teal-800 mb-3 flex items-center gap-2">
+                                    📐 Dimensioni BRM (Battuta Riferimento Misura)
+                                </h5>
+                                <div class="grid md:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-xs font-medium">BRM Larghezza (mm)</label>
+                                        <input type="number" 
+                                               value="${ptc.BRM_L || ''}"
+                                               placeholder="es. 1000"
+                                               onchange="updatePortoncino('${project.id}', '${pos.id}', 'BRM_L', this.value)"
+                                               class="w-full compact-input border rounded mt-1 font-bold">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">BRM Altezza (mm)</label>
+                                        <input type="number" 
+                                               value="${ptc.BRM_H || ''}"
+                                               placeholder="es. 2200"
+                                               onchange="updatePortoncino('${project.id}', '${pos.id}', 'BRM_H', this.value)"
+                                               class="w-full compact-input border rounded mt-1 font-bold">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 🏗️ TELAIO -->
+                            <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                                    🏗️ Telaio
+                                </h5>
+                                <div class="grid md:grid-cols-4 gap-3">
+                                    <div>
+                                        <label class="text-xs font-medium">Tipo Telaio</label>
+                                        <select onchange="updatePortoncino('${project.id}', '${pos.id}', 'tipoTelaio', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">Seleziona...</option>
+                                            <option value="L" ${ptc.tipoTelaio === 'L' ? 'selected' : ''}>L - Standard</option>
+                                            <option value="Z" ${ptc.tipoTelaio === 'Z' ? 'selected' : ''}>Z - Ribassato</option>
+                                            <option value="T" ${ptc.tipoTelaio === 'T' ? 'selected' : ''}>T - Termico</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Soglia</label>
+                                        <select onchange="updatePortoncino('${project.id}', '${pos.id}', 'soglia', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">Seleziona...</option>
+                                            <option value="standard" ${ptc.soglia === 'standard' ? 'selected' : ''}>Standard</option>
+                                            <option value="ribassata" ${ptc.soglia === 'ribassata' ? 'selected' : ''}>Ribassata</option>
+                                            <option value="filo-pavimento" ${ptc.soglia === 'filo-pavimento' ? 'selected' : ''}>Filo Pavimento</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Montante (mm)</label>
+                                        <input type="text" 
+                                               value="${ptc.montante || ''}"
+                                               placeholder="Es: 110"
+                                               onchange="updatePortoncino('${project.id}', '${pos.id}', 'montante', this.value)"
+                                               class="w-full compact-input border rounded mt-1">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Traversa (mm)</label>
+                                        <input type="text" 
+                                               value="${ptc.traversa || ''}"
+                                               placeholder="Es: 110"
+                                               onchange="updatePortoncino('${project.id}', '${pos.id}', 'traversa', this.value)"
+                                               class="w-full compact-input border rounded mt-1">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 🚪 ANTA E PANNELLO -->
+                            <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                                    🚪 Anta e Pannello
+                                </h5>
+                                <div class="grid md:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-xs font-medium">Modello Anta</label>
+                                        <select onchange="updatePortoncino('${project.id}', '${pos.id}', 'modelloAnta', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">Seleziona...</option>
+                                            <option value="D101" ${ptc.modelloAnta === 'D101' ? 'selected' : ''}>D101 - Base</option>
+                                            <option value="D102" ${ptc.modelloAnta === 'D102' ? 'selected' : ''}>D102 - Con vetro</option>
+                                            <option value="D201" ${ptc.modelloAnta === 'D201' ? 'selected' : ''}>D201 - Premium</option>
+                                            <option value="D202" ${ptc.modelloAnta === 'D202' ? 'selected' : ''}>D202 - Premium vetro</option>
+                                            <option value="D301" ${ptc.modelloAnta === 'D301' ? 'selected' : ''}>D301 - Design</option>
+                                            <option value="D401" ${ptc.modelloAnta === 'D401' ? 'selected' : ''}>D401 - Top</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Pannello</label>
+                                        <select onchange="updatePortoncino('${project.id}', '${pos.id}', 'pannello', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">Seleziona...</option>
+                                            <option value="liscio" ${ptc.pannello === 'liscio' ? 'selected' : ''}>Liscio</option>
+                                            <option value="bugna" ${ptc.pannello === 'bugna' ? 'selected' : ''}>Bugna</option>
+                                            <option value="design" ${ptc.pannello === 'design' ? 'selected' : ''}>Design</option>
+                                            <option value="personalizzato" ${ptc.pannello === 'personalizzato' ? 'selected' : ''}>Personalizzato</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 🎨 MATERIALI E COLORI -->
+                            <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-yellow-800 mb-3 flex items-center gap-2">
+                                    🎨 Materiali e Colori
+                                </h5>
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <!-- INTERNO -->
+                                    <div class="bg-yellow-100 p-3 rounded-lg">
+                                        <h6 class="font-semibold text-yellow-900 mb-2 text-sm">Interno</h6>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="text-xs font-medium">Materiale</label>
+                                                <select onchange="updatePortoncino('${project.id}', '${pos.id}', 'materialeInt', this.value)"
+                                                        class="w-full compact-input border rounded mt-1 text-sm">
+                                                    <option value="">Sel...</option>
+                                                    <option value="pvc" ${ptc.materialeInt === 'pvc' ? 'selected' : ''}>PVC</option>
+                                                    <option value="alluminio" ${ptc.materialeInt === 'alluminio' ? 'selected' : ''}>Alluminio</option>
+                                                    <option value="legno" ${ptc.materialeInt === 'legno' ? 'selected' : ''}>Legno</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="text-xs font-medium">Colore</label>
+                                                <input type="text" 
+                                                       value="${ptc.coloreInt || ''}"
+                                                       placeholder="RAL..."
+                                                       onchange="updatePortoncino('${project.id}', '${pos.id}', 'coloreInt', this.value)"
+                                                       class="w-full compact-input border rounded mt-1 text-sm">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- ESTERNO -->
+                                    <div class="bg-yellow-100 p-3 rounded-lg">
+                                        <h6 class="font-semibold text-yellow-900 mb-2 text-sm">Esterno</h6>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="text-xs font-medium">Materiale</label>
+                                                <select onchange="updatePortoncino('${project.id}', '${pos.id}', 'materialeEst', this.value)"
+                                                        class="w-full compact-input border rounded mt-1 text-sm">
+                                                    <option value="">Sel...</option>
+                                                    <option value="pvc" ${ptc.materialeEst === 'pvc' ? 'selected' : ''}>PVC</option>
+                                                    <option value="alluminio" ${ptc.materialeEst === 'alluminio' ? 'selected' : ''}>Alluminio</option>
+                                                    <option value="legno" ${ptc.materialeEst === 'legno' ? 'selected' : ''}>Legno</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="text-xs font-medium">Colore</label>
+                                                <input type="text" 
+                                                       value="${ptc.coloreEst || ''}"
+                                                       placeholder="RAL..."
+                                                       onchange="updatePortoncino('${project.id}', '${pos.id}', 'coloreEst', this.value)"
+                                                       class="w-full compact-input border rounded mt-1 text-sm">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 🪟 VETRO -->
+                            <div class="bg-cyan-50 border-2 border-cyan-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-cyan-800 mb-3 flex items-center gap-2">
+                                    🪟 Vetro
+                                </h5>
+                                <div class="grid md:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="text-xs font-medium">Tipo Vetro</label>
+                                        <select onchange="updatePortoncino('${project.id}', '${pos.id}', 'tipoVetro', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">Nessuno</option>
+                                            <option value="chiaro" ${ptc.tipoVetro === 'chiaro' ? 'selected' : ''}>Chiaro</option>
+                                            <option value="satinato" ${ptc.tipoVetro === 'satinato' ? 'selected' : ''}>Satinato</option>
+                                            <option value="ornamentale" ${ptc.tipoVetro === 'ornamentale' ? 'selected' : ''}>Ornamentale</option>
+                                            <option value="sicurezza" ${ptc.tipoVetro === 'sicurezza' ? 'selected' : ''}>Sicurezza</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Vetro Ornamentale</label>
+                                        <input type="text" 
+                                               value="${ptc.vetroOrnamentale || ''}"
+                                               placeholder="Delta, Chinchillà..."
+                                               onchange="updatePortoncino('${project.id}', '${pos.id}', 'vetroOrnamentale', this.value)"
+                                               class="w-full compact-input border rounded mt-1"
+                                               ${ptc.tipoVetro !== 'ornamentale' ? 'disabled' : ''}>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Fermavetro</label>
+                                        <select onchange="updatePortoncino('${project.id}', '${pos.id}', 'fermavetro', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">Sel...</option>
+                                            <option value="interno" ${ptc.fermavetro === 'interno' ? 'selected' : ''}>Interno</option>
+                                            <option value="esterno" ${ptc.fermavetro === 'esterno' ? 'selected' : ''}>Esterno</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 🔩 FERRAMENTA -->
+                            <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                    🔩 Ferramenta
+                                </h5>
+                                <div class="grid md:grid-cols-4 gap-3">
+                                    <div>
+                                        <label class="text-xs font-medium">Codice Ferramenta</label>
+                                        <input type="text" 
+                                               value="${ptc.codiceFerramenta || ''}"
+                                               placeholder="FD-3000"
+                                               onchange="updatePortoncino('${project.id}', '${pos.id}', 'codiceFerramenta', this.value)"
+                                               class="w-full compact-input border rounded mt-1">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Cerniere</label>
+                                        <select onchange="updatePortoncino('${project.id}', '${pos.id}', 'cerniere', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">Sel...</option>
+                                            <option value="standard" ${ptc.cerniere === 'standard' ? 'selected' : ''}>Standard</option>
+                                            <option value="3d" ${ptc.cerniere === '3d' ? 'selected' : ''}>3D Regolabili</option>
+                                            <option value="nascoste" ${ptc.cerniere === 'nascoste' ? 'selected' : ''}>Nascoste</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Cilindro</label>
+                                        <select onchange="updatePortoncino('${project.id}', '${pos.id}', 'cilindro', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">Sel...</option>
+                                            <option value="standard" ${ptc.cilindro === 'standard' ? 'selected' : ''}>Standard</option>
+                                            <option value="europeo" ${ptc.cilindro === 'europeo' ? 'selected' : ''}>Europeo</option>
+                                            <option value="alta-sicurezza" ${ptc.cilindro === 'alta-sicurezza' ? 'selected' : ''}>Alta Sicurezza</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Qtà Chiavi</label>
+                                        <select onchange="updatePortoncino('${project.id}', '${pos.id}', 'quantitaChiavi', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="3" ${ptc.quantitaChiavi == '3' ? 'selected' : ''}>3</option>
+                                            <option value="4" ${ptc.quantitaChiavi == '4' ? 'selected' : ''}>4</option>
+                                            <option value="5" ${ptc.quantitaChiavi == '5' ? 'selected' : ''}>5</option>
+                                            <option value="6" ${ptc.quantitaChiavi == '6' ? 'selected' : ''}>6</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 🖐️ MANIGLIE -->
+                            <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                                    🖐️ Maniglie
+                                </h5>
+                                <div class="grid md:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-xs font-medium">Maniglia Interna</label>
+                                        <input type="text" 
+                                               value="${ptc.manigliaInt || ''}"
+                                               placeholder="7040 - Maniglione"
+                                               onchange="updatePortoncino('${project.id}', '${pos.id}', 'manigliaInt', this.value)"
+                                               class="w-full compact-input border rounded mt-1">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Maniglia Esterna</label>
+                                        <input type="text" 
+                                               value="${ptc.manigliaEst || ''}"
+                                               placeholder="Pomolo fisso"
+                                               onchange="updatePortoncino('${project.id}', '${pos.id}', 'manigliaEst', this.value)"
+                                               class="w-full compact-input border rounded mt-1">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- ⚡ ACCESSORI -->
+                            <div class="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-orange-800 mb-3 flex items-center gap-2">
+                                    ⚡ Accessori
+                                </h5>
+                                <div class="grid md:grid-cols-4 gap-3">
+                                    <div>
+                                        <label class="text-xs font-medium">Motor Apertura</label>
+                                        <label class="flex items-center gap-2 mt-1">
+                                            <input type="checkbox" 
+                                                   ${ptc.motorApertura ? 'checked' : ''}
+                                                   onchange="updatePortoncino('${project.id}', '${pos.id}', 'motorApertura', this.checked)"
+                                                   class="w-4 h-4 rounded">
+                                            <span class="text-sm">Motorizzata</span>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Telecomando</label>
+                                        <input type="text" 
+                                               value="${ptc.telecomando || ''}"
+                                               placeholder="2 telecomandi"
+                                               onchange="updatePortoncino('${project.id}', '${pos.id}', 'telecomando', this.value)"
+                                               class="w-full compact-input border rounded mt-1"
+                                               ${!ptc.motorApertura ? 'disabled' : ''}>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Lettore Impronte</label>
+                                        <select onchange="updatePortoncino('${project.id}', '${pos.id}', 'lettoreImpronte', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">Nessuno</option>
+                                            <option value="base" ${ptc.lettoreImpronte === 'base' ? 'selected' : ''}>Base</option>
+                                            <option value="smart" ${ptc.lettoreImpronte === 'smart' ? 'selected' : ''}>Smart (App)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Chiudiporta</label>
+                                        <select onchange="updatePortoncino('${project.id}', '${pos.id}', 'chiudiporta', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">Nessuno</option>
+                                            <option value="standard" ${ptc.chiudiporta === 'standard' ? 'selected' : ''}>Standard</option>
+                                            <option value="incasso" ${ptc.chiudiporta === 'incasso' ? 'selected' : ''}>Ad incasso</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 📝 NOTE -->
+                            <div class="bg-white border-2 border-gray-200 rounded-lg p-4">
+                                <h5 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                                    📝 Note
+                                </h5>
+                                <textarea 
+                                    onchange="updatePortoncino('${project.id}', '${pos.id}', 'note', this.value)"
+                                    placeholder="Note aggiuntive..."
+                                    class="w-full px-3 py-2 border rounded-lg h-20 text-sm">${ptc.note || ''}</textarea>
+                            </div>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        // 🚪 FUNZIONI HELPER PORTONCINI (v5.07)
+        window.addPortoncino = function(projectId, positionId) {
+            const project = state.projects.find(p => p.id === projectId);
+            const position = project.positions.find(p => p.id === positionId);
+            
+            // Eredita dalla config globale se esiste
+            const cfg = project.configPortoncini || {};
+            
+            position.portoncino = {
+                attivo: true,
+                azienda: cfg.azienda || 'Finstral',
+                // Dimensioni
+                BRM_L: '',
+                BRM_H: '',
+                // Telaio
+                tipoTelaio: cfg.tipoTelaio || '',
+                soglia: cfg.soglia || '',
+                montante: cfg.montante || '',
+                traversa: cfg.traversa || '',
+                // Anta
+                modelloAnta: cfg.modelloAnta || '',
+                pannello: cfg.pannello || '',
+                materialeInt: cfg.materialeInt || '',
+                materialeEst: cfg.materialeEst || '',
+                coloreInt: cfg.coloreInt || '',
+                coloreEst: cfg.coloreEst || '',
+                // Vetro
+                tipoVetro: cfg.tipoVetro || '',
+                vetroOrnamentale: cfg.vetroOrnamentale || '',
+                fermavetro: cfg.fermavetro || '',
+                // Ferramenta
+                codiceFerramenta: cfg.codiceFerramenta || '',
+                cerniere: cfg.cerniere || '',
+                cilindro: cfg.cilindro || '',
+                quantitaChiavi: cfg.quantitaChiavi || 3,
+                // Maniglie
+                manigliaInt: cfg.manigliaInt || '',
+                manigliaEst: cfg.manigliaEst || '',
+                // Accessori
+                motorApertura: cfg.motorApertura || false,
+                telecomando: cfg.telecomando || '',
+                lettoreImpronte: cfg.lettoreImpronte || '',
+                chiudiporta: cfg.chiudiporta || '',
+                // Note
+                note: ''
+            };
+            
+            console.log('🚪 Portoncino aggiunto con config globale:', position.portoncino);
+            saveState();
+            render();
+        };
+        
+        window.updatePortoncino = function(projectId, positionId, field, value) {
+            const project = state.projects.find(p => p.id === projectId);
+            const position = project.positions.find(p => p.id === positionId);
+            
+            if (!position.portoncino) return;
+            
+            position.portoncino[field] = value;
+            console.log(`🚪 portoncino.${field} = ${value}`);
+            
+            saveState();
+            render();
+        };
 
         // 🔐 FUNZIONI HELPER BLINDATE
         function addBlindata(projectId, positionId) {
