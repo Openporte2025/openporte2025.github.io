@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.03 - 🪟 OPTIONAL VETRO/SOPRALUCE/FIANCOLUCE ✅
+    Open Porte v5.04 - 🔧 FIX EXPORT COLORE PERSIANA
+    
+    🔧 AGGIORNAMENTI v5.04 (28 NOV 2025):
+    - ✅ FIX EXPORT: colorePersiana ora esportato correttamente in JSON
+    - ✅ CAMPI AGGIUNTI: coloreTelaio, battuta, tipo, apertura in configPersiane
+    - ✅ NOMI CHIARI: Tutti i campi persiane hanno nomi consistenti
     
     🔧 AGGIORNAMENTI v5.03 (28 NOV 2025):
     - ✅ DATABASE OIKOS_OPTIONAL: Prezzi vetro blindato/termico, sopraluce, fiancoluce
@@ -2996,8 +3001,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.03';
-        const APP_VERSION_NOTE = 'Optional Vetro/Sopraluce/Fiancoluce';
+        const APP_VERSION = '5.04';
+        const APP_VERSION_NOTE = 'Fix Export Colore Persiana';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -7199,14 +7204,18 @@
                         note: updatedProject.rilievoInfissi?.note || ''
                     },
                     
-                    // CONFIG PERSIANE
+                    // CONFIG PERSIANE - 🔧 v5.04: Nomi campi corretti
                     configPersiane: {
                         azienda: updatedProject.configPersiane?.azienda || '',
                         modello: updatedProject.configPersiane?.modello || '',
                         fissaggio: updatedProject.configPersiane?.fissaggio || '',
-                        colore: updatedProject.configPersiane?.colore || '',
+                        colorePersiana: updatedProject.configPersiane?.colorePersiana || '',
+                        coloreTelaio: updatedProject.configPersiane?.coloreTelaio || '',
+                        battuta: updatedProject.configPersiane?.battuta || '',
                         tipoStecca: updatedProject.configPersiane?.tipoStecca || '',
-                        asolato: updatedProject.configPersiane?.asolato || ''
+                        asolato: updatedProject.configPersiane?.asolato || '',
+                        tipo: updatedProject.configPersiane?.tipo || '',
+                        apertura: updatedProject.configPersiane?.apertura || ''
                     },
                     
                     // BRM PERSIANE
