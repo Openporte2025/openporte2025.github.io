@@ -7210,7 +7210,10 @@
                         modello: updatedProject.configPersiane?.modello || '',
                         fissaggio: updatedProject.configPersiane?.fissaggio || '',
                         colorePersiana: updatedProject.configPersiane?.colorePersiana || '',
-                        coloreTelaio: updatedProject.configPersiane?.coloreTelaio || '',
+                        // 🔧 v5.04: coloreTelaio SOLO se fissaggio = telaio
+                        coloreTelaio: (updatedProject.configPersiane?.fissaggio === 'telaio') 
+                                      ? (updatedProject.configPersiane?.coloreTelaio || '') 
+                                      : '',
                         battuta: updatedProject.configPersiane?.battuta || '',
                         tipoStecca: updatedProject.configPersiane?.tipoStecca || '',
                         asolato: updatedProject.configPersiane?.asolato || '',
