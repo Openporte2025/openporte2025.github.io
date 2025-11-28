@@ -13,6 +13,7 @@
     - ✅ INIZIALIZZAZIONE: Struttura completa con vetro/sopraluce/fiancoluce/rivestimenti
     - ✅ EXPORT JSON: Ingresso completo con tutti i campi blindata
     - ✅ TOTALI: Aggiunto n_ingressi, n_blindate, n_portoncini
+    - ✅ FIX CAMBIO TIPO: Quando cambi portoncino↔blindata, pulisce config precedente
     
     🔧 AGGIORNAMENTI v5.08 (28 NOV 2025):
     - ✅ RIMOSSI checkbox Blindate/Portoncini da Step 2
@@ -16173,26 +16174,42 @@
             if (!pos.ingresso) pos.ingresso = {};
             pos.ingresso[field] = value;
             
-            // Inizializza sotto-oggetto quando si sceglie tipo
+            // v5.12: Quando si cambia tipo, PULISCI l'altro tipo per evitare confusione export
             if (field === 'tipo') {
-                if (value === 'portoncino' && !pos.ingresso.portoncino) {
-                    pos.ingresso.portoncino = { azienda: 'Finstral' };
+                if (value === 'portoncino') {
+                    // Passa a portoncino → elimina blindata
+                    delete pos.ingresso.blindata;
+                    if (!pos.ingresso.portoncino) {
+                        pos.ingresso.portoncino = { azienda: 'Finstral' };
+                    }
+                    console.log('🚪 Tipo cambiato a PORTONCINO - rimossa config blindata');
                 }
-                if (value === 'blindata' && !pos.ingresso.blindata) {
-                    pos.ingresso.blindata = { 
-                        azienda: 'Oikos', 
-                        tipoAnta: 'singola', 
-                        cilindro: 'BASIC', 
-                        coloreTelaio: 'RAL8022',
-                        acustica: 'serie',
-                        termica: 'serie',
-                        kitAAV: '',
-                        vetro: { attivo: false, tipo: '', finitura: 'trasparente', termico: false },
-                        sopraluce: { attivo: false, altezza: '', sabbiato: false },
-                        fiancoluce: { attivo: false, conVetro: false, sabbiato: false, colore: 'RAL8022' },
-                        rivestimentoInt: { linea: '', modello: '', essenza: '', tinta: '' },
-                        rivestimentoEst: { linea: '', modello: '', essenza: '', tinta: '', verniciatura: false }
-                    };
+                if (value === 'blindata') {
+                    // Passa a blindata → elimina portoncino
+                    delete pos.ingresso.portoncino;
+                    if (!pos.ingresso.blindata) {
+                        pos.ingresso.blindata = { 
+                            azienda: 'Oikos', 
+                            tipoAnta: 'singola', 
+                            cilindro: 'BASIC', 
+                            coloreTelaio: 'RAL8022',
+                            acustica: 'serie',
+                            termica: 'serie',
+                            kitAAV: '',
+                            vetro: { attivo: false, tipo: '', finitura: 'trasparente', termico: false },
+                            sopraluce: { attivo: false, altezza: '', sabbiato: false },
+                            fiancoluce: { attivo: false, conVetro: false, sabbiato: false, colore: 'RAL8022' },
+                            rivestimentoInt: { linea: '', modello: '', essenza: '', tinta: '' },
+                            rivestimentoEst: { linea: '', modello: '', essenza: '', tinta: '', verniciatura: false }
+                        };
+                    }
+                    console.log('🔐 Tipo cambiato a BLINDATA - rimossa config portoncino');
+                }
+                if (value === '') {
+                    // Nessun tipo selezionato → pulisci tutto
+                    delete pos.ingresso.portoncino;
+                    delete pos.ingresso.blindata;
+                    console.log('🚪 Tipo rimosso - pulite tutte le config');
                 }
             }
             
