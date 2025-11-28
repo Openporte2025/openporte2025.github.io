@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.07 - 🚪 PORTONCINI FINSTRAL - FASE 1 ✅
+    Open Porte v5.08 - 🚪 PORTONCINI/BLINDATE SOLO IN POSIZIONE ✅
+    
+    🔧 AGGIORNAMENTI v5.08 (28 NOV 2025):
+    - ✅ RIMOSSI checkbox Blindate/Portoncini da Step 2
+    - ✅ INFO: Portoncini e Blindate si configurano nella posizione
+    - ⏳ STEP 2: Rimuovere Step config globale
+    - ⏳ STEP 3: Aggiungere tipoposizione nella UI posizione
+    - ⏳ STEP 4: Aggiornare export JSON
     
     🔧 AGGIORNAMENTI v5.07 (28 NOV 2025):
-    - ✅ NUOVO PRODOTTO: Portoncini Finstral FIN-Door
-    - ✅ CHECKBOX Step 2: Selezionabile come altri prodotti
-    - ✅ configPortoncini: Struttura dati config globale
-    - ✅ Step 9 dedicato: Configurazione Portoncini Default
-    - ✅ EXPORT JSON: configPortoncini incluso in sync GitHub
-    - ⏳ FASE 2: Tab posizioni + addPortoncino() (prossima chat)
-    
-    🔧 AGGIORNAMENTI v5.06 (28 NOV 2025):
     - ✅ EXPORT configBlindate: Tutti i campi config globale blindate
     - ✅ EXPORT blindata posizione: Aggiunto pos.blindata in positions[]
     - ✅ OPTIONAL EXPORT: vetro, sopraluce, fiancoluce inclusi
@@ -3021,8 +3020,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.07';
-        const APP_VERSION_NOTE = 'Portoncini Finstral FIN-Door';
+        const APP_VERSION = '5.10';
+        const APP_VERSION_NOTE = 'Tipo Posizione Finestra/Ingresso';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -8929,10 +8928,10 @@
             if (project.prodotti?.tapparelle) steps.push(5);
             if (project.prodotti?.zanzariere) steps.push(6);
             if (project.prodotti?.cassonetti) steps.push(7);
-            if (project.prodotti?.blindate) steps.push(8);
+            // 🚪 v5.08: Blindate e Portoncini non hanno più step globale
             
             // Step finale sempre presente
-            steps.push(9);
+            steps.push(8);
             
             return steps;
         }
@@ -12671,11 +12670,11 @@
                             if (project.prodotti?.tapparelle) steps.push({num: 5, label: 'Config. Tapparelle'});
                             if (project.prodotti?.zanzariere) steps.push({num: 6, label: 'Config. Zanzariere'});
                             if (project.prodotti?.cassonetti) steps.push({num: 7, label: 'Config. Cassonetti'});
-                            if (project.prodotti?.blindate) steps.push({num: 8, label: 'Config. Blindate'});
-                            if (project.prodotti?.portoncini) steps.push({num: 9, label: 'Config. Portoncini'});
+                            // 🚪 v5.08: Blindate e Portoncini NON hanno più config globale
+                            // Si configurano direttamente nella posizione
                             
                             // Step finale sempre presente
-                            steps.push({num: 10, label: 'Posizioni'});
+                            steps.push({num: 8, label: 'Posizioni'});
                             
                             return steps.map((step, idx) => `
                                 <div class="flex flex-col items-center cursor-pointer flex-shrink-0" onclick="changeSetupStep(${step.num})">
@@ -12696,16 +12695,14 @@
                           state.setupStep === 5 ? renderStep5ConfigTapparelle(project) :
                           state.setupStep === 6 ? renderStep6ConfigZanzariere(project) :
                           state.setupStep === 7 ? renderStep7ConfigCassonetti(project) :
-                          state.setupStep === 8 ? renderStep8ConfigBlindate(project) :
-                          state.setupStep === 9 ? renderStep9ConfigPortoncini(project) :
-                          renderStep10Positions(project)}
+                          renderStep8Positions(project)}
                         
                         <div class="flex justify-between mt-6 pt-4 border-t">
                             <button onclick="goToPrevStep('${project.id}')" 
                                     class="px-4 py-2 border rounded-lg hover:bg-gray-50 ${state.setupStep === 1 ? 'invisible' : ''}">
                                 ← Indietro
                             </button>
-                            ${state.setupStep < 10 ? `
+                            ${state.setupStep < 8 ? `
                                 <button onclick="goToNextStep('${project.id}')" 
                                         class="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:shadow-lg">
                                     Avanti →
@@ -12918,32 +12915,13 @@
                                 <div class="text-xs opacity-75">Cassonetti avvolgibili</div>
                             </div>
                         </label>
-
-                        <label class="product-pill ${project.prodotti?.blindate ? 'selected bg-red-50 border-red-500 text-red-700' : 'border-gray-300'}">
-                            <input type="checkbox" 
-                                   ${project.prodotti?.blindate ? 'checked' : ''}
-                                   onchange="updateProdotti('${project.id}', 'blindate', this.checked)"
-                                   onclick="event.stopPropagation()"
-                                   class="sr-only">
-                            <span class="text-xl">🔐</span>
-                            <div>
-                                <div class="font-semibold">Porte Blindate</div>
-                                <div class="text-xs opacity-75">Oikos</div>
-                            </div>
-                        </label>
-
-                        <label class="product-pill ${project.prodotti?.portoncini ? 'selected bg-teal-50 border-teal-500 text-teal-700' : 'border-gray-300'}">
-                            <input type="checkbox" 
-                                   ${project.prodotti?.portoncini ? 'checked' : ''}
-                                   onchange="updateProdotti('${project.id}', 'portoncini', this.checked)"
-                                   onclick="event.stopPropagation()"
-                                   class="sr-only">
-                            <span class="text-xl">🚪</span>
-                            <div>
-                                <div class="font-semibold">Portoncini</div>
-                                <div class="text-xs opacity-75">Finstral FIN-Door</div>
-                            </div>
-                        </label>
+                    </div>
+                    
+                    <!-- 💡 INFO: Portoncini e Blindate si configurano direttamente nella posizione -->
+                    <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-blue-700 text-sm">
+                            💡 <strong>Portoncini Finstral</strong> e <strong>Porte Blindate Oikos</strong> si configurano direttamente nella singola posizione (tipo "Ingresso")
+                        </p>
                     </div>
 
                     ${Object.values(project.prodotti || {}).some(v => v) ? `
@@ -14790,7 +14768,7 @@
             `;
         }
 
-        function renderStep10Positions(project) {
+        function renderStep8Positions(project) {
             
             return `
                 <div>
@@ -15452,6 +15430,50 @@
                                    placeholder="1"
                                    class="w-full compact-input border rounded mt-1 font-semibold text-purple-700">
                         </div>
+                    </div>
+                    
+                    <!-- 🚪 v5.09: TIPO POSIZIONE (Finestra o Ingresso) -->
+                    <div class="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">🏠 Tipo Posizione</label>
+                        <div class="flex gap-4">
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="tipopos-${pos.id}" value="finestra"
+                                       ${(pos.tipoposizione || 'finestra') === 'finestra' ? 'checked' : ''}
+                                       onchange="updateTipoPosizione('${project.id}', '${pos.id}', 'finestra')"
+                                       class="sr-only">
+                                <div class="p-3 rounded-lg border-2 transition-all ${(pos.tipoposizione || 'finestra') === 'finestra' 
+                                    ? 'border-blue-500 bg-blue-100 shadow-md' 
+                                    : 'border-gray-300 bg-white hover:border-blue-300'}">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-2xl">🪟</span>
+                                        <div>
+                                            <div class="font-semibold ${(pos.tipoposizione || 'finestra') === 'finestra' ? 'text-blue-700' : 'text-gray-700'}">Finestra</div>
+                                            <div class="text-xs text-gray-500">Infissi, persiane, tapparelle...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="tipopos-${pos.id}" value="ingresso"
+                                       ${pos.tipoposizione === 'ingresso' ? 'checked' : ''}
+                                       onchange="updateTipoPosizione('${project.id}', '${pos.id}', 'ingresso')"
+                                       class="sr-only">
+                                <div class="p-3 rounded-lg border-2 transition-all ${pos.tipoposizione === 'ingresso' 
+                                    ? 'border-teal-500 bg-teal-100 shadow-md' 
+                                    : 'border-gray-300 bg-white hover:border-teal-300'}">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-2xl">🚪</span>
+                                        <div>
+                                            <div class="font-semibold ${pos.tipoposizione === 'ingresso' ? 'text-teal-700' : 'text-gray-700'}">Ingresso</div>
+                                            <div class="text-xs text-gray-500">Portoncino o Blindata</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-4 mb-4">
                         <div class="section-card">
                             <label class="text-xs font-medium">Foto</label>
                             <div class="flex items-center gap-2 mt-1">
@@ -15468,52 +15490,50 @@
 
                     <div class="bg-white rounded-lg shadow">
                         <div class="flex border-b overflow-x-auto">
-                            <button onclick="setPositionTab('${pos.id}', 'misure')"
-                                    class="tab-btn ${(pos.activeTab || 'misure') === 'misure' ? 'active' : ''}">
-                                📏 Misure
-                            </button>
-                            ${project.prodotti?.infissi ? `
-                                <button onclick="setPositionTab('${pos.id}', 'infissi')"
-                                        class="tab-btn ${pos.activeTab === 'infissi' ? 'active' : ''}">
-                                    🪟 Infissi
+                            <!-- TAB DINAMICI in base a tipoposizione -->
+                            ${(pos.tipoposizione || 'finestra') === 'finestra' ? `
+                                <!-- TIPO FINESTRA: mostra tutti i prodotti standard -->
+                                <button onclick="setPositionTab('${pos.id}', 'misure')"
+                                        class="tab-btn ${(pos.activeTab || 'misure') === 'misure' ? 'active' : ''}">
+                                    📏 Misure
                                 </button>
-                            ` : ''}
-                            ${project.prodotti?.persiane ? `
-                                <button onclick="setPositionTab('${pos.id}', 'persiane')"
-                                        class="tab-btn ${pos.activeTab === 'persiane' ? 'active' : ''}">
-                                    🚪 Persiane
+                                ${project.prodotti?.infissi ? `
+                                    <button onclick="setPositionTab('${pos.id}', 'infissi')"
+                                            class="tab-btn ${pos.activeTab === 'infissi' ? 'active' : ''}">
+                                        🪟 Infissi
+                                    </button>
+                                ` : ''}
+                                ${project.prodotti?.persiane ? `
+                                    <button onclick="setPositionTab('${pos.id}', 'persiane')"
+                                            class="tab-btn ${pos.activeTab === 'persiane' ? 'active' : ''}">
+                                        🚪 Persiane
+                                    </button>
+                                ` : ''}
+                                ${project.prodotti?.tapparelle ? `
+                                    <button onclick="setPositionTab('${pos.id}', 'tapparelle')"
+                                            class="tab-btn ${pos.activeTab === 'tapparelle' ? 'active' : ''}">
+                                        🎚️ Tapparelle
+                                    </button>
+                                ` : ''}
+                                ${project.prodotti?.zanzariere ? `
+                                    <button onclick="setPositionTab('${pos.id}', 'zanzariere')"
+                                            class="tab-btn ${pos.activeTab === 'zanzariere' ? 'active' : ''}">
+                                        🦟 Zanzariere
+                                    </button>
+                                ` : ''}
+                                ${project.prodotti?.cassonetti ? `
+                                    <button onclick="setPositionTab('${pos.id}', 'cassonetti')"
+                                            class="tab-btn ${pos.activeTab === 'cassonetti' ? 'active' : ''}">
+                                        📦 Cassonetti
+                                    </button>
+                                ` : ''}
+                            ` : `
+                                <!-- TIPO INGRESSO: mostra solo tab ingresso -->
+                                <button onclick="setPositionTab('${pos.id}', 'ingresso')"
+                                        class="tab-btn ${(pos.activeTab || 'ingresso') === 'ingresso' ? 'active' : ''}">
+                                    🚪 Ingresso
                                 </button>
-                            ` : ''}
-                            ${project.prodotti?.tapparelle ? `
-                                <button onclick="setPositionTab('${pos.id}', 'tapparelle')"
-                                        class="tab-btn ${pos.activeTab === 'tapparelle' ? 'active' : ''}">
-                                    🎚️ Tapparelle
-                                </button>
-                            ` : ''}
-                            ${project.prodotti?.zanzariere ? `
-                                <button onclick="setPositionTab('${pos.id}', 'zanzariere')"
-                                        class="tab-btn ${pos.activeTab === 'zanzariere' ? 'active' : ''}">
-                                    🦟 Zanzariere
-                                </button>
-                            ` : ''}
-                            ${project.prodotti?.cassonetti ? `
-                                <button onclick="setPositionTab('${pos.id}', 'cassonetti')"
-                                        class="tab-btn ${pos.activeTab === 'cassonetti' ? 'active' : ''}">
-                                    📦 Cassonetti
-                                </button>
-                            ` : ''}
-                            ${project.prodotti?.blindate ? `
-                                <button onclick="setPositionTab('${pos.id}', 'blindate')"
-                                        class="tab-btn ${pos.activeTab === 'blindate' ? 'active' : ''}">
-                                    🔐 Blindate
-                                </button>
-                            ` : ''}
-                            ${project.prodotti?.portoncini ? `
-                                <button onclick="setPositionTab('${pos.id}', 'portoncini')"
-                                        class="tab-btn ${pos.activeTab === 'portoncini' ? 'active' : ''}">
-                                    🚪 Portoncini
-                                </button>
-                            ` : ''}
+                            `}
                             <button onclick="setPositionTab('${pos.id}', 'foto')"
                                     class="tab-btn ${pos.activeTab === 'foto' ? 'active' : ''}">
                                 📸 Foto (${pos.foto?.length || 0})
@@ -15529,7 +15549,11 @@
         }
 
         function renderPositionTabContent(project, pos) {
-            const tab = pos.activeTab || 'misure';
+            // 🚪 v5.09: Se tipo ingresso, forza tab ingresso come default
+            let tab = pos.activeTab || 'misure';
+            if (pos.tipoposizione === 'ingresso' && tab !== 'foto' && tab !== 'ingresso') {
+                tab = 'ingresso';
+            }
 
             if (tab === 'misure') return renderMisureTab(project, pos);
             if (tab === 'infissi') return renderInfissiTab(project, pos);
@@ -15537,12 +15561,439 @@
             if (tab === 'tapparelle') return renderTapparelleTab(project, pos);
             if (tab === 'zanzariere') return renderZanzariereTab(project, pos);
             if (tab === 'cassonetti') return renderCassonettiTab(project, pos);
-            if (tab === 'blindate') return renderBlindateTab(project, pos);
-            if (tab === 'portoncini') return renderPortonciniTab(project, pos);
+            if (tab === 'ingresso') return renderIngressoTab(project, pos);  // 🚪 v5.09
             if (tab === 'foto') return renderFotoTab(project, pos);
 
             return '';
         }
+        
+        // 🚪 v5.09: Funzione per aggiornare tipo posizione
+        window.updateTipoPosizione = function(projectId, positionId, tipo) {
+            const project = state.projects.find(p => p.id === projectId);
+            const pos = project?.positions.find(p => p.id === positionId);
+            if (!pos) return;
+            
+            pos.tipoposizione = tipo;
+            
+            // Reset tab attivo in base al nuovo tipo
+            if (tipo === 'ingresso') {
+                pos.activeTab = 'ingresso';
+            } else {
+                pos.activeTab = 'misure';
+            }
+            
+            console.log(`🏠 Tipo posizione cambiato: ${tipo}`);
+            saveState();
+            render();
+        };
+        
+        // 🚪 v5.09: Tab INGRESSO (Portoncino o Blindata)
+        function renderIngressoTab(project, pos) {
+            const ing = pos.ingresso || {};
+            
+            return `
+                <div class="space-y-4">
+                    <!-- SCELTA TIPO INGRESSO -->
+                    <div class="bg-gradient-to-r from-teal-50 to-red-50 border-2 border-gray-300 rounded-lg p-4">
+                        <h3 class="font-bold text-gray-800 mb-3">🚪 Scegli il tipo di porta d'ingresso</h3>
+                        <div class="flex gap-4">
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="tipoingresso-${pos.id}" value="portoncino"
+                                       ${ing.tipo === 'portoncino' ? 'checked' : ''}
+                                       onchange="updateIngresso('${project.id}', '${pos.id}', 'tipo', 'portoncino')"
+                                       class="sr-only">
+                                <div class="p-4 rounded-lg border-2 transition-all text-center ${ing.tipo === 'portoncino' 
+                                    ? 'border-teal-500 bg-teal-100 shadow-lg' 
+                                    : 'border-gray-300 bg-white hover:border-teal-300'}">
+                                    <span class="text-3xl block mb-2">🚪</span>
+                                    <div class="font-bold ${ing.tipo === 'portoncino' ? 'text-teal-700' : 'text-gray-700'}">Portoncino</div>
+                                    <div class="text-xs text-gray-500">Finstral FIN-Door</div>
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="tipoingresso-${pos.id}" value="blindata"
+                                       ${ing.tipo === 'blindata' ? 'checked' : ''}
+                                       onchange="updateIngresso('${project.id}', '${pos.id}', 'tipo', 'blindata')"
+                                       class="sr-only">
+                                <div class="p-4 rounded-lg border-2 transition-all text-center ${ing.tipo === 'blindata' 
+                                    ? 'border-red-500 bg-red-100 shadow-lg' 
+                                    : 'border-gray-300 bg-white hover:border-red-300'}">
+                                    <span class="text-3xl block mb-2">🔐</span>
+                                    <div class="font-bold ${ing.tipo === 'blindata' ? 'text-red-700' : 'text-gray-700'}">Blindata</div>
+                                    <div class="text-xs text-gray-500">Oikos</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    ${!ing.tipo ? `
+                        <div class="text-center py-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                            <p class="text-yellow-700 font-medium">⚠️ Seleziona il tipo di porta per continuare la configurazione</p>
+                        </div>
+                    ` : ing.tipo === 'portoncino' ? renderPortoncinoConfig(project, pos, ing) : renderBlindataConfig(project, pos, ing)}
+                </div>
+            `;
+        }
+        
+        // 🚪 Configurazione PORTONCINO Finstral
+        function renderPortoncinoConfig(project, pos, ing) {
+            const ptc = ing.portoncino || {};
+            return `
+                <div class="product-card border-teal-300">
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="font-semibold text-teal-700 text-lg">🚪 Portoncino Finstral FIN-Door</h4>
+                    </div>
+                    
+                    <!-- 📐 DIMENSIONI BRM -->
+                    <div class="bg-teal-50 border-2 border-teal-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-teal-800 mb-3">📐 Dimensioni BRM</h5>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-medium">BRM Larghezza (mm)</label>
+                                <input type="number" value="${ptc.BRM_L || ''}" placeholder="es. 1000"
+                                       onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'BRM_L', this.value)"
+                                       class="w-full compact-input border rounded mt-1 font-bold">
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">BRM Altezza (mm)</label>
+                                <input type="number" value="${ptc.BRM_H || ''}" placeholder="es. 2200"
+                                       onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'BRM_H', this.value)"
+                                       class="w-full compact-input border rounded mt-1 font-bold">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🏗️ TELAIO -->
+                    <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-blue-800 mb-3">🏗️ Telaio</h5>
+                        <div class="grid md:grid-cols-4 gap-3">
+                            <div>
+                                <label class="text-xs font-medium">Tipo Telaio</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'tipoTelaio', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="">Seleziona...</option>
+                                    <option value="L" ${ptc.tipoTelaio === 'L' ? 'selected' : ''}>L - Standard</option>
+                                    <option value="Z" ${ptc.tipoTelaio === 'Z' ? 'selected' : ''}>Z - Ribassato</option>
+                                    <option value="T" ${ptc.tipoTelaio === 'T' ? 'selected' : ''}>T - Termico</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Soglia</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'soglia', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="">Seleziona...</option>
+                                    <option value="standard" ${ptc.soglia === 'standard' ? 'selected' : ''}>Standard</option>
+                                    <option value="ribassata" ${ptc.soglia === 'ribassata' ? 'selected' : ''}>Ribassata</option>
+                                    <option value="filo-pavimento" ${ptc.soglia === 'filo-pavimento' ? 'selected' : ''}>Filo Pavimento</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Montante (mm)</label>
+                                <input type="text" value="${ptc.montante || ''}" placeholder="110"
+                                       onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'montante', this.value)"
+                                       class="w-full compact-input border rounded mt-1">
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Traversa (mm)</label>
+                                <input type="text" value="${ptc.traversa || ''}" placeholder="110"
+                                       onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'traversa', this.value)"
+                                       class="w-full compact-input border rounded mt-1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🚪 ANTA -->
+                    <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-purple-800 mb-3">🚪 Anta e Pannello</h5>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-medium">Modello Anta</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'modelloAnta', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="">Seleziona...</option>
+                                    <option value="D101" ${ptc.modelloAnta === 'D101' ? 'selected' : ''}>D101 - Base</option>
+                                    <option value="D102" ${ptc.modelloAnta === 'D102' ? 'selected' : ''}>D102 - Con vetro</option>
+                                    <option value="D201" ${ptc.modelloAnta === 'D201' ? 'selected' : ''}>D201 - Premium</option>
+                                    <option value="D202" ${ptc.modelloAnta === 'D202' ? 'selected' : ''}>D202 - Premium vetro</option>
+                                    <option value="D301" ${ptc.modelloAnta === 'D301' ? 'selected' : ''}>D301 - Design</option>
+                                    <option value="D401" ${ptc.modelloAnta === 'D401' ? 'selected' : ''}>D401 - Top</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Pannello</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'pannello', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="">Seleziona...</option>
+                                    <option value="liscio" ${ptc.pannello === 'liscio' ? 'selected' : ''}>Liscio</option>
+                                    <option value="bugna" ${ptc.pannello === 'bugna' ? 'selected' : ''}>Bugna</option>
+                                    <option value="design" ${ptc.pannello === 'design' ? 'selected' : ''}>Design</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🎨 COLORI -->
+                    <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-yellow-800 mb-3">🎨 Materiali e Colori</h5>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-yellow-100 p-3 rounded-lg">
+                                <h6 class="font-semibold text-sm mb-2">Interno</h6>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-xs">Materiale</label>
+                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeInt', this.value)"
+                                                class="w-full compact-input border rounded mt-1 text-sm">
+                                            <option value="">Sel...</option>
+                                            <option value="pvc" ${ptc.materialeInt === 'pvc' ? 'selected' : ''}>PVC</option>
+                                            <option value="alluminio" ${ptc.materialeInt === 'alluminio' ? 'selected' : ''}>Alluminio</option>
+                                            <option value="legno" ${ptc.materialeInt === 'legno' ? 'selected' : ''}>Legno</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs">Colore</label>
+                                        <input type="text" value="${ptc.coloreInt || ''}" placeholder="RAL..."
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'coloreInt', this.value)"
+                                               class="w-full compact-input border rounded mt-1 text-sm">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-yellow-100 p-3 rounded-lg">
+                                <h6 class="font-semibold text-sm mb-2">Esterno</h6>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-xs">Materiale</label>
+                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeEst', this.value)"
+                                                class="w-full compact-input border rounded mt-1 text-sm">
+                                            <option value="">Sel...</option>
+                                            <option value="pvc" ${ptc.materialeEst === 'pvc' ? 'selected' : ''}>PVC</option>
+                                            <option value="alluminio" ${ptc.materialeEst === 'alluminio' ? 'selected' : ''}>Alluminio</option>
+                                            <option value="legno" ${ptc.materialeEst === 'legno' ? 'selected' : ''}>Legno</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs">Colore</label>
+                                        <input type="text" value="${ptc.coloreEst || ''}" placeholder="RAL..."
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'coloreEst', this.value)"
+                                               class="w-full compact-input border rounded mt-1 text-sm">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🔩 FERRAMENTA -->
+                    <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-gray-800 mb-3">🔩 Ferramenta e Maniglie</h5>
+                        <div class="grid md:grid-cols-4 gap-3">
+                            <div>
+                                <label class="text-xs font-medium">Cilindro</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'cilindro', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="">Sel...</option>
+                                    <option value="standard" ${ptc.cilindro === 'standard' ? 'selected' : ''}>Standard</option>
+                                    <option value="europeo" ${ptc.cilindro === 'europeo' ? 'selected' : ''}>Europeo</option>
+                                    <option value="alta-sicurezza" ${ptc.cilindro === 'alta-sicurezza' ? 'selected' : ''}>Alta Sicurezza</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Cerniere</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'cerniere', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="">Sel...</option>
+                                    <option value="standard" ${ptc.cerniere === 'standard' ? 'selected' : ''}>Standard</option>
+                                    <option value="3d" ${ptc.cerniere === '3d' ? 'selected' : ''}>3D Regolabili</option>
+                                    <option value="nascoste" ${ptc.cerniere === 'nascoste' ? 'selected' : ''}>Nascoste</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Maniglia Int</label>
+                                <input type="text" value="${ptc.manigliaInt || ''}" placeholder="Modello..."
+                                       onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'manigliaInt', this.value)"
+                                       class="w-full compact-input border rounded mt-1">
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Maniglia Est</label>
+                                <input type="text" value="${ptc.manigliaEst || ''}" placeholder="Pomolo..."
+                                       onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'manigliaEst', this.value)"
+                                       class="w-full compact-input border rounded mt-1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 📝 NOTE -->
+                    <div>
+                        <label class="text-xs font-medium">📝 Note</label>
+                        <textarea onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'note', this.value)"
+                                  placeholder="Note aggiuntive..." class="w-full compact-input border rounded mt-1 h-16">${ptc.note || ''}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 🔐 Configurazione BLINDATA Oikos
+        function renderBlindataConfig(project, pos, ing) {
+            const bld = ing.blindata || {};
+            return `
+                <div class="product-card border-red-300">
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="font-semibold text-red-700 text-lg">🔐 Porta Blindata Oikos</h4>
+                    </div>
+                    
+                    <!-- 📐 DIMENSIONI -->
+                    <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-red-800 mb-3">📐 Dimensioni Luce Netta</h5>
+                        <div class="grid md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="text-xs font-medium">Larghezza (mm)</label>
+                                <input type="number" value="${bld.LNP_L || ''}" placeholder="es. 900"
+                                       onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'LNP_L', this.value)"
+                                       class="w-full compact-input border rounded mt-1 font-bold">
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Altezza (mm)</label>
+                                <input type="number" value="${bld.LNP_H || ''}" placeholder="es. 2100"
+                                       onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'LNP_H', this.value)"
+                                       class="w-full compact-input border rounded mt-1 font-bold">
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Luce Calcolata</label>
+                                <div class="w-full px-3 py-2 bg-gray-100 border rounded mt-1 font-bold text-center">
+                                    ${bld.luceCalcolata || '-'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ⚙️ CONFIGURAZIONE -->
+                    <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-yellow-800 mb-3">⚙️ Configurazione</h5>
+                        <div class="grid md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="text-xs font-medium">Versione</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'versione', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="">Seleziona...</option>
+                                    <option value="E3" ${bld.versione === 'E3' ? 'selected' : ''}>E3 - Evolution 3</option>
+                                    <option value="E4" ${bld.versione === 'E4' ? 'selected' : ''}>E4 - Evolution 4</option>
+                                    <option value="E3D" ${bld.versione === 'E3D' ? 'selected' : ''}>E3D - Doppia Anta</option>
+                                    <option value="E3EI30" ${bld.versione === 'E3EI30' ? 'selected' : ''}>E3 EI 30 - Fuoco</option>
+                                    <option value="P3" ${bld.versione === 'P3' ? 'selected' : ''}>P3 - Project</option>
+                                    <option value="T3" ${bld.versione === 'T3' ? 'selected' : ''}>T3 - Tekno</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Tipo Anta</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'tipoAnta', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="singola" ${bld.tipoAnta === 'singola' ? 'selected' : ''}>Singola</option>
+                                    <option value="doppia" ${bld.tipoAnta === 'doppia' ? 'selected' : ''}>Doppia</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Senso Apertura</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'sensoApertura', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="">Seleziona...</option>
+                                    <option value="SX" ${bld.sensoApertura === 'SX' ? 'selected' : ''}>Sinistra (SX)</option>
+                                    <option value="DX" ${bld.sensoApertura === 'DX' ? 'selected' : ''}>Destra (DX)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Verso Apertura</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'versoApertura', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="">Seleziona...</option>
+                                    <option value="spingere" ${bld.versoApertura === 'spingere' ? 'selected' : ''}>Spingere</option>
+                                    <option value="tirare" ${bld.versoApertura === 'tirare' ? 'selected' : ''}>Tirare</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Controtelaio</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'controtelaio', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="si" ${bld.controtelaio === 'si' ? 'selected' : ''}>Sì, con porta</option>
+                                    <option value="fornito" ${bld.controtelaio === 'fornito' ? 'selected' : ''}>Già fornito</option>
+                                    <option value="no" ${bld.controtelaio === 'no' ? 'selected' : ''}>No</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Cilindro</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'cilindro', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="BASIC" ${bld.cilindro === 'BASIC' ? 'selected' : ''}>Basic (€123)</option>
+                                    <option value="SEKUR" ${bld.cilindro === 'SEKUR' ? 'selected' : ''}>Sekur (€238)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🎨 COLORE TELAIO -->
+                    <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-gray-800 mb-3">🎨 Colore Telaio</h5>
+                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'coloreTelaio', this.value)"
+                                class="w-full compact-input border rounded">
+                            <option value="RAL8022" ${bld.coloreTelaio === 'RAL8022' ? 'selected' : ''}>RAL 8022 (incluso)</option>
+                            <option value="OIKOS_Polveri" ${bld.coloreTelaio === 'OIKOS_Polveri' ? 'selected' : ''}>OIKOS a Polveri (+€246)</option>
+                            <option value="OIKOS_Evergreen" ${bld.coloreTelaio === 'OIKOS_Evergreen' ? 'selected' : ''}>OIKOS Evergreen (+€320)</option>
+                            <option value="OIKOS_Future" ${bld.coloreTelaio === 'OIKOS_Future' ? 'selected' : ''}>OIKOS Future (+€384)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 📝 NOTE -->
+                    <div>
+                        <label class="text-xs font-medium">📝 Note</label>
+                        <textarea onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'note', this.value)"
+                                  placeholder="Note aggiuntive..." class="w-full compact-input border rounded mt-1 h-16">${bld.note || ''}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 🚪 Funzioni update per ingresso
+        window.updateIngresso = function(projectId, positionId, field, value) {
+            const project = state.projects.find(p => p.id === projectId);
+            const pos = project?.positions.find(p => p.id === positionId);
+            if (!pos) return;
+            
+            if (!pos.ingresso) pos.ingresso = {};
+            pos.ingresso[field] = value;
+            
+            // Inizializza sotto-oggetto quando si sceglie tipo
+            if (field === 'tipo') {
+                if (value === 'portoncino' && !pos.ingresso.portoncino) {
+                    pos.ingresso.portoncino = { azienda: 'Finstral' };
+                }
+                if (value === 'blindata' && !pos.ingresso.blindata) {
+                    pos.ingresso.blindata = { azienda: 'Oikos', tipoAnta: 'singola', cilindro: 'BASIC', coloreTelaio: 'RAL8022' };
+                }
+            }
+            
+            console.log(`🚪 ingresso.${field} = ${value}`);
+            saveState();
+            render();
+        };
+        
+        window.updateIngressoData = function(projectId, positionId, prodotto, field, value) {
+            const project = state.projects.find(p => p.id === projectId);
+            const pos = project?.positions.find(p => p.id === positionId);
+            if (!pos || !pos.ingresso) return;
+            
+            if (!pos.ingresso[prodotto]) pos.ingresso[prodotto] = {};
+            pos.ingresso[prodotto][field] = value;
+            
+            // Calcola luce per blindata
+            if (prodotto === 'blindata' && (field === 'LNP_L' || field === 'LNP_H')) {
+                const L = parseFloat(pos.ingresso.blindata.LNP_L) || 0;
+                const H = parseFloat(pos.ingresso.blindata.LNP_H) || 0;
+                if (typeof calcolaLuceOikos === 'function') {
+                    pos.ingresso.blindata.luceCalcolata = calcolaLuceOikos(L, H);
+                }
+            }
+            
+            console.log(`🚪 ingresso.${prodotto}.${field} = ${value}`);
+            saveState();
+            render();
+        };
 
         // 🆕 FASE 014 - Helper per verificare se rilievo posizione è diverso da globale
         function isRilievoPersonalizzato(project, pos, productType) {
