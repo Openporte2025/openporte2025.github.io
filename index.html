@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.01 - 💨 KIT MOSE/DAM ARIA-ACQUA-VENTO ✅
+    Open Porte v5.03 - 🪟 OPTIONAL VETRO/SOPRALUCE/FIANCOLUCE ✅
+    
+    🔧 AGGIORNAMENTI v5.03 (28 NOV 2025):
+    - ✅ DATABASE OIKOS_OPTIONAL: Prezzi vetro blindato/termico, sopraluce, fiancoluce
+    - ✅ SEZIONE OPTIONAL: UI in Step 8 Config Blindate
+    - ✅ VETRO: V1-V5, trasparente/sabbiato, blindato/termico
+    - ✅ SOPRALUCE: H500/H800, sabbiato, controtelaio auto
+    - ✅ FIANCOLUCE: Con/senza vetro, sabbiato, colori
+    - ✅ CALCOLO: Tutti optional integrati in calcolaPrezzoBlindataStimato()
+    
+    🔧 AGGIORNAMENTI v5.02 (28 NOV 2025):
+    - ✅ FUNZIONE calcolaPrezzoRivestimento(): Cerca prezzo per linea/modello/luce
+    - ✅ RIVESTIMENTO INT: Aggiunto al calcolo totale blindata
+    - ✅ RIVESTIMENTO EST: Aggiunto al calcolo totale blindata
+    - ✅ VERNICIATURA: +€150 se verniciatura esterni attiva
     
     🔧 AGGIORNAMENTI v5.01 (28 NOV 2025):
     - ✅ KIT AAV: Sezione Kit Aria-Acqua-Vento in Step 8
@@ -2982,8 +2996,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.01';
-        const APP_VERSION_NOTE = 'Kit MOSE/DAM 4-5A-C5';
+        const APP_VERSION = '5.03';
+        const APP_VERSION_NOTE = 'Optional Vetro/Sopraluce/Fiancoluce';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -15427,6 +15441,61 @@
             }
             return [];
         }
+        
+        // 🔐 v5.02: Calcola prezzo rivestimento per linea/modello/luce
+        function calcolaPrezzoRivestimento(linea, modello, luce) {
+            if (!linea || !modello) return 0;
+            const dati = OIKOS_RIVESTIMENTI[linea];
+            if (!dati || !dati.prezziBase) return 0;
+            const prezziModello = dati.prezziBase[modello];
+            if (!prezziModello) return 0;
+            return prezziModello[luce] || prezziModello['luce0'] || 0;
+        }
+        
+        // ============================================
+        // 🔐 DATABASE OPTIONAL OIKOS (v5.03)
+        // ============================================
+        const OIKOS_OPTIONAL = {
+            // VETRO BLINDATO (BR2 + P6B)
+            vetroBlindato: {
+                'V1': { trasparente: 2311, sabbiato: 2485 },
+                'V2': { trasparente: 1757, sabbiato: 1871 },
+                'V3': { trasparente: 1537, sabbiato: 1631 },
+                'V4': { trasparente: 1537, sabbiato: 1631 },
+                'V5': { trasparente: 1456, sabbiato: 1516 },
+                'V50': { trasparente: 1537, sabbiato: 1631 }
+            },
+            // VETRO TERMICO SICUREZZA
+            vetroTermico: {
+                'V1': { trasparente: 2683, sabbiato: 2857 },
+                'V2': { trasparente: 2030, sabbiato: 2144 },
+                'V3': { trasparente: 1816, sabbiato: 1910 },
+                'V4': { trasparente: 1816, sabbiato: 1910 },
+                'V5': { trasparente: 1684, sabbiato: 1774 },
+                'V50': { trasparente: 1816, sabbiato: 1910 }
+            },
+            // SOPRALUCE
+            sopraluce: {
+                'H500': { 'luce0': 931, 'luce1': 931, 'luce2': 977, 'luce3': 1208, 'luce4': 1413 },
+                'H800': { 'luce0': 1330, 'luce1': 1330, 'luce2': 1454, 'luce3': 1754, 'luce4': 2053 },
+                'controtelaio': { 'luce0': 350, 'luce1': 350, 'luce2': 374, 'luce3': 391, 'luce4': 404 },
+                'sabbiato_H500': { 'luce0': 78, 'luce1': 78, 'luce2': 82, 'luce3': 105, 'luce4': 125 },
+                'sabbiato_H800': { 'luce0': 120, 'luce1': 120, 'luce2': 132, 'luce3': 168, 'luce4': 200 }
+            },
+            // FIANCOLUCE
+            fiancoluce: {
+                senzaVetro: { 'luce1': 1166, 'luce2': 1308, 'luce3': 1388, 'luce4': 1540 },
+                conVetro: { 'luce1': 2209, 'luce2': 2935, 'luce3': 3526, 'luce4': 4374 },
+                sabbiato: { 'luce1': 170, 'luce2': 255, 'luce3': 312, 'luce4': 432 },
+                colori: {
+                    'RAL8022': { 'luce1': 0, 'luce2': 0, 'luce3': 0, 'luce4': 0 },
+                    'OIKOS_Polveri': { 'luce1': 256, 'luce2': 290, 'luce3': 298, 'luce4': 336 },
+                    'OIKOS_Evergreen': { 'luce1': 336, 'luce2': 382, 'luce3': 392, 'luce4': 441 },
+                    'OIKOS_Future': { 'luce1': 404, 'luce2': 460, 'luce3': 472, 'luce4': 532 },
+                    'OIKOS_Liquido': { 'luce1': 512, 'luce2': 580, 'luce3': 596, 'luce4': 672 }
+                }
+            }
+        };
 
         // ============================================
         // 🔐 STEP 8: CONFIG PORTE BLINDATE (v5.00)
@@ -15450,6 +15519,10 @@
                     acustica: 'serie',
                     termica: 'serie',
                     kitAAV: '',  // '', 'MOSE', 'DAM'
+                    // v5.03: Optional
+                    vetro: { attivo: false, tipo: '', finitura: 'trasparente', termico: false },
+                    sopraluce: { attivo: false, altezza: '', sabbiato: false },
+                    fiancoluce: { attivo: false, conVetro: false, sabbiato: false, colore: 'RAL8022' },
                     // Rivestimento interno
                     rivestimentoInt: {
                         linea: 'Piano',
@@ -15743,6 +15816,107 @@
                         </div>
                     </div>
                     
+                    <!-- 🪟 OPTIONAL (v5.03) -->
+                    <div class="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 mb-4">
+                        <h3 class="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                            <span>🪟</span> Optional
+                        </h3>
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <!-- VETRO -->
+                            <div class="bg-purple-100 rounded-lg p-3">
+                                <label class="flex items-center gap-2 cursor-pointer mb-2">
+                                    <input type="checkbox" 
+                                           ${cfg.vetro?.attivo ? 'checked' : ''}
+                                           onchange="updateConfigBlindateOpt('${project.id}', 'vetro', 'attivo', this.checked)"
+                                           class="w-4 h-4">
+                                    <span class="font-medium">🪟 Inserimento Vetro</span>
+                                </label>
+                                ${cfg.vetro?.attivo ? `
+                                    <div class="space-y-2 pl-6">
+                                        <select onchange="updateConfigBlindateOpt('${project.id}', 'vetro', 'tipo', this.value)"
+                                                class="w-full px-2 py-1 border rounded text-sm">
+                                            <option value="">Seleziona tipo...</option>
+                                            <option value="V1" ${cfg.vetro?.tipo === 'V1' ? 'selected' : ''}>V1 - Isola (grande)</option>
+                                            <option value="V2" ${cfg.vetro?.tipo === 'V2' ? 'selected' : ''}>V2 - 800 Veneto</option>
+                                            <option value="V3" ${cfg.vetro?.tipo === 'V3' ? 'selected' : ''}>V3 - Classica</option>
+                                            <option value="V4" ${cfg.vetro?.tipo === 'V4' ? 'selected' : ''}>V4 - Musa</option>
+                                            <option value="V5" ${cfg.vetro?.tipo === 'V5' ? 'selected' : ''}>V5 - Rialto (piccolo)</option>
+                                        </select>
+                                        <select onchange="updateConfigBlindateOpt('${project.id}', 'vetro', 'finitura', this.value)"
+                                                class="w-full px-2 py-1 border rounded text-sm">
+                                            <option value="trasparente" ${cfg.vetro?.finitura === 'trasparente' ? 'selected' : ''}>Trasparente</option>
+                                            <option value="sabbiato" ${cfg.vetro?.finitura === 'sabbiato' ? 'selected' : ''}>Sabbiato (+€216)</option>
+                                        </select>
+                                        <label class="flex items-center gap-2 text-xs">
+                                            <input type="checkbox" 
+                                                   ${cfg.vetro?.termico ? 'checked' : ''}
+                                                   onchange="updateConfigBlindateOpt('${project.id}', 'vetro', 'termico', this.checked)"
+                                                   class="w-3 h-3">
+                                            <span>Vetro termico sicurezza (+€300~€400)</span>
+                                        </label>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- SOPRALUCE -->
+                            <div class="bg-purple-100 rounded-lg p-3">
+                                <label class="flex items-center gap-2 cursor-pointer mb-2">
+                                    <input type="checkbox" 
+                                           ${cfg.sopraluce?.attivo ? 'checked' : ''}
+                                           onchange="updateConfigBlindateOpt('${project.id}', 'sopraluce', 'attivo', this.checked)"
+                                           class="w-4 h-4">
+                                    <span class="font-medium">🔝 Sopraluce</span>
+                                </label>
+                                ${cfg.sopraluce?.attivo ? `
+                                    <div class="space-y-2 pl-6">
+                                        <select onchange="updateConfigBlindateOpt('${project.id}', 'sopraluce', 'altezza', this.value)"
+                                                class="w-full px-2 py-1 border rounded text-sm">
+                                            <option value="">Seleziona altezza...</option>
+                                            <option value="H500" ${cfg.sopraluce?.altezza === 'H500' ? 'selected' : ''}>H ≤ 500mm (€931-1413)</option>
+                                            <option value="H800" ${cfg.sopraluce?.altezza === 'H800' ? 'selected' : ''}>H ≤ 800mm (€1330-2053)</option>
+                                        </select>
+                                        <label class="flex items-center gap-2 text-xs">
+                                            <input type="checkbox" 
+                                                   ${cfg.sopraluce?.sabbiato ? 'checked' : ''}
+                                                   onchange="updateConfigBlindateOpt('${project.id}', 'sopraluce', 'sabbiato', this.checked)"
+                                                   class="w-3 h-3">
+                                            <span>Vetro sabbiato (+€78-200)</span>
+                                        </label>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- FIANCOLUCE -->
+                            <div class="bg-purple-100 rounded-lg p-3">
+                                <label class="flex items-center gap-2 cursor-pointer mb-2">
+                                    <input type="checkbox" 
+                                           ${cfg.fiancoluce?.attivo ? 'checked' : ''}
+                                           onchange="updateConfigBlindateOpt('${project.id}', 'fiancoluce', 'attivo', this.checked)"
+                                           class="w-4 h-4">
+                                    <span class="font-medium">📏 Fiancoluce</span>
+                                </label>
+                                ${cfg.fiancoluce?.attivo ? `
+                                    <div class="space-y-2 pl-6">
+                                        <label class="flex items-center gap-2 text-xs">
+                                            <input type="checkbox" 
+                                                   ${cfg.fiancoluce?.conVetro ? 'checked' : ''}
+                                                   onchange="updateConfigBlindateOpt('${project.id}', 'fiancoluce', 'conVetro', this.checked)"
+                                                   class="w-3 h-3">
+                                            <span>Con vetro blindato (+€1000~€3000)</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 text-xs">
+                                            <input type="checkbox" 
+                                                   ${cfg.fiancoluce?.sabbiato ? 'checked' : ''}
+                                                   onchange="updateConfigBlindateOpt('${project.id}', 'fiancoluce', 'sabbiato', this.checked)"
+                                                   class="w-3 h-3">
+                                            <span>Vetro sabbiato (+€170-432)</span>
+                                        </label>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- 📊 RIEPILOGO CONFIG -->
                     <div class="bg-green-50 border-2 border-green-300 rounded-lg p-4">
                         <h3 class="font-semibold text-green-800 mb-3">📊 Riepilogo Configurazione Default</h3>
@@ -15772,6 +15946,23 @@
             }
             
             project.configBlindate[field] = value;
+            saveState();
+            render();
+        }
+        
+        // 🔐 v5.03: Update campi Optional (vetro, sopraluce, fiancoluce)
+        function updateConfigBlindateOpt(projectId, optional, field, value) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            if (!project.configBlindate) {
+                project.configBlindate = {};
+            }
+            if (!project.configBlindate[optional]) {
+                project.configBlindate[optional] = {};
+            }
+            
+            project.configBlindate[optional][field] = value;
             saveState();
             render();
         }
@@ -18974,6 +19165,7 @@
                 coloreTelaio: cfg.coloreTelaio || 'RAL8022',
                 acustica: cfg.acustica || 'serie',
                 termica: cfg.termica || 'serie',
+                kitAAV: cfg.kitAAV || '',  // v5.02: Eredita Kit AAV
                 rivestimentoInt: cfg.rivestimentoInt ? {...cfg.rivestimentoInt} : { linea: '', modello: '', essenza: '', tinta: '' },
                 rivestimentoEst: cfg.rivestimentoEst ? {...cfg.rivestimentoEst} : { linea: '', modello: '', essenza: '', tinta: '', verniciatura: false },
                 LNP_L: '',
@@ -19085,6 +19277,56 @@
                     'DAM': { 'luce0': 459, 'luce1': 489, 'luce2': 514, 'luce3': 514, 'luce4': 514, 'luce5': 514, 'luce6': 514 }
                 };
                 totale += kitAAV[bld.kitAAV]?.[luce] || 0;
+            }
+            
+            // 🔐 v5.02: Rivestimento INTERNO
+            if (bld.rivestimentoInt?.linea && bld.rivestimentoInt?.modello) {
+                totale += calcolaPrezzoRivestimento(bld.rivestimentoInt.linea, bld.rivestimentoInt.modello, luce);
+            }
+            
+            // 🔐 v5.02: Rivestimento ESTERNO
+            if (bld.rivestimentoEst?.linea && bld.rivestimentoEst?.modello) {
+                totale += calcolaPrezzoRivestimento(bld.rivestimentoEst.linea, bld.rivestimentoEst.modello, luce);
+                // Verniciatura esterni (+30% circa, semplificato a €150)
+                if (bld.rivestimentoEst.verniciatura) {
+                    totale += 150;
+                }
+            }
+            
+            // 🔐 v5.03: VETRO
+            if (bld.vetro?.attivo && bld.vetro?.tipo) {
+                const tipoVetro = bld.vetro.termico ? OIKOS_OPTIONAL.vetroTermico : OIKOS_OPTIONAL.vetroBlindato;
+                const finitura = bld.vetro.finitura || 'trasparente';
+                totale += tipoVetro[bld.vetro.tipo]?.[finitura] || 0;
+            }
+            
+            // 🔐 v5.03: SOPRALUCE
+            if (bld.sopraluce?.attivo && bld.sopraluce?.altezza) {
+                totale += OIKOS_OPTIONAL.sopraluce[bld.sopraluce.altezza]?.[luce] || 0;
+                // Controtelaio sopraluce (se H > 2400)
+                totale += OIKOS_OPTIONAL.sopraluce.controtelaio[luce] || 0;
+                // Sabbiato
+                if (bld.sopraluce.sabbiato) {
+                    const sabKey = 'sabbiato_' + bld.sopraluce.altezza;
+                    totale += OIKOS_OPTIONAL.sopraluce[sabKey]?.[luce] || 0;
+                }
+            }
+            
+            // 🔐 v5.03: FIANCOLUCE
+            if (bld.fiancoluce?.attivo) {
+                const luceFL = luce === 'luce0' ? 'luce1' : luce; // Fiancoluce parte da luce1
+                if (bld.fiancoluce.conVetro) {
+                    totale += OIKOS_OPTIONAL.fiancoluce.conVetro[luceFL] || 0;
+                } else {
+                    totale += OIKOS_OPTIONAL.fiancoluce.senzaVetro[luceFL] || 0;
+                }
+                if (bld.fiancoluce.sabbiato) {
+                    totale += OIKOS_OPTIONAL.fiancoluce.sabbiato[luceFL] || 0;
+                }
+                // Colore fiancoluce
+                if (bld.fiancoluce.colore && bld.fiancoluce.colore !== 'RAL8022') {
+                    totale += OIKOS_OPTIONAL.fiancoluce.colori[bld.fiancoluce.colore]?.[luceFL] || 0;
+                }
             }
             
             return totale;
