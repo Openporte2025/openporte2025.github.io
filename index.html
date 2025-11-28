@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.08 - 🚪 PORTONCINI/BLINDATE SOLO IN POSIZIONE ✅
+    Open Porte v5.12 - 🔐 UI COMPLETA BLINDATA IN INGRESSO ✅
+    
+    🔧 AGGIORNAMENTI v5.12 (28 NOV 2025):
+    - ✅ renderBlindataConfig(): UI completa con tutti i campi
+    - ✅ PRESTAZIONI: Cilindro, Colore Telaio, Acustica, Termica, Kit AAV
+    - ✅ OPTIONAL: Vetro (tipo/finitura/termico), Sopraluce, Fiancoluce
+    - ✅ RIVESTIMENTI: Interno + Esterno (linea/modello/essenza/tinta)
+    - ✅ VERNICIATURA ESTERNI: Checkbox per maggiorazione +€150
+    - ✅ updateIngressoBlindataOpt(): Gestione optional in ingresso
+    - ✅ updateIngressoBlindataRiv(): Gestione rivestimenti in ingresso
     
     🔧 AGGIORNAMENTI v5.08 (28 NOV 2025):
     - ✅ RIMOSSI checkbox Blindate/Portoncini da Step 2
@@ -3020,8 +3029,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.10';
-        const APP_VERSION_NOTE = 'Tipo Posizione Finestra/Ingresso';
+        const APP_VERSION = '5.12';
+        const APP_VERSION_NOTE = 'UI Completa Blindata in Ingresso';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -7354,61 +7363,8 @@
                         note: updatedProject.rilievoCassonetti?.note || ''
                     },
                     
-                    // 🔐 v5.06: CONFIG BLINDATE
-                    configBlindate: updatedProject.configBlindate ? {
-                        azienda: updatedProject.configBlindate.azienda || 'Oikos',
-                        versione: updatedProject.configBlindate.versione || '',
-                        tipoAnta: updatedProject.configBlindate.tipoAnta || 'singola',
-                        sensoApertura: updatedProject.configBlindate.sensoApertura || '',
-                        versoApertura: updatedProject.configBlindate.versoApertura || '',
-                        controtelaio: updatedProject.configBlindate.controtelaio || 'si',
-                        cilindro: updatedProject.configBlindate.cilindro || 'BASIC',
-                        coloreTelaio: updatedProject.configBlindate.coloreTelaio || 'RAL8022',
-                        acustica: updatedProject.configBlindate.acustica || 'serie',
-                        termica: updatedProject.configBlindate.termica || 'serie',
-                        kitAAV: updatedProject.configBlindate.kitAAV || '',
-                        vetro: updatedProject.configBlindate.vetro || null,
-                        sopraluce: updatedProject.configBlindate.sopraluce || null,
-                        fiancoluce: updatedProject.configBlindate.fiancoluce || null,
-                        rivestimentoInt: updatedProject.configBlindate.rivestimentoInt || null,
-                        rivestimentoEst: updatedProject.configBlindate.rivestimentoEst || null
-                    } : null,
-                    
-                    // 🚪 v5.07: CONFIG PORTONCINI FINSTRAL
-                    configPortoncini: updatedProject.configPortoncini ? {
-                        azienda: updatedProject.configPortoncini.azienda || 'Finstral',
-                        // Telaio
-                        tipoTelaio: updatedProject.configPortoncini.tipoTelaio || '',
-                        soglia: updatedProject.configPortoncini.soglia || '',
-                        montante: updatedProject.configPortoncini.montante || '',
-                        traversa: updatedProject.configPortoncini.traversa || '',
-                        // Anta
-                        modelloAnta: updatedProject.configPortoncini.modelloAnta || '',
-                        pannello: updatedProject.configPortoncini.pannello || '',
-                        materialeInt: updatedProject.configPortoncini.materialeInt || '',
-                        materialeEst: updatedProject.configPortoncini.materialeEst || '',
-                        coloreInt: updatedProject.configPortoncini.coloreInt || '',
-                        coloreEst: updatedProject.configPortoncini.coloreEst || '',
-                        // Vetro
-                        tipoVetro: updatedProject.configPortoncini.tipoVetro || '',
-                        vetroOrnamentale: updatedProject.configPortoncini.vetroOrnamentale || '',
-                        fermavetro: updatedProject.configPortoncini.fermavetro || '',
-                        // Ferramenta
-                        codiceFerramenta: updatedProject.configPortoncini.codiceFerramenta || '',
-                        cerniere: updatedProject.configPortoncini.cerniere || '',
-                        cilindro: updatedProject.configPortoncini.cilindro || '',
-                        quantitaChiavi: updatedProject.configPortoncini.quantitaChiavi || '',
-                        // Maniglie
-                        manigliaInt: updatedProject.configPortoncini.manigliaInt || '',
-                        manigliaEst: updatedProject.configPortoncini.manigliaEst || '',
-                        // Accessori
-                        motorApertura: updatedProject.configPortoncini.motorApertura || false,
-                        telecomando: updatedProject.configPortoncini.telecomando || '',
-                        lettoreImpronte: updatedProject.configPortoncini.lettoreImpronte || '',
-                        chiudiporta: updatedProject.configPortoncini.chiudiporta || '',
-                        // Note
-                        note: updatedProject.configPortoncini.note || ''
-                    } : null,
+                    // 🚪 v5.10: configBlindate e configPortoncini RIMOSSI
+                    // Ora si configurano direttamente nella posizione (pos.ingresso)
                     
                     // POSIZIONI (con caratteristiche muro per posizione)
                     positions: (updatedProject.positions || []).map(pos => ({
@@ -7427,16 +7383,22 @@
                         // Rilievo
                         rilievo: pos.rilievo || {},
                         
-                        // Prodotti
+                        // 🚪 v5.10: Tipo Posizione (finestra o ingresso)
+                        tipoposizione: pos.tipoposizione || 'finestra',
+                        
+                        // Prodotti (solo per tipo 'finestra')
                         infisso: pos.infisso || null,
                         persiana: pos.persiana || null,
                         tapparella: pos.tapparella || null,
                         zanzariera: pos.zanzariera || null,
                         cassonetto: pos.cassonetto || null,
-                        // 🔐 v5.06: Blindata
-                        blindata: pos.blindata || null,
-                        // 🚪 v5.07: Portoncino Finstral
-                        portoncino: pos.portoncino || null,
+                        
+                        // 🚪 v5.10: Ingresso (solo per tipo 'ingresso')
+                        ingresso: pos.ingresso ? {
+                            tipo: pos.ingresso.tipo || null,  // 'portoncino' | 'blindata'
+                            portoncino: pos.ingresso.portoncino || null,
+                            blindata: pos.ingresso.blindata || null
+                        } : null,
                         
                         // Prodotti assenti
                         prodottiAssenti: pos.prodottiAssenti || [],
@@ -15831,6 +15793,7 @@
         }
         
         // 🔐 Configurazione BLINDATA Oikos
+        // v5.12: UI COMPLETA Blindata con tutti i campi
         function renderBlindataConfig(project, pos, ing) {
             const bld = ing.blindata || {};
             return `
@@ -15841,7 +15804,7 @@
                     
                     <!-- 📐 DIMENSIONI -->
                     <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-red-800 mb-3">📐 Dimensioni Luce Netta</h5>
+                        <h5 class="font-semibold text-red-800 mb-3">📐 Dimensioni Luce Netta Passaggio</h5>
                         <div class="grid md:grid-cols-3 gap-3">
                             <div>
                                 <label class="text-xs font-medium">Larghezza (mm)</label>
@@ -15858,15 +15821,15 @@
                             <div>
                                 <label class="text-xs font-medium">Luce Calcolata</label>
                                 <div class="w-full px-3 py-2 bg-gray-100 border rounded mt-1 font-bold text-center">
-                                    ${bld.luceCalcolata || '-'}
+                                    ${bld.luceCalcolata ? bld.luceCalcolata.toUpperCase() : '-'}
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- ⚙️ CONFIGURAZIONE -->
+                    <!-- ⚙️ CONFIGURAZIONE BASE -->
                     <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-yellow-800 mb-3">⚙️ Configurazione</h5>
+                        <h5 class="font-semibold text-yellow-800 mb-3">⚙️ Configurazione Base</h5>
                         <div class="grid md:grid-cols-3 gap-3">
                             <div>
                                 <label class="text-xs font-medium">Versione</label>
@@ -15876,8 +15839,12 @@
                                     <option value="E3" ${bld.versione === 'E3' ? 'selected' : ''}>E3 - Evolution 3</option>
                                     <option value="E4" ${bld.versione === 'E4' ? 'selected' : ''}>E4 - Evolution 4</option>
                                     <option value="E3D" ${bld.versione === 'E3D' ? 'selected' : ''}>E3D - Doppia Anta</option>
-                                    <option value="E3EI30" ${bld.versione === 'E3EI30' ? 'selected' : ''}>E3 EI 30 - Fuoco</option>
-                                    <option value="P3" ${bld.versione === 'P3' ? 'selected' : ''}>P3 - Project</option>
+                                    <option value="E3EI30" ${bld.versione === 'E3EI30' ? 'selected' : ''}>E3 EI 30 - Fuoco 30min</option>
+                                    <option value="E3EI45" ${bld.versione === 'E3EI45' ? 'selected' : ''}>E3 EI 45 - Fuoco 45min</option>
+                                    <option value="E3EI60" ${bld.versione === 'E3EI60' ? 'selected' : ''}>E3 EI 60 - Fuoco 60min</option>
+                                    <option value="E3TT086" ${bld.versione === 'E3TT086' ? 'selected' : ''}>E3 TT U=0.86 - Taglio Termico</option>
+                                    <option value="E3TT1" ${bld.versione === 'E3TT1' ? 'selected' : ''}>E3 TT U=1.0 - Taglio Termico</option>
+                                    <option value="P3" ${bld.versione === 'P3' ? 'selected' : ''}>P3 - Project Rasomuro</option>
                                     <option value="T3" ${bld.versione === 'T3' ? 'selected' : ''}>T3 - Tekno</option>
                                 </select>
                             </div>
@@ -15916,6 +15883,13 @@
                                     <option value="no" ${bld.controtelaio === 'no' ? 'selected' : ''}>No</option>
                                 </select>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🔧 PRESTAZIONI -->
+                    <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-blue-800 mb-3">🔧 Prestazioni</h5>
+                        <div class="grid md:grid-cols-4 gap-3">
                             <div>
                                 <label class="text-xs font-medium">Cilindro</label>
                                 <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'cilindro', this.value)"
@@ -15924,19 +15898,257 @@
                                     <option value="SEKUR" ${bld.cilindro === 'SEKUR' ? 'selected' : ''}>Sekur (€238)</option>
                                 </select>
                             </div>
+                            <div>
+                                <label class="text-xs font-medium">Colore Telaio</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'coloreTelaio', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="RAL8022" ${bld.coloreTelaio === 'RAL8022' ? 'selected' : ''}>RAL 8022 (base)</option>
+                                    <option value="OIKOS_Polveri" ${bld.coloreTelaio === 'OIKOS_Polveri' ? 'selected' : ''}>OIKOS Polveri (+€246)</option>
+                                    <option value="OIKOS_Evergreen" ${bld.coloreTelaio === 'OIKOS_Evergreen' ? 'selected' : ''}>OIKOS Evergreen (+€320)</option>
+                                    <option value="OIKOS_Future" ${bld.coloreTelaio === 'OIKOS_Future' ? 'selected' : ''}>OIKOS Future (+€384)</option>
+                                    <option value="OIKOS_Liquido" ${bld.coloreTelaio === 'OIKOS_Liquido' ? 'selected' : ''}>OIKOS Liquido (+€492)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Acustica</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'acustica', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="serie" ${bld.acustica === 'serie' ? 'selected' : ''}>Di serie (40dB)</option>
+                                    <option value="maggiorata" ${bld.acustica === 'maggiorata' ? 'selected' : ''}>Maggiorata 45dB (+€120)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">Termica (U)</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'termica', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="serie" ${bld.termica === 'serie' ? 'selected' : ''}>Di serie (U=1.9)</option>
+                                    <option value="1.2" ${bld.termica === '1.2' ? 'selected' : ''}>U=1.2</option>
+                                    <option value="1.0" ${bld.termica === '1.0' ? 'selected' : ''}>U=1.0</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- KIT AAV -->
+                        <div class="mt-3 pt-3 border-t border-blue-200">
+                            <label class="text-xs font-medium">💨 Kit Aria-Acqua-Vento (A4-5A-C5)</label>
+                            <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'kitAAV', this.value)"
+                                    class="w-full compact-input border rounded mt-1">
+                                <option value="" ${!bld.kitAAV ? 'selected' : ''}>Nessuno (di serie A0-0-C4)</option>
+                                <option value="MOSE" ${bld.kitAAV === 'MOSE' ? 'selected' : ''}>Kit MOSE 4/5A/C5 (+€405-499)</option>
+                                <option value="DAM" ${bld.kitAAV === 'DAM' ? 'selected' : ''}>Kit DAM 4/5A/C5 (+€459-514)</option>
+                            </select>
                         </div>
                     </div>
                     
-                    <!-- 🎨 COLORE TELAIO -->
-                    <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-gray-800 mb-3">🎨 Colore Telaio</h5>
-                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'coloreTelaio', this.value)"
-                                class="w-full compact-input border rounded">
-                            <option value="RAL8022" ${bld.coloreTelaio === 'RAL8022' ? 'selected' : ''}>RAL 8022 (incluso)</option>
-                            <option value="OIKOS_Polveri" ${bld.coloreTelaio === 'OIKOS_Polveri' ? 'selected' : ''}>OIKOS a Polveri (+€246)</option>
-                            <option value="OIKOS_Evergreen" ${bld.coloreTelaio === 'OIKOS_Evergreen' ? 'selected' : ''}>OIKOS Evergreen (+€320)</option>
-                            <option value="OIKOS_Future" ${bld.coloreTelaio === 'OIKOS_Future' ? 'selected' : ''}>OIKOS Future (+€384)</option>
-                        </select>
+                    <!-- 🪟 OPTIONAL -->
+                    <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-purple-800 mb-3">🪟 Optional</h5>
+                        <div class="grid md:grid-cols-3 gap-3">
+                            <!-- VETRO -->
+                            <div class="bg-purple-100 rounded p-2">
+                                <label class="flex items-center gap-2 cursor-pointer text-sm mb-1">
+                                    <input type="checkbox" 
+                                           ${bld.vetro?.attivo ? 'checked' : ''}
+                                           onchange="updateIngressoBlindataOpt('${project.id}', '${pos.id}', 'vetro', 'attivo', this.checked)"
+                                           class="w-4 h-4">
+                                    <span class="font-medium">🪟 Vetro</span>
+                                </label>
+                                ${bld.vetro?.attivo ? `
+                                    <div class="space-y-1 pl-6">
+                                        <select onchange="updateIngressoBlindataOpt('${project.id}', '${pos.id}', 'vetro', 'tipo', this.value)"
+                                                class="w-full px-2 py-1 border rounded text-xs">
+                                            <option value="">Tipo...</option>
+                                            <option value="V1" ${bld.vetro?.tipo === 'V1' ? 'selected' : ''}>V1 Isola</option>
+                                            <option value="V2" ${bld.vetro?.tipo === 'V2' ? 'selected' : ''}>V2 800 Veneto</option>
+                                            <option value="V3" ${bld.vetro?.tipo === 'V3' ? 'selected' : ''}>V3 Classica</option>
+                                            <option value="V4" ${bld.vetro?.tipo === 'V4' ? 'selected' : ''}>V4 Musa</option>
+                                            <option value="V5" ${bld.vetro?.tipo === 'V5' ? 'selected' : ''}>V5 Rialto</option>
+                                        </select>
+                                        <select onchange="updateIngressoBlindataOpt('${project.id}', '${pos.id}', 'vetro', 'finitura', this.value)"
+                                                class="w-full px-2 py-1 border rounded text-xs">
+                                            <option value="trasparente" ${bld.vetro?.finitura === 'trasparente' ? 'selected' : ''}>Trasparente</option>
+                                            <option value="sabbiato" ${bld.vetro?.finitura === 'sabbiato' ? 'selected' : ''}>Sabbiato (+€216)</option>
+                                        </select>
+                                        <label class="flex items-center gap-1 text-xs">
+                                            <input type="checkbox" 
+                                                   ${bld.vetro?.termico ? 'checked' : ''}
+                                                   onchange="updateIngressoBlindataOpt('${project.id}', '${pos.id}', 'vetro', 'termico', this.checked)"
+                                                   class="w-3 h-3">
+                                            <span>Termico (+€300~€400)</span>
+                                        </label>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- SOPRALUCE -->
+                            <div class="bg-purple-100 rounded p-2">
+                                <label class="flex items-center gap-2 cursor-pointer text-sm mb-1">
+                                    <input type="checkbox" 
+                                           ${bld.sopraluce?.attivo ? 'checked' : ''}
+                                           onchange="updateIngressoBlindataOpt('${project.id}', '${pos.id}', 'sopraluce', 'attivo', this.checked)"
+                                           class="w-4 h-4">
+                                    <span class="font-medium">🔝 Sopraluce</span>
+                                </label>
+                                ${bld.sopraluce?.attivo ? `
+                                    <div class="space-y-1 pl-6">
+                                        <select onchange="updateIngressoBlindataOpt('${project.id}', '${pos.id}', 'sopraluce', 'altezza', this.value)"
+                                                class="w-full px-2 py-1 border rounded text-xs">
+                                            <option value="">Altezza...</option>
+                                            <option value="H500" ${bld.sopraluce?.altezza === 'H500' ? 'selected' : ''}>H ≤ 500</option>
+                                            <option value="H800" ${bld.sopraluce?.altezza === 'H800' ? 'selected' : ''}>H ≤ 800</option>
+                                        </select>
+                                        <label class="flex items-center gap-1 text-xs">
+                                            <input type="checkbox" 
+                                                   ${bld.sopraluce?.sabbiato ? 'checked' : ''}
+                                                   onchange="updateIngressoBlindataOpt('${project.id}', '${pos.id}', 'sopraluce', 'sabbiato', this.checked)"
+                                                   class="w-3 h-3">
+                                            <span>Sabbiato (+€78-200)</span>
+                                        </label>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- FIANCOLUCE -->
+                            <div class="bg-purple-100 rounded p-2">
+                                <label class="flex items-center gap-2 cursor-pointer text-sm mb-1">
+                                    <input type="checkbox" 
+                                           ${bld.fiancoluce?.attivo ? 'checked' : ''}
+                                           onchange="updateIngressoBlindataOpt('${project.id}', '${pos.id}', 'fiancoluce', 'attivo', this.checked)"
+                                           class="w-4 h-4">
+                                    <span class="font-medium">📏 Fiancoluce</span>
+                                </label>
+                                ${bld.fiancoluce?.attivo ? `
+                                    <div class="space-y-1 pl-6">
+                                        <label class="flex items-center gap-1 text-xs">
+                                            <input type="checkbox" 
+                                                   ${bld.fiancoluce?.conVetro ? 'checked' : ''}
+                                                   onchange="updateIngressoBlindataOpt('${project.id}', '${pos.id}', 'fiancoluce', 'conVetro', this.checked)"
+                                                   class="w-3 h-3">
+                                            <span>Con vetro (+€1000~€3000)</span>
+                                        </label>
+                                        <label class="flex items-center gap-1 text-xs">
+                                            <input type="checkbox" 
+                                                   ${bld.fiancoluce?.sabbiato ? 'checked' : ''}
+                                                   onchange="updateIngressoBlindataOpt('${project.id}', '${pos.id}', 'fiancoluce', 'sabbiato', this.checked)"
+                                                   class="w-3 h-3">
+                                            <span>Sabbiato (+€170-432)</span>
+                                        </label>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🎨 RIVESTIMENTI -->
+                    <div class="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-orange-800 mb-3">🎨 Rivestimenti</h5>
+                        
+                        <!-- RIVESTIMENTO INTERNO -->
+                        <div class="bg-orange-100 rounded-lg p-3 mb-3">
+                            <h6 class="font-medium text-orange-900 mb-2">📋 Interno</h6>
+                            <div class="grid md:grid-cols-4 gap-2">
+                                <div>
+                                    <label class="text-xs font-medium">Linea</label>
+                                    <select onchange="updateIngressoBlindataRiv('${project.id}', '${pos.id}', 'Int', 'linea', this.value)"
+                                            class="w-full compact-input border rounded mt-1 text-sm">
+                                        <option value="">Seleziona...</option>
+                                        <option value="Piano" ${bld.rivestimentoInt?.linea === 'Piano' ? 'selected' : ''}>Piano</option>
+                                        <option value="Fugato" ${bld.rivestimentoInt?.linea === 'Fugato' ? 'selected' : ''}>Fugato</option>
+                                        <option value="Pantografato" ${bld.rivestimentoInt?.linea === 'Pantografato' ? 'selected' : ''}>Pantografato</option>
+                                        <option value="Tekno" ${bld.rivestimentoInt?.linea === 'Tekno' ? 'selected' : ''}>Tekno</option>
+                                        <option value="LegnoVivo" ${bld.rivestimentoInt?.linea === 'LegnoVivo' ? 'selected' : ''}>Legno Vivo</option>
+                                        <option value="Massello" ${bld.rivestimentoInt?.linea === 'Massello' ? 'selected' : ''}>Massello</option>
+                                        <option value="Alluminio" ${bld.rivestimentoInt?.linea === 'Alluminio' ? 'selected' : ''}>Alluminio</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium">Modello</label>
+                                    <select onchange="updateIngressoBlindataRiv('${project.id}', '${pos.id}', 'Int', 'modello', this.value)"
+                                            class="w-full compact-input border rounded mt-1 text-sm">
+                                        <option value="">Seleziona...</option>
+                                        ${getModelliRivestimento(bld.rivestimentoInt?.linea).map(m => 
+                                            `<option value="${m}" ${bld.rivestimentoInt?.modello === m ? 'selected' : ''}>${m}</option>`
+                                        ).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium">Essenza</label>
+                                    <select onchange="updateIngressoBlindataRiv('${project.id}', '${pos.id}', 'Int', 'essenza', this.value)"
+                                            class="w-full compact-input border rounded mt-1 text-sm">
+                                        <option value="">Seleziona...</option>
+                                        ${getEssenzeRivestimento(bld.rivestimentoInt?.linea, bld.rivestimentoInt?.modello).map(e => 
+                                            `<option value="${e}" ${bld.rivestimentoInt?.essenza === e ? 'selected' : ''}>${e}</option>`
+                                        ).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium">Tinta</label>
+                                    <input type="text" 
+                                           value="${bld.rivestimentoInt?.tinta || ''}"
+                                           onchange="updateIngressoBlindataRiv('${project.id}', '${pos.id}', 'Int', 'tinta', this.value)"
+                                           placeholder="es. Naturale, RAL..."
+                                           class="w-full compact-input border rounded mt-1 text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- RIVESTIMENTO ESTERNO -->
+                        <div class="bg-yellow-100 rounded-lg p-3">
+                            <h6 class="font-medium text-yellow-900 mb-2">📋 Esterno</h6>
+                            <div class="grid md:grid-cols-4 gap-2">
+                                <div>
+                                    <label class="text-xs font-medium">Linea</label>
+                                    <select onchange="updateIngressoBlindataRiv('${project.id}', '${pos.id}', 'Est', 'linea', this.value)"
+                                            class="w-full compact-input border rounded mt-1 text-sm">
+                                        <option value="">Seleziona...</option>
+                                        <option value="Piano" ${bld.rivestimentoEst?.linea === 'Piano' ? 'selected' : ''}>Piano</option>
+                                        <option value="Fugato" ${bld.rivestimentoEst?.linea === 'Fugato' ? 'selected' : ''}>Fugato</option>
+                                        <option value="Pantografato" ${bld.rivestimentoEst?.linea === 'Pantografato' ? 'selected' : ''}>Pantografato</option>
+                                        <option value="Tekno" ${bld.rivestimentoEst?.linea === 'Tekno' ? 'selected' : ''}>Tekno</option>
+                                        <option value="LegnoVivo" ${bld.rivestimentoEst?.linea === 'LegnoVivo' ? 'selected' : ''}>Legno Vivo</option>
+                                        <option value="Massello" ${bld.rivestimentoEst?.linea === 'Massello' ? 'selected' : ''}>Massello</option>
+                                        <option value="Alluminio" ${bld.rivestimentoEst?.linea === 'Alluminio' ? 'selected' : ''}>Alluminio</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium">Modello</label>
+                                    <select onchange="updateIngressoBlindataRiv('${project.id}', '${pos.id}', 'Est', 'modello', this.value)"
+                                            class="w-full compact-input border rounded mt-1 text-sm">
+                                        <option value="">Seleziona...</option>
+                                        ${getModelliRivestimento(bld.rivestimentoEst?.linea).map(m => 
+                                            `<option value="${m}" ${bld.rivestimentoEst?.modello === m ? 'selected' : ''}>${m}</option>`
+                                        ).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium">Essenza</label>
+                                    <select onchange="updateIngressoBlindataRiv('${project.id}', '${pos.id}', 'Est', 'essenza', this.value)"
+                                            class="w-full compact-input border rounded mt-1 text-sm">
+                                        <option value="">Seleziona...</option>
+                                        ${getEssenzeRivestimento(bld.rivestimentoEst?.linea, bld.rivestimentoEst?.modello).map(e => 
+                                            `<option value="${e}" ${bld.rivestimentoEst?.essenza === e ? 'selected' : ''}>${e}</option>`
+                                        ).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium">Tinta</label>
+                                    <input type="text" 
+                                           value="${bld.rivestimentoEst?.tinta || ''}"
+                                           onchange="updateIngressoBlindataRiv('${project.id}', '${pos.id}', 'Est', 'tinta', this.value)"
+                                           placeholder="es. Naturale, RAL..."
+                                           class="w-full compact-input border rounded mt-1 text-sm">
+                                </div>
+                            </div>
+                            <!-- VERNICIATURA ESTERNI -->
+                            <div class="mt-2">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" 
+                                           ${bld.rivestimentoEst?.verniciatura ? 'checked' : ''}
+                                           onchange="updateIngressoBlindataRiv('${project.id}', '${pos.id}', 'Est', 'verniciatura', this.checked)"
+                                           class="w-4 h-4">
+                                    <span class="text-sm font-medium">🌧️ Verniciatura per esterni (+€150)</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- 📝 NOTE -->
@@ -15991,6 +16203,52 @@
             }
             
             console.log(`🚪 ingresso.${prodotto}.${field} = ${value}`);
+            saveState();
+            render();
+        };
+        
+        // v5.12: Update Optional per blindata in ingresso
+        window.updateIngressoBlindataOpt = function(projectId, positionId, optional, field, value) {
+            const project = state.projects.find(p => p.id === projectId);
+            const pos = project?.positions.find(p => p.id === positionId);
+            if (!pos || !pos.ingresso || !pos.ingresso.blindata) return;
+            
+            if (!pos.ingresso.blindata[optional]) {
+                pos.ingresso.blindata[optional] = {};
+            }
+            
+            pos.ingresso.blindata[optional][field] = value;
+            console.log(`🔐 ingresso.blindata.${optional}.${field} = ${value}`);
+            saveState();
+            render();
+        };
+        
+        // v5.12: Update Rivestimenti per blindata in ingresso
+        window.updateIngressoBlindataRiv = function(projectId, positionId, tipo, field, value) {
+            const project = state.projects.find(p => p.id === projectId);
+            const pos = project?.positions.find(p => p.id === positionId);
+            if (!pos || !pos.ingresso || !pos.ingresso.blindata) return;
+            
+            const rivKey = `rivestimento${tipo}`;
+            if (!pos.ingresso.blindata[rivKey]) {
+                pos.ingresso.blindata[rivKey] = {};
+            }
+            
+            pos.ingresso.blindata[rivKey][field] = value;
+            
+            // Pulisci campi dipendenti quando cambia linea
+            if (field === 'linea') {
+                pos.ingresso.blindata[rivKey].modello = '';
+                pos.ingresso.blindata[rivKey].essenza = '';
+                pos.ingresso.blindata[rivKey].tinta = '';
+            }
+            // Pulisci essenza quando cambia modello
+            if (field === 'modello') {
+                pos.ingresso.blindata[rivKey].essenza = '';
+                pos.ingresso.blindata[rivKey].tinta = '';
+            }
+            
+            console.log(`🎨 ingresso.blindata.${rivKey}.${field} = ${value}`);
             saveState();
             render();
         };
