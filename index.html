@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.15 - 🔐 NON DI SERIE RIVESTIMENTI ✅
+    Open Porte v5.16 - 🔐 MANIGLIE E CILINDRO BLINDATE ✅
+    ═══════════════════════════════════════════════════════════════
+    
+    🔧 v5.16 (28 NOV 2025) - MANIGLIE E CILINDRO EVOLUTI
+    ─────────────────────────────────────────────────────
+    - 🔐 CILINDRO: Tipo (Chiave-Chiave / Pomolo-Chiave), Numero Chiavi (3-6)
+    - 🚪 MANIGLIA INTERNA: Modello (MO-05, MO-07, MO-08, MO-13) + Finitura
+    - 🚪 MANIGLIA ESTERNA: Pomolo (PO-05, PO-02) o Maniglione (JUMBO) + Finitura
+    - 🎨 FINITURE: OL, OL TZ, CS, CL, VP, VL, VS (da listino EVO 2025)
+    - ✅ Prezzi da listino: Standard incluso, supplementi per upgrade
+    
+    🔧 v5.15 (28 NOV 2025) - NON DI SERIE RIVESTIMENTI
     
     📋 CHANGELOG v5.15:
     - 🔐 AGGIUNTO: Modello "Non di serie" in Linea Piano
@@ -1844,7 +1855,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.15 - Non di serie Rivestimenti</title>
+    <title>Open Porte v5.16 - Maniglie Blindate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -15928,6 +15939,24 @@
                                 </select>
                             </div>
                             <div>
+                                <label class="text-xs font-medium">Tipo Cilindro</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'tipoCilindro', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="pomolo-chiave" ${bld.tipoCilindro === 'pomolo-chiave' ? 'selected' : ''}>Pomolo + Chiave (std)</option>
+                                    <option value="chiave-chiave" ${bld.tipoCilindro === 'chiave-chiave' ? 'selected' : ''}>Chiave + Chiave</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium">N° Chiavi</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'numChiavi', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="3" ${bld.numChiavi === '3' || !bld.numChiavi ? 'selected' : ''}>3 (standard)</option>
+                                    <option value="4" ${bld.numChiavi === '4' ? 'selected' : ''}>4</option>
+                                    <option value="5" ${bld.numChiavi === '5' ? 'selected' : ''}>5</option>
+                                    <option value="6" ${bld.numChiavi === '6' ? 'selected' : ''}>6</option>
+                                </select>
+                            </div>
+                            <div>
                                 <label class="text-xs font-medium">Colore Telaio</label>
                                 <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'coloreTelaio', this.value)"
                                         class="w-full compact-input border rounded mt-1">
@@ -15938,6 +15967,72 @@
                                     <option value="OIKOS_Liquido" ${bld.coloreTelaio === 'OIKOS_Liquido' ? 'selected' : ''}>OIKOS Liquido (+€492)</option>
                                 </select>
                             </div>
+                        </div>
+                        
+                        <!-- 🚪 MANIGLIE INT/EST -->
+                        <div class="mt-3 pt-3 border-t border-blue-200">
+                            <h6 class="text-xs font-semibold text-blue-700 mb-2">🚪 Maniglie e Pomoli</h6>
+                            <div class="grid md:grid-cols-4 gap-3">
+                                <!-- Maniglia Interna -->
+                                <div>
+                                    <label class="text-xs font-medium">Maniglia INT</label>
+                                    <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'manigliaInt', this.value)"
+                                            class="w-full compact-input border rounded mt-1">
+                                        <option value="MO-05" ${bld.manigliaInt === 'MO-05' || !bld.manigliaInt ? 'selected' : ''}>MO-05 Standard</option>
+                                        <option value="MO-07Q" ${bld.manigliaInt === 'MO-07Q' ? 'selected' : ''}>MO-07Q Quadra</option>
+                                        <option value="MO-07T" ${bld.manigliaInt === 'MO-07T' ? 'selected' : ''}>MO-07T Tonda</option>
+                                        <option value="MO-08Q" ${bld.manigliaInt === 'MO-08Q' ? 'selected' : ''}>MO-08Q Quadra</option>
+                                        <option value="MO-08T" ${bld.manigliaInt === 'MO-08T' ? 'selected' : ''}>MO-08T Tonda</option>
+                                        <option value="MO-13Q" ${bld.manigliaInt === 'MO-13Q' ? 'selected' : ''}>MO-13Q Quadra</option>
+                                        <option value="MO-13T" ${bld.manigliaInt === 'MO-13T' ? 'selected' : ''}>MO-13T Tonda</option>
+                                        <option value="MO-03T" ${bld.manigliaInt === 'MO-03T' ? 'selected' : ''}>MO-03T</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium">Finitura INT</label>
+                                    <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'finituraInt', this.value)"
+                                            class="w-full compact-input border rounded mt-1">
+                                        <option value="OL" ${bld.finituraInt === 'OL' || !bld.finituraInt ? 'selected' : ''}>OL - Ottone Lucido (std)</option>
+                                        <option value="OL_TZ" ${bld.finituraInt === 'OL_TZ' ? 'selected' : ''}>OL TZ - PVD Superior</option>
+                                        <option value="CS" ${bld.finituraInt === 'CS' ? 'selected' : ''}>CS - Cromo Satinato</option>
+                                        <option value="CL" ${bld.finituraInt === 'CL' ? 'selected' : ''}>CL - Cromo Lucido</option>
+                                        <option value="VP" ${bld.finituraInt === 'VP' ? 'selected' : ''}>VP - Verniciato Polvere</option>
+                                        <option value="VL" ${bld.finituraInt === 'VL' ? 'selected' : ''}>VL - Verniciato Liquido</option>
+                                        <option value="VS" ${bld.finituraInt === 'VS' ? 'selected' : ''}>VS - Verniciato Skydoors</option>
+                                    </select>
+                                </div>
+                                <!-- Maniglia/Pomolo Esterno -->
+                                <div>
+                                    <label class="text-xs font-medium">Esterno</label>
+                                    <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'manigliaEst', this.value)"
+                                            class="w-full compact-input border rounded mt-1">
+                                        <option value="PO-05" ${bld.manigliaEst === 'PO-05' || !bld.manigliaEst ? 'selected' : ''}>PO-05 Pomolo (std)</option>
+                                        <option value="PO-02" ${bld.manigliaEst === 'PO-02' ? 'selected' : ''}>PO-02 Pomolo TZ</option>
+                                        <option value="PO-INOX" ${bld.manigliaEst === 'PO-INOX' ? 'selected' : ''}>Pomolo INOX (+€76)</option>
+                                        <option value="MO-05" ${bld.manigliaEst === 'MO-05' ? 'selected' : ''}>MO-05 Maniglia</option>
+                                        <option value="JUMBO-300" ${bld.manigliaEst === 'JUMBO-300' ? 'selected' : ''}>JUMBO 300 Maniglione</option>
+                                        <option value="JUMBO-600" ${bld.manigliaEst === 'JUMBO-600' ? 'selected' : ''}>JUMBO 600 Maniglione</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium">Finitura EST</label>
+                                    <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'finituraEst', this.value)"
+                                            class="w-full compact-input border rounded mt-1">
+                                        <option value="OL" ${bld.finituraEst === 'OL' || !bld.finituraEst ? 'selected' : ''}>OL - Ottone Lucido (std)</option>
+                                        <option value="OL_TZ" ${bld.finituraEst === 'OL_TZ' ? 'selected' : ''}>OL TZ - PVD Superior</option>
+                                        <option value="CS" ${bld.finituraEst === 'CS' ? 'selected' : ''}>CS - Cromo Satinato</option>
+                                        <option value="CL" ${bld.finituraEst === 'CL' ? 'selected' : ''}>CL - Cromo Lucido</option>
+                                        <option value="VP" ${bld.finituraEst === 'VP' ? 'selected' : ''}>VP - Verniciato Polvere</option>
+                                        <option value="VL" ${bld.finituraEst === 'VL' ? 'selected' : ''}>VL - Verniciato Liquido</option>
+                                        <option value="VS" ${bld.finituraEst === 'VS' ? 'selected' : ''}>VS - Verniciato Skydoors</option>
+                                        <option value="OB" ${bld.finituraEst === 'OB' ? 'selected' : ''}>OB - Ottone Brunito</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Acustica e Termica -->
+                        <div class="mt-3 pt-3 border-t border-blue-200 grid md:grid-cols-2 gap-3">
                             <div>
                                 <label class="text-xs font-medium">Acustica</label>
                                 <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'acustica', this.value)"
@@ -16324,8 +16419,14 @@
                         pos.ingresso.blindata = { 
                             azienda: 'Oikos', 
                             tipoAnta: 'singola', 
-                            cilindro: 'BASIC', 
+                            cilindro: 'BASIC',
+                            tipoCilindro: 'pomolo-chiave',
+                            numChiavi: '3',
                             coloreTelaio: 'RAL8022',
+                            manigliaInt: 'MO-05',
+                            finituraInt: 'OL',
+                            manigliaEst: 'PO-05',
+                            finituraEst: 'OL',
                             acustica: 'serie',
                             termica: 'serie',
                             kitAAV: '',
