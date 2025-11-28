@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.12 - 🔐 UI COMPLETA BLINDATA + EXPORT JSON ✅
+    Open Porte v5.13 - 🔐 PANNELLI + CORNICI/IMBOTTI OIKOS ✅
+    
+    🔧 AGGIORNAMENTI v5.13 (28 NOV 2025):
+    - ✅ DATABASE OIKOS_PANNELLI_PIANO: Essenze e prezzi per luce/tipo anta
+    - ✅ DATABASE OIKOS_CORNICI_IMBOTTI: Cornici aste, Kit alluminio, Imbotti
+    - ✅ UI CORNICI ESTERNE: Imbotte con cornici / Solo cornici
+    - ✅ UI CORNICI INTERNE: Cornici ferma pannello interno
+    - ✅ PREZZI: Cornici lineari (CF1-CF2-CT1-CC2-CC3), Kit Alluminio
+    - ✅ IMBOTTI: Altezza H1/H2, Larghezza 20/30cm, Essenze complete
     
     🔧 AGGIORNAMENTI v5.12 (28 NOV 2025):
     - ✅ renderBlindataConfig(): UI completa con tutti i campi
@@ -3033,8 +3041,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.12';
-        const APP_VERSION_NOTE = 'UI Completa Blindata + Export JSON';
+        const APP_VERSION = '5.13';
+        const APP_VERSION_NOTE = 'Pannelli + Cornici/Imbotti Oikos';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -16155,6 +16163,134 @@
                         </div>
                     </div>
                     
+                    <!-- 🚪 CORNICI E IMBOTTI (v5.13) -->
+                    <div class="bg-teal-50 border-2 border-teal-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-teal-800 mb-3">🚪 Cornici e Imbotti</h5>
+                        
+                        <!-- IMBOTTE ESTERNO -->
+                        <div class="bg-teal-100 rounded-lg p-3 mb-3">
+                            <h6 class="font-medium text-teal-900 mb-2">📏 Imbotte Esterno</h6>
+                            <div class="grid md:grid-cols-4 gap-2">
+                                <div>
+                                    <label class="text-xs font-medium">Tipo</label>
+                                    <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'imbotteEst', this.value)"
+                                            class="w-full compact-input border rounded mt-1 text-sm">
+                                        <option value="" ${!bld.imbotteEst ? 'selected' : ''}>Nessuno</option>
+                                        <option value="imbotte_cornici" ${bld.imbotteEst === 'imbotte_cornici' ? 'selected' : ''}>Imbotte con Cornici</option>
+                                        <option value="solo_cornici" ${bld.imbotteEst === 'solo_cornici' ? 'selected' : ''}>Solo Cornici</option>
+                                    </select>
+                                </div>
+                                ${bld.imbotteEst === 'imbotte_cornici' ? `
+                                    <div>
+                                        <label class="text-xs font-medium">Altezza</label>
+                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'imbotteEstAltezza', this.value)"
+                                                class="w-full compact-input border rounded mt-1 text-sm">
+                                            <option value="">Seleziona...</option>
+                                            <option value="H1" ${bld.imbotteEstAltezza === 'H1' ? 'selected' : ''}>H1 (230+230+115 cm)</option>
+                                            <option value="H2" ${bld.imbotteEstAltezza === 'H2' ? 'selected' : ''}>H2 (300+300+150 cm)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Larghezza</label>
+                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'imbotteEstLargh', this.value)"
+                                                class="w-full compact-input border rounded mt-1 text-sm">
+                                            <option value="">Seleziona...</option>
+                                            <option value="L20" ${bld.imbotteEstLargh === 'L20' ? 'selected' : ''}>20 cm</option>
+                                            <option value="L30" ${bld.imbotteEstLargh === 'L30' ? 'selected' : ''}>30 cm</option>
+                                            <option value="custom" ${bld.imbotteEstLargh === 'custom' ? 'selected' : ''}>Personalizzata</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Essenza</label>
+                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'imbotteEstEssenza', this.value)"
+                                                class="w-full compact-input border rounded mt-1 text-sm">
+                                            <option value="">Seleziona...</option>
+                                            <option value="tangMog" ${bld.imbotteEstEssenza === 'tangMog' ? 'selected' : ''}>Mogano/Tanganica</option>
+                                            <option value="rovNoce" ${bld.imbotteEstEssenza === 'rovNoce' ? 'selected' : ''}>Rovere/Noce Naz.</option>
+                                            <option value="laccato" ${bld.imbotteEstEssenza === 'laccato' ? 'selected' : ''}>Laccato Bianco/RAL</option>
+                                            <option value="okoume" ${bld.imbotteEstEssenza === 'okoume' ? 'selected' : ''}>Okoumè</option>
+                                            <option value="okoumeRAL" ${bld.imbotteEstEssenza === 'okoumeRAL' ? 'selected' : ''}>Okoumè Laccato RAL</option>
+                                        </select>
+                                    </div>
+                                ` : ''}
+                                ${bld.imbotteEst === 'solo_cornici' ? `
+                                    <div>
+                                        <label class="text-xs font-medium">Tipo Cornice</label>
+                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'corniceEstTipo', this.value)"
+                                                class="w-full compact-input border rounded mt-1 text-sm">
+                                            <option value="">Seleziona...</option>
+                                            <option value="CF1" ${bld.corniceEstTipo === 'CF1' ? 'selected' : ''}>CF1 70x10mm</option>
+                                            <option value="CF2" ${bld.corniceEstTipo === 'CF2' ? 'selected' : ''}>CF2 90x10mm</option>
+                                            <option value="CT1" ${bld.corniceEstTipo === 'CT1' ? 'selected' : ''}>CT1 Copritelaio</option>
+                                            <option value="CC2" ${bld.corniceEstTipo === 'CC2' ? 'selected' : ''}>CC2 Copritubolari 120x10</option>
+                                            <option value="CC3" ${bld.corniceEstTipo === 'CC3' ? 'selected' : ''}>CC3 Copritubolari 180x10</option>
+                                            <option value="KIT_ALU_70" ${bld.corniceEstTipo === 'KIT_ALU_70' ? 'selected' : ''}>Kit Alluminio 70x10</option>
+                                            <option value="KIT_ALU_90" ${bld.corniceEstTipo === 'KIT_ALU_90' ? 'selected' : ''}>Kit Alluminio 90x10</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Essenza/Finitura</label>
+                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'corniceEstEssenza', this.value)"
+                                                class="w-full compact-input border rounded mt-1 text-sm">
+                                            <option value="">Seleziona...</option>
+                                            ${bld.corniceEstTipo?.startsWith('KIT_ALU') ? `
+                                                <option value="polveri" ${bld.corniceEstEssenza === 'polveri' ? 'selected' : ''}>Colori OIKOS Polveri</option>
+                                                <option value="evergreen" ${bld.corniceEstEssenza === 'evergreen' ? 'selected' : ''}>OIKOS Evergreen</option>
+                                                <option value="future" ${bld.corniceEstEssenza === 'future' ? 'selected' : ''}>OIKOS Future</option>
+                                                <option value="liquido" ${bld.corniceEstEssenza === 'liquido' ? 'selected' : ''}>OIKOS Liquido</option>
+                                                <option value="spazzolato" ${bld.corniceEstEssenza === 'spazzolato' ? 'selected' : ''}>Alluminio Spazzolato</option>
+                                            ` : `
+                                                <option value="tangMog" ${bld.corniceEstEssenza === 'tangMog' ? 'selected' : ''}>Tanganica/Mogano</option>
+                                                <option value="rovNoce" ${bld.corniceEstEssenza === 'rovNoce' ? 'selected' : ''}>Rovere/Noce</option>
+                                                <option value="okoume" ${bld.corniceEstEssenza === 'okoume' ? 'selected' : ''}>Okoumè</option>
+                                                <option value="laccRAL" ${bld.corniceEstEssenza === 'laccRAL' ? 'selected' : ''}>Laccato RAL</option>
+                                            `}
+                                        </select>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        
+                        <!-- CORNICI INTERNE -->
+                        <div class="bg-cyan-100 rounded-lg p-3">
+                            <h6 class="font-medium text-cyan-900 mb-2">📐 Cornici Interne</h6>
+                            <div class="grid md:grid-cols-3 gap-2">
+                                <div>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" 
+                                               ${bld.corniciInt ? 'checked' : ''}
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'corniciInt', this.checked)"
+                                               class="w-4 h-4">
+                                        <span class="text-sm font-medium">Cornici ferma pannello interno</span>
+                                    </label>
+                                    <p class="text-xs text-gray-500 mt-1">Prezzo su richiesta</p>
+                                </div>
+                                ${bld.corniciInt ? `
+                                    <div>
+                                        <label class="text-xs font-medium">Tipo</label>
+                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'corniciIntTipo', this.value)"
+                                                class="w-full compact-input border rounded mt-1 text-sm">
+                                            <option value="">Seleziona...</option>
+                                            <option value="CF1" ${bld.corniciIntTipo === 'CF1' ? 'selected' : ''}>CF1 70x10mm</option>
+                                            <option value="CF2" ${bld.corniciIntTipo === 'CF2' ? 'selected' : ''}>CF2 90x10mm</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Essenza</label>
+                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'blindata', 'corniciIntEssenza', this.value)"
+                                                class="w-full compact-input border rounded mt-1 text-sm">
+                                            <option value="">Seleziona...</option>
+                                            <option value="tangMog" ${bld.corniciIntEssenza === 'tangMog' ? 'selected' : ''}>Tanganica/Mogano</option>
+                                            <option value="rovNoce" ${bld.corniciIntEssenza === 'rovNoce' ? 'selected' : ''}>Rovere/Noce</option>
+                                            <option value="okoume" ${bld.corniciIntEssenza === 'okoume' ? 'selected' : ''}>Okoumè</option>
+                                            <option value="laccRAL" ${bld.corniciIntEssenza === 'laccRAL' ? 'selected' : ''}>Laccato RAL</option>
+                                        </select>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- 📝 NOTE -->
                     <div>
                         <label class="text-xs font-medium">📝 Note</label>
@@ -16672,6 +16808,136 @@
                     'Verniciato RAL': ['RAL a richiesta']
                 },
                 note: 'Prezzi su richiesta'
+            }
+        };
+        
+        // ============================================
+        // 🔐 DATABASE PANNELLI LINEA PIANO (v5.13)
+        // ============================================
+        // Mod. DI SERIE: truciolare/MDF 9mm impiallacciato + pelabile
+        // Mod. NON DI SERIE (falegnameria): senza pelabile, tinte mazzetta Oikos
+        const OIKOS_PANNELLI_PIANO = {
+            // Essenze con prezzi per luce e tipo anta
+            essenze: [
+                { cod: 'ROV_NAT', nome: 'Rovere Naturale 2-3 / Miele / Wengè / Sbiancato', gruppo: 1 },
+                { cod: 'TANG', nome: 'Tanganica 3', gruppo: 1 },
+                { cod: 'CAST', nome: 'Castagno 2-3 / Douglas 2 / Pino 2', gruppo: 1 },
+                { cod: 'NOCE', nome: 'Noce Canaletto', gruppo: 2 },
+                { cod: 'TEAK', nome: 'Teak', gruppo: 3 },
+                { cod: 'LACC_RAL', nome: 'Laccato RAL / Laccati di Tendenza', gruppo: 1 },
+                { cod: 'ALTRE', nome: 'Altre Essenze a Conferma', gruppo: 4 },
+                { cod: 'MDF_LACC', nome: 'MDF da Laccare (per porta Evolution EI)', gruppo: 5 },
+                { cod: 'MDF_RAL', nome: 'MDF Laccato RAL (per porta Evolution EI)', gruppo: 6 }
+            ],
+            // Prezzi NON DI SERIE per gruppo
+            prezzi: {
+                // gruppo 1: Rovere, Tanganica, Castagno, Laccato RAL
+                1: { 
+                    antaUnica: { luce01: 405, luce2: 483 },
+                    antaUnicaTekno: { luce5: 526, luce6: 585 },
+                    doppiaAntaEvolution: { luce3: 626, luce4: 811 },
+                    doppiaAntaTekno: { luce7: 1104, luce8: 1333 }
+                },
+                // gruppo 2: Noce Canaletto
+                2: {
+                    antaUnica: { luce01: 458, luce2: 545 },
+                    antaUnicaTekno: { luce5: 594, luce6: 660 },
+                    doppiaAntaEvolution: { luce3: 700, luce4: 889 },
+                    doppiaAntaTekno: { luce7: 1101, luce8: 1317 }
+                },
+                // gruppo 3: Teak
+                3: {
+                    antaUnica: { luce01: 520, luce2: 620 },
+                    antaUnicaTekno: { luce5: 675, luce6: 750 },
+                    doppiaAntaEvolution: { luce3: 782, luce4: 1005 },
+                    doppiaAntaTekno: { luce7: 1243, luce8: 1488 }
+                },
+                // gruppo 4: Altre Essenze a Conferma
+                4: {
+                    antaUnica: { luce01: 486, luce2: 579 },
+                    antaUnicaTekno: { luce5: 631, luce6: 702 },
+                    doppiaAntaEvolution: { luce3: 751, luce4: 973 },
+                    doppiaAntaTekno: { luce7: 1324, luce8: 1599 }
+                },
+                // gruppo 5: MDF da Laccare (solo Luce 0-1)
+                5: {
+                    antaUnica: { luce01: 171 }
+                },
+                // gruppo 6: MDF Laccato RAL (solo Luce 0-1)
+                6: {
+                    antaUnica: { luce01: 475 }
+                }
+            },
+            // Prezzi DI SERIE (base, già inclusi nel prezzo porta)
+            diSerie: {
+                essenze: ['Tanganica 1-2', 'Mogano 2-3', 'Laccato Bianco Oikos', 'Rovere 1', 'Noce Nazionale 2', 'MDF da Laccare', 'Supporto Cliente'],
+                prezzi: {
+                    luce0: 192, luce1: 192, luce2: 235, luce3: 346, luce4: 414
+                }
+            }
+        };
+        
+        // ============================================
+        // 🔐 DATABASE CORNICI E IMBOTTI OIKOS (v5.13)
+        // ============================================
+        const OIKOS_CORNICI_IMBOTTI = {
+            // CORNICI LINEARI IN ASTE (h = 2600mm)
+            corniciAste: {
+                tipi: [
+                    { cod: 'CF1', nome: 'CF1 70x10 impiallacciato', dim: '70x10mm' },
+                    { cod: 'CF2', nome: 'CF2 90x10 impiallacciato', dim: '90x10mm' },
+                    { cod: 'CT1', nome: 'CT1 copritelaio', dim: 'copritelaio' },
+                    { cod: 'CC2', nome: 'CC2 copritubolari 120x10', dim: '120x10mm' },
+                    { cod: 'CC3', nome: 'CC3 copritubolari 180x10', dim: '180x10mm' }
+                ],
+                prezzi: {
+                    // Prezzo per asta h=2600mm
+                    'CF1': { tangMog: 39, rovNoce: 47, okoume: 102, laccRAL: 142 },
+                    'CF2': { tangMog: 48, rovNoce: 52, okoume: 110, laccRAL: 162 },
+                    'CT1': { tangMog: 102, rovNoce: null, okoume: 114, laccRAL: 155 },
+                    'CC2': { tangMog: 140, rovNoce: 162, okoume: 167, laccRAL: 191 },
+                    'CC3': { tangMog: 196, rovNoce: 220, okoume: 227, laccRAL: 252 }
+                },
+                maggiorazioneH3000: 0.30 // +30% per aste h=3000mm
+            },
+            // KIT CORNICI IN ALLUMINIO (n.2 h=2600mm + n.1 h=1300mm)
+            corniciAlluminio: {
+                tipi: [
+                    { cod: 'KIT_ALU_70', nome: 'Kit Cornici Alluminio 70x10', dim: '70x10mm' },
+                    { cod: 'KIT_ALU_90', nome: 'Kit Cornici Alluminio 90x10', dim: '90x10mm' }
+                ],
+                prezzi: {
+                    'KIT_ALU_70': { polveri: 501, evergreen: 557, future: 694, liquido: 766, spazzolato: 501 },
+                    'KIT_ALU_90': { polveri: 552, evergreen: 609, future: 745, liquido: 814, spazzolato: 552 }
+                }
+            },
+            // IMBOTTI CON CORNICI (in listellare impiallacciato + cornici 70x10mm)
+            imbotti: {
+                altezze: [
+                    { cod: 'H1', nome: 'Altezza 1 (230+230+115 cm)', desc: 'porte standard' },
+                    { cod: 'H2', nome: 'Altezza 2 (300+300+150 cm)', desc: 'porte alte' }
+                ],
+                larghezze: [
+                    { cod: 'L20', nome: '20 cm', valore: 20 },
+                    { cod: 'L30', nome: '30 cm', valore: 30 }
+                ],
+                prezzi: {
+                    // Mogano 2-3 / Tanganica 1-2
+                    'tangMog': { H1_L20: 600, H1_L30: 780, H2_L20: 706, H2_L30: 914 },
+                    // Rovere Naturale-1-2-3-Miele / Noce Nazionale 2
+                    'rovNoce': { H1_L20: 759, H1_L30: 925, H2_L20: 895, H2_L30: 1085 },
+                    // Laccato Bianco / Laccato RAL
+                    'laccato': { H1_L20: 600, H1_L30: 780, H2_L20: 706, H2_L30: 914 },
+                    // Okoumè 6-7-8-Mogano
+                    'okoume': { H1_L20: 665, H1_L30: 870, H2_L20: 803, H2_L30: 1040 },
+                    // Okoumè Laccato RAL
+                    'okoumeRAL': { H1_L20: 696, H1_L30: 917, H2_L20: 839, H2_L30: 1094 }
+                },
+                prezzoExtraCm: { H1: 18, H2: 20 } // €/cm in più di larghezza
+            },
+            // CORNICI FERMA PANNELLO INTERNO (su richiesta)
+            corniciFermaPannello: {
+                nota: 'Prezzo su richiesta - da aggiungere se richieste'
             }
         };
 
