@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v4.97 - ZSX/ZDX Validazione ✅
+    Open Porte v4.98 - 🔐 PORTE BLINDATE OIKOS ✅
+    
+    🔧 AGGIORNAMENTI v4.98 (28 NOV 2025):
+    - ✅ NUOVO PRODOTTO: Porte Blindate con listino Oikos 2025
+    - ✅ CHECKBOX: Attivabile in Step 2 Selezione Prodotti
+    - ✅ TAB DEDICATO: Sezione Blindate in ogni posizione
+    - ✅ CALCOLO LUCE: Automatico da dimensioni (Luce 0-6)
+    - ✅ CONFIGURAZIONE: Versione, Anta, Apertura, Controtelaio
+    - ✅ PRESTAZIONI: Cilindro, Colore Telaio, Acustica, Termica
+    - ✅ PREZZO STIMATO: Calcolo automatico base + optional
     
     🔧 AGGIORNAMENTI v4.97 (28 NOV 2025):
     - ✅ ZSX/ZDX VALIDAZIONE: Controllo ZSX ≤ SRSX e ZDX ≤ SRDX
@@ -7091,7 +7100,8 @@
                         persiane: updatedProject.prodotti?.persiane || false,
                         tapparelle: updatedProject.prodotti?.tapparelle || false,
                         zanzariere: updatedProject.prodotti?.zanzariere || false,
-                        cassonetti: updatedProject.prodotti?.cassonetti || false
+                        cassonetti: updatedProject.prodotti?.cassonetti || false,
+                        blindate: updatedProject.prodotti?.blindate || false
                     },
                     
                     // CARATTERISTICHE MURO
@@ -8254,10 +8264,11 @@
             const hasTapparelle = project.prodotti?.tapparelle || false;
             const hasZanzariere = project.prodotti?.zanzariere || false;
             const hasCassonetti = project.prodotti?.cassonetti || false;
+            const hasBlindate = project.prodotti?.blindate || false;
             
             // Verifica prerequisiti per navigazione
             const canGoToPositions = hasInfissi || hasPersiane || hasTapparelle || 
-                                     hasZanzariere || hasCassonetti;
+                                     hasZanzariere || hasCassonetti || hasBlindate;
             
             // Determina se sezione è attiva
             const isStep1Active = state.setupStep === 1;
@@ -8267,6 +8278,7 @@
             const isStep5Active = state.setupStep === 5 && hasTapparelle;
             const isStep6Active = state.setupStep === 6 && hasZanzariere;
             const isStep7Active = state.setupStep === 7 && hasCassonetti;
+            const isStep8Active = state.setupStep === 8 && hasBlindate;
             const isStep9Active = state.setupStep === 9;
             
             // Calcola completamento per ogni sezione
@@ -8384,7 +8396,14 @@
                                 </div>
                             ` : ''}
                             
-                            ${!hasInfissi && !hasPersiane && !hasTapparelle && !hasZanzariere && !hasCassonetti ? `
+                            ${hasBlindate ? `
+                                <div class="nav-submenu-item ${isStep8Active ? 'active' : ''}" 
+                                     onclick="navigateToStep(8); closeProjectMenu();">
+                                    <span>🔐 Blindate</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${!hasInfissi && !hasPersiane && !hasTapparelle && !hasZanzariere && !hasCassonetti && !hasBlindate ? `
                                 <div style="padding: 12px 20px 12px 52px; color: #64748b; font-size: 14px; font-style: italic;">
                                     Nessun prodotto selezionato
                                 </div>
@@ -12764,6 +12783,19 @@
                                 <div class="text-xs opacity-75">Cassonetti avvolgibili</div>
                             </div>
                         </label>
+
+                        <label class="product-pill ${project.prodotti?.blindate ? 'selected bg-red-50 border-red-500 text-red-700' : 'border-gray-300'}">
+                            <input type="checkbox" 
+                                   ${project.prodotti?.blindate ? 'checked' : ''}
+                                   onchange="updateProdotti('${project.id}', 'blindate', this.checked)"
+                                   onclick="event.stopPropagation()"
+                                   class="sr-only">
+                            <span class="text-xl">🔐</span>
+                            <div>
+                                <div class="font-semibold">Porte Blindate</div>
+                                <div class="text-xs opacity-75">Oikos</div>
+                            </div>
+                        </label>
                     </div>
 
                     ${Object.values(project.prodotti || {}).some(v => v) ? `
@@ -14919,6 +14951,12 @@
                                     📦 Cassonetti
                                 </button>
                             ` : ''}
+                            ${project.prodotti?.blindate ? `
+                                <button onclick="setPositionTab('${pos.id}', 'blindate')"
+                                        class="tab-btn ${pos.activeTab === 'blindate' ? 'active' : ''}">
+                                    🔐 Blindate
+                                </button>
+                            ` : ''}
                             <button onclick="setPositionTab('${pos.id}', 'foto')"
                                     class="tab-btn ${pos.activeTab === 'foto' ? 'active' : ''}">
                                 📸 Foto (${pos.foto?.length || 0})
@@ -14942,6 +14980,7 @@
             if (tab === 'tapparelle') return renderTapparelleTab(project, pos);
             if (tab === 'zanzariere') return renderZanzariereTab(project, pos);
             if (tab === 'cassonetti') return renderCassonettiTab(project, pos);
+            if (tab === 'blindate') return renderBlindateTab(project, pos);
             if (tab === 'foto') return renderFotoTab(project, pos);
 
             return '';
@@ -15269,7 +15308,8 @@
                             'persiane': { singolare: 'persiana', label: '🚪 Persiana', icon: '🚪' },
                             'tapparelle': { singolare: 'tapparella', label: '🎚️ Tapparella', icon: '🎚️' },
                             'zanzariere': { singolare: 'zanzariera', label: '🦟 Zanzariera', icon: '🦟' },
-                            'cassonetti': { singolare: 'cassonetto', label: '📦 Cassonetto', icon: '📦' }
+                            'cassonetti': { singolare: 'cassonetto', label: '📦 Cassonetto', icon: '📦' },
+                            'blindate': { singolare: 'blindata', label: '🔐 Blindata', icon: '🔐' }
                         };
                         
                         const prodottiProgetto = [];
@@ -18115,6 +18155,355 @@
                     `}
                 </div>
             `;
+        }
+
+        // ============================================
+        // 🔐 RENDER TAB PORTE BLINDATE (v4.98)
+        // ============================================
+        function renderBlindateTab(project, pos) {
+            const bld = pos.blindata;
+            
+            return `
+                <div class="space-y-4">
+                    ${!bld ? `
+                        <!-- 🎯 STATO INIZIALE: Prodotto non ancora creato -->
+                        <div class="text-center py-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                            <p class="text-gray-700 mb-4 font-medium text-lg">Nessuna porta blindata configurata</p>
+                            <div class="flex flex-col items-center gap-3">
+                                ${!pos.prodottiAssenti?.includes('blindata') ? `
+                                    <button onclick="addBlindata('${project.id}', '${pos.id}')"
+                                            class="px-6 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 shadow-sm hover:shadow-md transition-all">
+                                        + Aggiungi Porta Blindata
+                                    </button>
+                                ` : ''}
+                                <label class="flex items-center gap-2 cursor-pointer text-sm bg-white px-4 py-2 rounded-lg border-2 border-yellow-400 shadow-sm hover:shadow-md transition-shadow">
+                                    <input type="checkbox" 
+                                           ${pos.prodottiAssenti?.includes('blindata') ? 'checked' : ''}
+                                           onchange="toggleProdottoAssente('${project.id}', '${pos.id}', 'blindate')"
+                                           class="w-4 h-4">
+                                    <span class="text-gray-700 font-medium">⚠️ Non presente in questa posizione</span>
+                                </label>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="product-card">
+                            <div class="flex justify-between items-start mb-3">
+                                <h4 class="font-semibold text-red-700 text-lg">🔐 Porta Blindata</h4>
+                                <button onclick="deleteProduct('${project.id}', '${pos.id}', 'blindata')"
+                                        class="px-3 py-1.5 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700">
+                                    🗑️ Elimina
+                                </button>
+                            </div>
+                            
+                            <!-- 📐 DIMENSIONI -->
+                            <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-red-800 mb-3 flex items-center gap-2">
+                                    📐 Dimensioni Luce Netta Passaggio
+                                </h5>
+                                <div class="grid md:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="text-xs font-medium">Larghezza (mm)</label>
+                                        <input type="number" 
+                                               value="${bld.LNP_L || ''}"
+                                               placeholder="es. 900"
+                                               onchange="updateBlindata('${project.id}', '${pos.id}', 'LNP_L', this.value)"
+                                               class="w-full compact-input border rounded mt-1 font-bold">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Altezza (mm)</label>
+                                        <input type="number" 
+                                               value="${bld.LNP_H || ''}"
+                                               placeholder="es. 2100"
+                                               onchange="updateBlindata('${project.id}', '${pos.id}', 'LNP_H', this.value)"
+                                               class="w-full compact-input border rounded mt-1 font-bold">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Luce Calcolata</label>
+                                        <div class="w-full px-3 py-2 bg-gray-100 border rounded mt-1 font-bold text-center">
+                                            ${bld.luceCalcolata ? bld.luceCalcolata.toUpperCase() : '-'}
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">Automatico da dimensioni</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- ⚙️ CONFIGURAZIONE BASE -->
+                            <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-yellow-800 mb-3 flex items-center gap-2">
+                                    ⚙️ Configurazione Base
+                                </h5>
+                                <div class="grid md:grid-cols-3 gap-3">
+                                    <!-- AZIENDA (fisso Oikos per ora) -->
+                                    <div>
+                                        <label class="text-xs font-medium">Azienda</label>
+                                        <select onchange="updateBlindata('${project.id}', '${pos.id}', 'azienda', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="Oikos" selected>Oikos</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- VERSIONE -->
+                                    <div>
+                                        <label class="text-xs font-medium">Versione</label>
+                                        <select onchange="updateBlindata('${project.id}', '${pos.id}', 'versione', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">Seleziona...</option>
+                                            <option value="E3" ${bld.versione === 'E3' ? 'selected' : ''}>E3 - Evolution 3</option>
+                                            <option value="E4" ${bld.versione === 'E4' ? 'selected' : ''}>E4 - Evolution 4</option>
+                                            <option value="E3D" ${bld.versione === 'E3D' ? 'selected' : ''}>E3D - Doppia Anta</option>
+                                            <option value="E3EI30" ${bld.versione === 'E3EI30' ? 'selected' : ''}>E3 EI 30 - Fuoco 30min</option>
+                                            <option value="E3EI45" ${bld.versione === 'E3EI45' ? 'selected' : ''}>E3 EI 45 - Fuoco 45min</option>
+                                            <option value="E3EI60" ${bld.versione === 'E3EI60' ? 'selected' : ''}>E3 EI 60 - Fuoco 60min</option>
+                                            <option value="E3TT086" ${bld.versione === 'E3TT086' ? 'selected' : ''}>E3 TT U=0.86 - Taglio Termico</option>
+                                            <option value="E3TT1" ${bld.versione === 'E3TT1' ? 'selected' : ''}>E3 TT U=1.0 - Taglio Termico</option>
+                                            <option value="P3" ${bld.versione === 'P3' ? 'selected' : ''}>P3 - Project Rasomuro</option>
+                                            <option value="T3" ${bld.versione === 'T3' ? 'selected' : ''}>T3 - Tekno</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- TIPO ANTA -->
+                                    <div>
+                                        <label class="text-xs font-medium">Tipo Anta</label>
+                                        <select onchange="updateBlindata('${project.id}', '${pos.id}', 'tipoAnta', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="singola" ${bld.tipoAnta === 'singola' ? 'selected' : ''}>Singola</option>
+                                            <option value="doppia" ${bld.tipoAnta === 'doppia' ? 'selected' : ''}>Doppia</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- SENSO APERTURA -->
+                                    <div>
+                                        <label class="text-xs font-medium">Senso Apertura</label>
+                                        <select onchange="updateBlindata('${project.id}', '${pos.id}', 'sensoApertura', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">Seleziona...</option>
+                                            <option value="SX" ${bld.sensoApertura === 'SX' ? 'selected' : ''}>Sinistra (SX)</option>
+                                            <option value="DX" ${bld.sensoApertura === 'DX' ? 'selected' : ''}>Destra (DX)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- VERSO APERTURA -->
+                                    <div>
+                                        <label class="text-xs font-medium">Verso Apertura</label>
+                                        <select onchange="updateBlindata('${project.id}', '${pos.id}', 'versoApertura', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">Seleziona...</option>
+                                            <option value="spingere" ${bld.versoApertura === 'spingere' ? 'selected' : ''}>Spingere</option>
+                                            <option value="tirare" ${bld.versoApertura === 'tirare' ? 'selected' : ''}>Tirare</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- CONTROTELAIO -->
+                                    <div>
+                                        <label class="text-xs font-medium">Controtelaio</label>
+                                        <select onchange="updateBlindata('${project.id}', '${pos.id}', 'controtelaio', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="si" ${bld.controtelaio === 'si' || bld.controtelaio === true ? 'selected' : ''}>Sì, con porta</option>
+                                            <option value="fornito" ${bld.controtelaio === 'fornito' ? 'selected' : ''}>Già fornito</option>
+                                            <option value="no" ${bld.controtelaio === 'no' || bld.controtelaio === false ? 'selected' : ''}>No</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 🔧 PRESTAZIONI -->
+                            <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                                    🔧 Prestazioni
+                                </h5>
+                                <div class="grid md:grid-cols-4 gap-3">
+                                    <!-- CILINDRO -->
+                                    <div>
+                                        <label class="text-xs font-medium">Cilindro</label>
+                                        <select onchange="updateBlindata('${project.id}', '${pos.id}', 'cilindro', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="BASIC" ${bld.cilindro === 'BASIC' ? 'selected' : ''}>Basic (€123)</option>
+                                            <option value="SEKUR" ${bld.cilindro === 'SEKUR' ? 'selected' : ''}>Sekur (€238)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- COLORE TELAIO -->
+                                    <div>
+                                        <label class="text-xs font-medium">Colore Telaio</label>
+                                        <select onchange="updateBlindata('${project.id}', '${pos.id}', 'coloreTelaio', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="RAL8022" ${bld.coloreTelaio === 'RAL8022' ? 'selected' : ''}>RAL 8022 (base)</option>
+                                            <option value="OIKOS_Polveri" ${bld.coloreTelaio === 'OIKOS_Polveri' ? 'selected' : ''}>OIKOS Polveri (+€246)</option>
+                                            <option value="OIKOS_Evergreen" ${bld.coloreTelaio === 'OIKOS_Evergreen' ? 'selected' : ''}>OIKOS Evergreen (+€320)</option>
+                                            <option value="OIKOS_Future" ${bld.coloreTelaio === 'OIKOS_Future' ? 'selected' : ''}>OIKOS Future (+€384)</option>
+                                            <option value="OIKOS_Liquido" ${bld.coloreTelaio === 'OIKOS_Liquido' ? 'selected' : ''}>OIKOS Liquido (+€492)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- ACUSTICA -->
+                                    <div>
+                                        <label class="text-xs font-medium">Acustica</label>
+                                        <select onchange="updateBlindata('${project.id}', '${pos.id}', 'acustica', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="serie" ${bld.acustica === 'serie' ? 'selected' : ''}>Di serie (40dB)</option>
+                                            <option value="maggiorata" ${bld.acustica === 'maggiorata' ? 'selected' : ''}>Maggiorata 45dB (+€120)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- TERMICA -->
+                                    <div>
+                                        <label class="text-xs font-medium">Termica (U)</label>
+                                        <select onchange="updateBlindata('${project.id}', '${pos.id}', 'termica', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="serie" ${bld.termica === 'serie' ? 'selected' : ''}>Di serie (U=1.9)</option>
+                                            <option value="1.2" ${bld.termica === '1.2' ? 'selected' : ''}>U=1.2</option>
+                                            <option value="1.0" ${bld.termica === '1.0' ? 'selected' : ''}>U=1.0</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 📝 NOTE -->
+                            <div class="mt-3">
+                                <label class="text-xs font-medium">📝 Note</label>
+                                <textarea value="${bld.note || ''}"
+                                          onchange="updateBlindata('${project.id}', '${pos.id}', 'note', this.value)"
+                                          class="w-full compact-input border rounded mt-1"
+                                          rows="2">${bld.note || ''}</textarea>
+                            </div>
+                            
+                            <!-- 💰 PREZZO STIMATO -->
+                            ${bld.LNP_L && bld.LNP_H && bld.versione ? `
+                                <div class="mt-3 bg-green-100 border-2 border-green-500 rounded-lg p-4">
+                                    <h5 class="font-bold text-green-800 mb-2">💰 Prezzo Stimato</h5>
+                                    <div class="text-2xl font-bold text-green-700">
+                                        € ${calcolaPrezzoBlindataStimato(bld).toLocaleString('it-IT')}
+                                    </div>
+                                    <p class="text-xs text-green-600 mt-1">
+                                        Base + Controtelaio + Cilindro + Colore Telaio (esclusi rivestimenti)
+                                    </p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        // 🔐 FUNZIONI HELPER BLINDATE
+        function addBlindata(projectId, positionId) {
+            const project = state.projects.find(p => p.id === projectId);
+            const position = project.positions.find(p => p.id === positionId);
+            
+            position.blindata = {
+                azienda: 'Oikos',
+                versione: '',
+                tipoAnta: 'singola',
+                sensoApertura: '',
+                versoApertura: '',
+                controtelaio: 'si',
+                cilindro: 'BASIC',
+                coloreTelaio: 'RAL8022',
+                acustica: 'serie',
+                termica: 'serie',
+                LNP_L: '',
+                LNP_H: '',
+                luceCalcolata: '',
+                note: ''
+            };
+            
+            saveState();
+            render();
+        }
+        
+        function updateBlindata(projectId, positionId, field, value) {
+            const project = state.projects.find(p => p.id === projectId);
+            const position = project.positions.find(p => p.id === positionId);
+            
+            if (!position.blindata) return;
+            
+            position.blindata[field] = value;
+            
+            // Ricalcola luce quando cambiano dimensioni
+            if (field === 'LNP_L' || field === 'LNP_H') {
+                const L = parseFloat(position.blindata.LNP_L) || 0;
+                const H = parseFloat(position.blindata.LNP_H) || 0;
+                position.blindata.luceCalcolata = calcolaLuceOikos(L, H);
+            }
+            
+            saveState();
+            render();
+        }
+        
+        // Calcola luce Oikos da dimensioni
+        function calcolaLuceOikos(L, H) {
+            if (L <= 0 || H <= 0) return '';
+            if (L <= 900 && H <= 2100) return 'luce0';
+            if (L <= 940 && H <= 2210) return 'luce1';
+            if (L <= 1030 && H <= 2400) return 'luce2';
+            if (L <= 1350 && H <= 2210) return 'luce3';
+            if (L <= 1600 && H <= 2400) return 'luce4';
+            if (L <= 1800 && H <= 2210) return 'luce5';
+            if (L <= 2000 && H <= 2400) return 'luce6';
+            return 'fuoriMisura';
+        }
+        
+        // Calcola prezzo stimato blindata
+        function calcolaPrezzoBlindataStimato(bld) {
+            let totale = 0;
+            const luce = bld.luceCalcolata || 'luce0';
+            
+            // Prezzi base per versione e luce
+            const prezziBase = {
+                'E3': { 'luce0': 1156, 'luce1': 1206, 'luce2': 1441 },
+                'E4': { 'luce0': 1436, 'luce1': 1486, 'luce2': 1721 },
+                'E3D': { 'luce3': 2217, 'luce4': 2532 },
+                'E3EI30': { 'luce0': 1731 },
+                'E3EI45': { 'luce0': 1731 },
+                'E3EI60': { 'luce0': 1891 },
+                'E3TT086': { 'luce0': 2254, 'luce1': 2442, 'luce2': 2766 },
+                'E3TT1': { 'luce0': 1958, 'luce1': 2131, 'luce2': 2386 },
+                'P3': { 'luce0': 1173, 'luce1': 1293, 'luce2': 1480 }
+            };
+            
+            // Prezzo base anta
+            totale += prezziBase[bld.versione]?.[luce] || 0;
+            
+            // Controtelaio
+            if (bld.controtelaio === 'si' || bld.controtelaio === true) {
+                const controtelai = {
+                    'luce0': 177, 'luce1': 202, 'luce2': 240,
+                    'luce3': 318, 'luce4': 350
+                };
+                totale += controtelai[luce] || 0;
+            }
+            
+            // Cilindro
+            const cilindri = { 'BASIC': 123, 'SEKUR': 238 };
+            totale += cilindri[bld.cilindro] || 0;
+            
+            // Colore telaio
+            const colori = {
+                'RAL8022': 0,
+                'OIKOS_Polveri': 246,
+                'OIKOS_Evergreen': 320,
+                'OIKOS_Future': 384,
+                'OIKOS_Liquido': 492
+            };
+            totale += colori[bld.coloreTelaio] || 0;
+            
+            // Acustica maggiorata
+            if (bld.acustica === 'maggiorata') {
+                totale += 120;
+            }
+            
+            // Termica
+            if (bld.termica && bld.termica !== 'serie') {
+                const termiche = {
+                    'singola': {
+                        '1.2': { 'luce0': 272, 'luce1': 308, 'luce2': 354 },
+                        '1.0': { 'luce0': 496, 'luce1': 544, 'luce2': 624 }
+                    }
+                };
+                totale += termiche['singola'][bld.termica]?.[luce] || 0;
+            }
+            
+            return totale;
         }
 
         function renderFotoTab(project, pos) {
