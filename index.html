@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.21 - 🎨 COLORI INT/EST PORTONCINO FIN-Door ✅
+    Open Porte v5.22 - 🧱 MATERIALI INT/EST PORTONCINO FIN-Door ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.17 (28 NOV 2025) - PORTONCINI FINSTRAL FIN-DOOR
@@ -1859,7 +1859,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.21 - Colori Int/Est Portoncino</title>
+    <title>Open Porte v5.22 - Materiali Int/Est Portoncino</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3073,8 +3073,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.21';
-        const APP_VERSION_NOTE = '🎨 COLORI INT/EST PORTONCINO FIN-Door';
+        const APP_VERSION = '5.22';
+        const APP_VERSION_NOTE = '🧱 MATERIALI INT/EST + FILTRI DINAMICI';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -3121,7 +3121,78 @@
         // 🚪 DATABASE PORTONCINI FINSTRAL FIN-DOOR - Listino EUR 2025/3 Marzo 2025
         // ═══════════════════════════════════════════════════════════════════════════════
         
-        // TELAI FIN-DOOR (supplementi €/ml)
+        // 🆕 v5.22: COMBINAZIONI MATERIALI DISPONIBILI
+        const FINDOOR_COMBINAZIONI = {
+            'PVC': ['PVC', 'ALU'],  // PVC interno può avere PVC o ALU esterno
+            'ALU': ['ALU']          // ALU interno SOLO con ALU esterno
+        };
+        
+        // 🆕 v5.22: TELAI ORGANIZZATI PER COMBINAZIONE MATERIALI
+        const FINDOOR_TELAI_PER_COMB = {
+            'PVC-PVC': {
+                'L': {  // Forma L - Apertura interna
+                    '961': { desc: 'PVC-PVC 77mm (standard)', spessore: 77, supplPvc: 0, supplAlu: 5.20 },
+                    '962': { desc: 'PVC-PVC 90mm', spessore: 90, supplPvc: 0, supplAlu: 5.61 },
+                    '963': { desc: 'PVC-PVC 124mm', spessore: 124, supplPvc: 2.89, supplAlu: 9.31 },
+                    '924': { desc: 'PVC-PVC 90mm var.', spessore: 90, supplPvc: 8.83, supplAlu: 14.30 },
+                    '991': { desc: 'PVC-PVC 90mm Z', spessore: 90, supplPvc: 10.90, supplAlu: 16.50 },
+                    '951': { desc: 'PVC-PVC 124mm var.', spessore: 124, supplPvc: 13.00, supplAlu: 20.10 }
+                },
+                'Z': {  // Forma Z
+                    'Z62': { desc: 'PVC-PVC 67mm', spessore: 67, supplPvc: 5.21, supplAlu: 10.40 },
+                    '967': { desc: 'PVC-PVC 77mm', spessore: 77, supplPvc: 10.90, supplAlu: 15.30 },
+                    'Z91': { desc: 'PVC-PVC 90mm', spessore: 90, supplPvc: 16.10, supplAlu: 21.70 }
+                },
+                'T': {  // Forma T
+                    'AZ63': { desc: 'PVC-PVC 77mm', spessore: 77, supplPvc: 5.07, supplAlu: 11.50 }
+                }
+            },
+            'PVC-ALU': {
+                'L': {  // Con rivestimento ALU esterno
+                    'A961': { desc: 'PVC int./ALU est. 77mm', spessore: 77, supplPvc: 0, supplAlu: 5.20 },
+                    'A962': { desc: 'PVC int./ALU est. 90mm', spessore: 90, supplPvc: 0, supplAlu: 5.61 }
+                }
+            },
+            'ALU-ALU': {
+                'L': {  // Forma L - Apertura interna
+                    '705': { desc: 'ALU-ALU 78mm', spessore: 78, supplAlu: 24.20, note: 'Cerniere a scomparsa' },
+                    '706': { desc: 'ALU-ALU 84mm', spessore: 84, supplAlu: 32.40 },
+                    '711': { desc: 'ALU-ALU 102mm', spessore: 102, supplAlu: 35.00 },
+                    '718': { desc: 'ALU-ALU 87mm T', spessore: 87, supplAlu: 32.40 },
+                    '720': { desc: 'ALU-ALU 90mm', spessore: 90, supplAlu: 24.20, note: 'Solo cerniere cod.220' }
+                },
+                'L-EST': {  // Forma L - Apertura esterna
+                    'A705': { desc: 'ALU-ALU 78mm (est.)', spessore: 78, supplAlu: 24.20 },
+                    'A706': { desc: 'ALU-ALU 84mm (est.)', spessore: 84, supplAlu: 32.40 }
+                },
+                'Z': {
+                    '707': { desc: 'ALU-ALU 75mm', spessore: 75, supplAlu: 36.40 }
+                },
+                'T': {
+                    '718T': { desc: 'ALU-ALU 87mm', spessore: 87, supplAlu: 32.40 }
+                }
+            }
+        };
+        
+        // 🆕 v5.22: TIPI ANTA PER COMBINAZIONE MATERIALI
+        const FINDOOR_ANTE_PER_COMB = {
+            'PVC-PVC': [
+                { cod: 'FLAT_FRAME-FLAT_FRAME', desc: 'Flat Frame - Flat Frame', tab: 'PVC' },
+                { cod: 'FLAT_FRAME-STEP_FRAME', desc: 'Flat Frame - Step Frame', tab: 'PVC' },
+                { cod: 'STEP_FRAME-STEP_FRAME', desc: 'Step Frame - Step Frame', tab: 'PVC' }
+            ],
+            'PVC-ALU': [
+                { cod: 'STEP_PLANAR-FLAT_FRAME', desc: 'Step Planar (ALU) - Flat Frame (PVC)', tab: 'ALU' },
+                { cod: 'STEP_PLANAR-STEP_FRAME', desc: 'Step Planar (ALU) - Step Frame (PVC)', tab: 'ALU' }
+            ],
+            'ALU-ALU': [
+                { cod: 'FLAT_PLANAR-FLAT_PLANAR', desc: 'Flat Planar - Flat Planar', tab: 'ALU' },
+                { cod: 'FLAT_PLANAR-STEP_PLANAR', desc: 'Flat Planar - Step Planar', tab: 'ALU' },
+                { cod: 'STEP_PLANAR-STEP_PLANAR', desc: 'Step Planar - Step Planar', tab: 'ALU' }
+            ]
+        };
+        
+        // LEGACY: Manteniamo per retrocompatibilità
         const FINDOOR_TELAI = {
             'L-INT': {
                 '961': { desc: 'PVC-PVC 77mm', spessore: 77, supplPvc: 0, supplAlu: 5.20 },
@@ -3154,7 +3225,7 @@
             }
         };
         
-        // TIPI ANTA (Interno - Esterno)
+        // TIPI ANTA (Interno - Esterno) - LEGACY
         const FINDOOR_TIPI_ANTA = [
             { cod: 'STEP_FRAME-STEP_FRAME', desc: 'Step Frame - Step Frame', mat: 'PVC-PVC', tab: 'PVC' },
             { cod: 'FLAT_FRAME-FLAT_FRAME', desc: 'Flat Frame - Flat Frame', mat: 'PVC-PVC', tab: 'PVC' },
@@ -3162,8 +3233,8 @@
             { cod: 'FLAT_PLANAR-FLAT_PLANAR', desc: 'Flat Planar - Flat Planar', mat: 'ALU-ALU', tab: 'ALU' },
             { cod: 'STEP_PLANAR-STEP_PLANAR', desc: 'Step Planar - Step Planar', mat: 'ALU-ALU', tab: 'ALU' },
             { cod: 'FLAT_PLANAR-STEP_PLANAR', desc: 'Flat Planar - Step Planar', mat: 'ALU-ALU', tab: 'ALU' },
-            { cod: 'STEP_PLANAR-FLAT_FRAME', desc: 'Step Planar - Flat Frame', mat: 'ALU-PVC', tab: 'ALU' },
-            { cod: 'STEP_PLANAR-STEP_FRAME', desc: 'Step Planar - Step Frame', mat: 'ALU-PVC', tab: 'ALU' }
+            { cod: 'STEP_PLANAR-FLAT_FRAME', desc: 'Step Planar - Flat Frame', mat: 'PVC-ALU', tab: 'ALU' },
+            { cod: 'STEP_PLANAR-STEP_FRAME', desc: 'Step Planar - Step Frame', mat: 'PVC-ALU', tab: 'ALU' }
         ];
         
         // PREZZI BASE TIPO 720 (griglia L×H)
@@ -3359,6 +3430,106 @@
             { int: 'PVC', est: 'ALU', desc: 'PVC int. - Alluminio est.' },
             { int: 'ALU', est: 'ALU', desc: 'Alluminio - Alluminio' }
         ];
+        
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // 🆕 v5.22: FUNZIONI HELPER PER COMBINAZIONI MATERIALI PORTONCINO
+        // ═══════════════════════════════════════════════════════════════════════════════
+        
+        // Ottiene combinazione materiali da config portoncino
+        function getCombinazioneMat(ptc) {
+            const matInt = ptc.materialeInt || 'PVC';
+            let matEst = ptc.materialeEst || 'PVC';
+            
+            // Se interno è ALU, esterno DEVE essere ALU
+            if (matInt === 'ALU') matEst = 'ALU';
+            
+            return `${matInt}-${matEst}`;
+        }
+        
+        // Ottiene forme telaio disponibili per combinazione
+        function getFormeTelaioPerComb(comb) {
+            const telaiComb = FINDOOR_TELAI_PER_COMB[comb];
+            if (!telaiComb) return [];
+            
+            const forme = [];
+            if (telaiComb['L']) forme.push({ cod: 'L', desc: 'L - Apertura interno' });
+            if (telaiComb['L-EST']) forme.push({ cod: 'L-EST', desc: 'L - Apertura esterno' });
+            if (telaiComb['Z']) forme.push({ cod: 'Z', desc: 'Z - Per controtelaio' });
+            if (telaiComb['T']) forme.push({ cod: 'T', desc: 'T - Forma a T' });
+            
+            return forme;
+        }
+        
+        // Ottiene telai disponibili per combinazione e forma
+        function getTelaiPerCombForma(comb, forma) {
+            const telaiComb = FINDOOR_TELAI_PER_COMB[comb];
+            if (!telaiComb || !telaiComb[forma]) return [];
+            
+            return Object.entries(telaiComb[forma]).map(([cod, t]) => ({
+                cod,
+                desc: t.desc,
+                spessore: t.spessore,
+                note: t.note
+            }));
+        }
+        
+        // Ottiene tipi anta disponibili per combinazione
+        function getAntePerComb(comb) {
+            return FINDOOR_ANTE_PER_COMB[comb] || [];
+        }
+        
+        // Controlla combinazione e aggiorna campi correlati
+        function checkCombinazioneAndUpdate(projectId, posId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            const pos = project.positions.find(p => p.id === posId);
+            if (!pos || !pos.ingresso?.portoncino) return;
+            
+            const ptc = pos.ingresso.portoncino;
+            const comb = getCombinazioneMat(ptc);
+            
+            // Se ALU interno → forza ALU esterno
+            if (ptc.materialeInt === 'ALU') {
+                ptc.materialeEst = 'ALU';
+            }
+            
+            // Reset telaio se forma non disponibile
+            const formeDisp = getFormeTelaioPerComb(comb);
+            if (ptc.formaTelaio && !formeDisp.find(f => f.cod === ptc.formaTelaio)) {
+                ptc.formaTelaio = formeDisp.length > 0 ? formeDisp[0].cod : '';
+                ptc.codTelaio = '';
+            }
+            
+            // Reset tipo anta se non disponibile
+            const anteDisp = getAntePerComb(comb);
+            if (ptc.tipoAnta && !anteDisp.find(a => a.cod === ptc.tipoAnta)) {
+                ptc.tipoAnta = anteDisp.length > 0 ? anteDisp[0].cod : '';
+            }
+            
+            // Reset gruppi colore in base a materiale
+            if (ptc.materialeInt === 'PVC' && ptc.gruppoColoreInt?.startsWith('gruppo') && !ptc.gruppoColoreInt?.startsWith('gruppoA') && !ptc.gruppoColoreInt?.startsWith('gruppoB')) {
+                ptc.gruppoColoreInt = 'gruppoA';
+                ptc.coloreInt = '';
+            }
+            if (ptc.materialeInt === 'ALU' && (ptc.gruppoColoreInt === 'gruppoA' || ptc.gruppoColoreInt === 'gruppoB')) {
+                ptc.gruppoColoreInt = 'gruppo1';
+                ptc.coloreInt = '';
+            }
+            
+            if ((ptc.materialeEst || 'PVC') === 'PVC' && ptc.gruppoColoreEst?.startsWith('gruppo') && !ptc.gruppoColoreEst?.startsWith('gruppoA') && !ptc.gruppoColoreEst?.startsWith('gruppoB')) {
+                ptc.gruppoColoreEst = 'gruppoA';
+                ptc.coloreEst = '';
+            }
+            if (ptc.materialeEst === 'ALU' && (ptc.gruppoColoreEst === 'gruppoA' || ptc.gruppoColoreEst === 'gruppoB')) {
+                ptc.gruppoColoreEst = 'gruppo1';
+                ptc.coloreEst = '';
+            }
+            
+            console.log(`🧱 v5.22: Combinazione ${comb} - forme: ${formeDisp.map(f=>f.cod).join(',')}, ante: ${anteDisp.length}`);
+            
+            saveState();
+            render();
+        }
         
         // Funzione calcolo prezzo base portoncino
         function calcolaPrezzoBasePortoncino(larghezza, altezza, tipoTabella) {
@@ -15924,15 +16095,19 @@
             `;
         }
         
-        // 🚪 Configurazione PORTONCINO Finstral FIN-Door v5.17
+        // 🚪 Configurazione PORTONCINO Finstral FIN-Door v5.22
         function renderPortoncinoConfig(project, pos, ing) {
             const ptc = ing.portoncino || {};
             
-            // Helper: genera options telaio filtrate per forma
-            const formaTelaio = ptc.formaTelaio || 'L-INT';
-            const telaiDisponibili = FINDOOR_TELAI[formaTelaio] || {};
+            // v5.22: Helper con nuova struttura combinazioni
+            const comb = getCombinazioneMat(ptc);
+            const formaTelaio = ptc.formaTelaio || '';
             const codTelaio = ptc.codTelaio || '';
-            const telaioSel = telaiDisponibili[codTelaio] || {};
+            
+            // Ottieni telaio selezionato dalla nuova struttura
+            const telaiComb = FINDOOR_TELAI_PER_COMB[comb] || {};
+            const telaiForma = telaiComb[formaTelaio] || {};
+            const telaioSel = telaiForma[codTelaio] || {};
             
             // Helper: genera options tagli per telaio
             const tagli = FINDOOR_TAGLI_PER_TELAIO[codTelaio] || [];
@@ -15940,8 +16115,10 @@
             // Calcolo prezzo stimato
             const L = parseInt(ptc.BRM_L) || 1000;
             const H = parseInt(ptc.BRM_H) || 2100;
-            const tipoAnta = ptc.tipoAnta || 'STEP_FRAME-STEP_FRAME';
-            const tipoTab = FINDOOR_TIPI_ANTA.find(t => t.cod === tipoAnta)?.tab || 'PVC';
+            const tipoAnta = ptc.tipoAnta || '';
+            const anteDisp = getAntePerComb(comb);
+            const antaSel = anteDisp.find(a => a.cod === tipoAnta);
+            const tipoTab = antaSel?.tab || 'PVC';
             const isGrande = (L > 1115 || H > 2355);
             
             const prezzoBase = calcolaPrezzoBasePortoncino(L, H, tipoTab);
@@ -15990,18 +16167,88 @@
                         </div>
                     </div>
                     
-                    <!-- 🏗️ TELAIO -->
+                    <!-- 🧱 MATERIALI INT/EST (STEP 1) -->
+                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-amber-800 mb-3">🧱 1. Materiali (Interno - Esterno)</h5>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-amber-100 p-3 rounded-lg">
+                                <label class="text-sm font-bold text-amber-900 block mb-2">🏠 Materiale INTERNO</label>
+                                <div class="flex gap-2">
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="matInt-${pos.id}" value="PVC" 
+                                               ${(ptc.materialeInt || 'PVC') === 'PVC' ? 'checked' : ''}
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeInt', 'PVC'); checkCombinazioneAndUpdate('${project.id}', '${pos.id}')"
+                                               class="sr-only peer">
+                                        <div class="p-3 rounded-lg border-2 text-center transition-all peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-600 border-amber-300 bg-white hover:bg-amber-50">
+                                            <div class="font-bold">PVC</div>
+                                            <div class="text-xs opacity-75">Colori PVC</div>
+                                        </div>
+                                    </label>
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="matInt-${pos.id}" value="ALU"
+                                               ${ptc.materialeInt === 'ALU' ? 'checked' : ''}
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeInt', 'ALU'); checkCombinazioneAndUpdate('${project.id}', '${pos.id}')"
+                                               class="sr-only peer">
+                                        <div class="p-3 rounded-lg border-2 text-center transition-all peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-600 border-amber-300 bg-white hover:bg-amber-50">
+                                            <div class="font-bold">Alluminio</div>
+                                            <div class="text-xs opacity-75">Colori ALU</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="bg-orange-100 p-3 rounded-lg">
+                                <label class="text-sm font-bold text-orange-900 block mb-2">🌳 Materiale ESTERNO</label>
+                                ${(ptc.materialeInt || 'PVC') === 'ALU' ? `
+                                    <!-- ALU interno → SOLO ALU esterno -->
+                                    <div class="p-3 rounded-lg border-2 bg-orange-500 text-white border-orange-600 text-center">
+                                        <div class="font-bold">Alluminio</div>
+                                        <div class="text-xs opacity-75">Obbligatorio con ALU interno</div>
+                                    </div>
+                                ` : `
+                                    <!-- PVC interno → PVC o ALU esterno -->
+                                    <div class="flex gap-2">
+                                        <label class="flex-1 cursor-pointer">
+                                            <input type="radio" name="matEst-${pos.id}" value="PVC"
+                                                   ${(ptc.materialeEst || 'PVC') === 'PVC' ? 'checked' : ''}
+                                                   onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeEst', 'PVC'); checkCombinazioneAndUpdate('${project.id}', '${pos.id}')"
+                                                   class="sr-only peer">
+                                            <div class="p-3 rounded-lg border-2 text-center transition-all peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-600 border-orange-300 bg-white hover:bg-orange-50">
+                                                <div class="font-bold">PVC</div>
+                                                <div class="text-xs opacity-75">Colori PVC</div>
+                                            </div>
+                                        </label>
+                                        <label class="flex-1 cursor-pointer">
+                                            <input type="radio" name="matEst-${pos.id}" value="ALU"
+                                                   ${ptc.materialeEst === 'ALU' ? 'checked' : ''}
+                                                   onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeEst', 'ALU'); checkCombinazioneAndUpdate('${project.id}', '${pos.id}')"
+                                                   class="sr-only peer">
+                                            <div class="p-3 rounded-lg border-2 text-center transition-all peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-600 border-orange-300 bg-white hover:bg-orange-50">
+                                                <div class="font-bold">Alluminio</div>
+                                                <div class="text-xs opacity-75">Riv. esterno</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                        <div class="mt-3 p-2 rounded bg-white border border-amber-200 text-center">
+                            <span class="text-sm font-bold">📋 Combinazione: </span>
+                            <span class="text-lg font-bold text-amber-700">${getCombinazioneMat(ptc)}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 🏗️ TELAIO (filtrato per combinazione) -->
                     <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-blue-800 mb-3">🏗️ 1. Telaio</h5>
+                        <h5 class="font-semibold text-blue-800 mb-3">🏗️ 2. Telaio</h5>
                         <div class="grid md:grid-cols-3 gap-3">
                             <div>
                                 <label class="text-xs font-medium">Forma Telaio</label>
                                 <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'formaTelaio', this.value)"
                                         class="w-full compact-input border rounded mt-1">
-                                    <option value="L-INT" ${formaTelaio === 'L-INT' ? 'selected' : ''}>L - Apertura interno</option>
-                                    <option value="L-EST" ${formaTelaio === 'L-EST' ? 'selected' : ''}>L - Apertura esterno</option>
-                                    <option value="Z" ${formaTelaio === 'Z' ? 'selected' : ''}>Z - Per controtelaio</option>
-                                    <option value="T" ${formaTelaio === 'T' ? 'selected' : ''}>T - Forma a T</option>
+                                    <option value="">Seleziona forma...</option>
+                                    ${getFormeTelaioPerComb(getCombinazioneMat(ptc)).map(f => 
+                                        `<option value="${f.cod}" ${formaTelaio === f.cod ? 'selected' : ''}>${f.desc}</option>`
+                                    ).join('')}
                                 </select>
                             </div>
                             <div>
@@ -16009,8 +16256,8 @@
                                 <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'codTelaio', this.value)"
                                         class="w-full compact-input border rounded mt-1">
                                     <option value="">Seleziona...</option>
-                                    ${Object.entries(telaiDisponibili).map(([cod, t]) => 
-                                        `<option value="${cod}" ${codTelaio === cod ? 'selected' : ''}>${cod} - ${t.desc} (${t.spessore}mm)</option>`
+                                    ${getTelaiPerCombForma(getCombinazioneMat(ptc), formaTelaio).map(t => 
+                                        `<option value="${t.cod}" ${codTelaio === t.cod ? 'selected' : ''}>${t.cod} - ${t.desc}</option>`
                                     ).join('')}
                                 </select>
                             </div>
@@ -16020,16 +16267,17 @@
                         </div>
                     </div>
                     
-                    <!-- 🚪 TIPO ANTA (Int-Est) -->
+                    <!-- 🚪 TIPO ANTA (filtrato per combinazione) -->
                     <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-purple-800 mb-3">🚪 2. Tipo Anta (Interno - Esterno)</h5>
+                        <h5 class="font-semibold text-purple-800 mb-3">🚪 3. Tipo Anta (Interno - Esterno)</h5>
                         <div class="grid md:grid-cols-2 gap-3">
                             <div>
                                 <label class="text-xs font-medium">Combinazione Int-Est</label>
                                 <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'tipoAnta', this.value)"
                                         class="w-full compact-input border rounded mt-1">
-                                    ${FINDOOR_TIPI_ANTA.map(t => 
-                                        `<option value="${t.cod}" ${tipoAnta === t.cod ? 'selected' : ''}>${t.desc} (${t.mat})</option>`
+                                    <option value="">Seleziona tipo anta...</option>
+                                    ${getAntePerComb(getCombinazioneMat(ptc)).map(t => 
+                                        `<option value="${t.cod}" ${tipoAnta === t.cod ? 'selected' : ''}>${t.desc}</option>`
                                     ).join('')}
                                 </select>
                             </div>
@@ -16046,7 +16294,7 @@
                     
                     <!-- 🎨 MODELLO ANTA -->
                     <div class="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-orange-800 mb-3">🎨 3. Modello Anta</h5>
+                        <h5 class="font-semibold text-orange-800 mb-3">🎨 4. Modello Anta</h5>
                         <div class="grid md:grid-cols-2 gap-3">
                             <div>
                                 <label class="text-xs font-medium">Modello</label>
@@ -16079,7 +16327,7 @@
                     
                     <!-- ✂️ TAGLI TELAIO -->
                     <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-red-800 mb-3">✂️ 4. Tagli Telaio</h5>
+                        <h5 class="font-semibold text-red-800 mb-3">✂️ 5. Tagli Telaio</h5>
                         <div class="grid md:grid-cols-4 gap-2">
                             ${['SOPRA', 'SOTTO', 'SX', 'DX'].map(pos => `
                                 <div>
@@ -16099,7 +16347,7 @@
                     
                     <!-- 🔐 MANIGLIE -->
                     <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-gray-800 mb-3">🔐 5. Maniglie</h5>
+                        <h5 class="font-semibold text-gray-800 mb-3">🔐 6. Maniglie</h5>
                         <div class="grid md:grid-cols-3 gap-3">
                             <div>
                                 <label class="text-xs font-medium">Tipo</label>
@@ -16134,7 +16382,7 @@
                     
                     <!-- 🎨 MATERIALI E COLORI INT/EST -->
                     <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-yellow-800 mb-3">🎨 6. Materiali e Colori (Interno/Esterno)</h5>
+                        <h5 class="font-semibold text-yellow-800 mb-3">🎨 7. Colori (Interno/Esterno)</h5>
                         
                         <!-- RIGA 1: Combinazione Materiali -->
                         <div class="grid md:grid-cols-2 gap-3 mb-4">
@@ -16266,7 +16514,7 @@
                     
                     <!-- 🔒 CILINDRO E CERNIERE -->
                     <div class="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-indigo-800 mb-3">🔒 7. Cilindro e Cerniere</h5>
+                        <h5 class="font-semibold text-indigo-800 mb-3">🔒 8. Cilindro e Cerniere</h5>
                         <div class="grid md:grid-cols-2 gap-3">
                             <div>
                                 <label class="text-xs font-medium">Cilindro</label>
