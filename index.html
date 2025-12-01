@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.22 - 🧱 MATERIALI INT/EST PORTONCINO FIN-Door ✅
+    Open Porte v5.23 - 🧱 MATERIALI INT/EST + LEGNO PORTONCINO FIN-Door ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.17 (28 NOV 2025) - PORTONCINI FINSTRAL FIN-DOOR
@@ -1859,7 +1859,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.22 - Materiali Int/Est Portoncino</title>
+    <title>Open Porte v5.23 - Materiali Int/Est + Legno Portoncino</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3073,8 +3073,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.22';
-        const APP_VERSION_NOTE = '🧱 MATERIALI INT/EST + FILTRI DINAMICI';
+        const APP_VERSION = '5.23';
+        const APP_VERSION_NOTE = '🧱 MATERIALI + 🪵 LEGNO PORTONCINO';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -3121,13 +3121,52 @@
         // 🚪 DATABASE PORTONCINI FINSTRAL FIN-DOOR - Listino EUR 2025/3 Marzo 2025
         // ═══════════════════════════════════════════════════════════════════════════════
         
-        // 🆕 v5.22: COMBINAZIONI MATERIALI DISPONIBILI
-        const FINDOOR_COMBINAZIONI = {
-            'PVC': ['PVC', 'ALU'],  // PVC interno può avere PVC o ALU esterno
-            'ALU': ['ALU']          // ALU interno SOLO con ALU esterno
+        // 🆕 v5.23: MATERIALI DISPONIBILI (da listino pag. 196)
+        const FINDOOR_MATERIALI_INT = {
+            'PVC': { cod: '1I4', desc: 'PVC', colori: 'PVC' },
+            'ALU': { cod: '2I3', desc: 'Alluminio', colori: 'ALU' },
+            'LEGNO': { cod: '4I4', desc: 'Legno', colori: 'LEGNO' }
+            // Altri: vetro smaltato (5I4), ceramica (6I4), metallo (7I4) - non implementati
         };
         
-        // 🆕 v5.22: TELAI ORGANIZZATI PER COMBINAZIONE MATERIALI
+        const FINDOOR_MATERIALI_EST = {
+            'PVC': { cod: '1A6', desc: 'PVC', colori: 'PVC' },
+            'ALU': { cod: '2A4', desc: 'Alluminio', colori: 'ALU' }
+            // Altri: vetro smaltato (5A4), ceramica (6A4) - non implementati
+        };
+        
+        // 🆕 v5.23: COMBINAZIONI MATERIALI DISPONIBILI (Int → Est possibili)
+        const FINDOOR_COMBINAZIONI = {
+            'PVC': ['PVC', 'ALU'],      // PVC interno → PVC o ALU esterno
+            'ALU': ['ALU'],              // ALU interno → solo ALU esterno
+            'LEGNO': ['ALU']             // LEGNO interno → solo ALU esterno
+        };
+        
+        // 🆕 v5.23: COLORI LEGNO (da listino - gruppi colori legno)
+        const FINDOOR_COLORI_LEGNO = {
+            'gruppo0': {
+                desc: 'Gruppo 0 (base)',
+                suppl: 0,
+                colori: ['Rovere naturale', 'Faggio naturale', 'Acero naturale']
+            },
+            'gruppo1': {
+                desc: 'Gruppo 1 (+€53-59/porta)',
+                suppl: 53,
+                colori: ['Rovere tinto', 'Noce', 'Ciliegio']
+            },
+            'gruppo2': {
+                desc: 'Gruppo 2 (+€68-75/porta)',
+                suppl: 68,
+                colori: ['Wengé', 'Mogano', 'Teak']
+            },
+            'gruppo3': {
+                desc: 'Gruppo 3 (+€70-77/porta)',
+                suppl: 70,
+                colori: ['Essenze speciali', 'Colori RAL su legno']
+            }
+        };
+        
+        // 🆕 v5.23: TELAI ORGANIZZATI PER COMBINAZIONE MATERIALI
         const FINDOOR_TELAI_PER_COMB = {
             'PVC-PVC': {
                 'L': {  // Forma L - Apertura interna
@@ -3153,6 +3192,12 @@
                     'A962': { desc: 'PVC int./ALU est. 90mm', spessore: 90, supplPvc: 0, supplAlu: 5.61 }
                 }
             },
+            'LEGNO-ALU': {
+                'L': {  // Legno interno, ALU esterno
+                    '9705': { desc: 'Legno int./ALU est. 78mm', spessore: 78, supplAlu: 24.20, note: 'Cod. base 705 + legno' },
+                    '9706': { desc: 'Legno int./ALU est. 84mm', spessore: 84, supplAlu: 32.40, note: 'Cod. base 706 + legno' }
+                }
+            },
             'ALU-ALU': {
                 'L': {  // Forma L - Apertura interna
                     '705': { desc: 'ALU-ALU 78mm', spessore: 78, supplAlu: 24.20, note: 'Cerniere a scomparsa' },
@@ -3174,7 +3219,7 @@
             }
         };
         
-        // 🆕 v5.22: TIPI ANTA PER COMBINAZIONE MATERIALI
+        // 🆕 v5.23: TIPI ANTA PER COMBINAZIONE MATERIALI
         const FINDOOR_ANTE_PER_COMB = {
             'PVC-PVC': [
                 { cod: 'FLAT_FRAME-FLAT_FRAME', desc: 'Flat Frame - Flat Frame', tab: 'PVC' },
@@ -3184,6 +3229,10 @@
             'PVC-ALU': [
                 { cod: 'STEP_PLANAR-FLAT_FRAME', desc: 'Step Planar (ALU) - Flat Frame (PVC)', tab: 'ALU' },
                 { cod: 'STEP_PLANAR-STEP_FRAME', desc: 'Step Planar (ALU) - Step Frame (PVC)', tab: 'ALU' }
+            ],
+            'LEGNO-ALU': [
+                { cod: 'STEP_PLANAR-LEGNO', desc: 'Step Planar (ALU) - Legno interno', tab: 'ALU' },
+                { cod: 'FLAT_PLANAR-LEGNO', desc: 'Flat Planar (ALU) - Legno interno', tab: 'ALU' }
             ],
             'ALU-ALU': [
                 { cod: 'FLAT_PLANAR-FLAT_PLANAR', desc: 'Flat Planar - Flat Planar', tab: 'ALU' },
@@ -3432,7 +3481,7 @@
         ];
         
         // ═══════════════════════════════════════════════════════════════════════════════
-        // 🆕 v5.22: FUNZIONI HELPER PER COMBINAZIONI MATERIALI PORTONCINO
+        // 🆕 v5.23: FUNZIONI HELPER PER COMBINAZIONI MATERIALI PORTONCINO
         // ═══════════════════════════════════════════════════════════════════════════════
         
         // Ottiene combinazione materiali da config portoncino
@@ -3440,10 +3489,15 @@
             const matInt = ptc.materialeInt || 'PVC';
             let matEst = ptc.materialeEst || 'PVC';
             
-            // Se interno è ALU, esterno DEVE essere ALU
-            if (matInt === 'ALU') matEst = 'ALU';
+            // Se interno è ALU o LEGNO, esterno DEVE essere ALU
+            if (matInt === 'ALU' || matInt === 'LEGNO') matEst = 'ALU';
             
             return `${matInt}-${matEst}`;
+        }
+        
+        // Ottiene materiali esterni disponibili per materiale interno
+        function getMaterialiEstPerInt(matInt) {
+            return FINDOOR_COMBINAZIONI[matInt] || ['PVC'];
         }
         
         // Ottiene forme telaio disponibili per combinazione
@@ -3488,8 +3542,8 @@
             const ptc = pos.ingresso.portoncino;
             const comb = getCombinazioneMat(ptc);
             
-            // Se ALU interno → forza ALU esterno
-            if (ptc.materialeInt === 'ALU') {
+            // Se ALU o LEGNO interno → forza ALU esterno
+            if (ptc.materialeInt === 'ALU' || ptc.materialeInt === 'LEGNO') {
                 ptc.materialeEst = 'ALU';
             }
             
@@ -3506,26 +3560,38 @@
                 ptc.tipoAnta = anteDisp.length > 0 ? anteDisp[0].cod : '';
             }
             
-            // Reset gruppi colore in base a materiale
-            if (ptc.materialeInt === 'PVC' && ptc.gruppoColoreInt?.startsWith('gruppo') && !ptc.gruppoColoreInt?.startsWith('gruppoA') && !ptc.gruppoColoreInt?.startsWith('gruppoB')) {
-                ptc.gruppoColoreInt = 'gruppoA';
-                ptc.coloreInt = '';
-            }
-            if (ptc.materialeInt === 'ALU' && (ptc.gruppoColoreInt === 'gruppoA' || ptc.gruppoColoreInt === 'gruppoB')) {
-                ptc.gruppoColoreInt = 'gruppo1';
-                ptc.coloreInt = '';
+            // Reset gruppi colore in base a materiale INTERNO
+            if (ptc.materialeInt === 'PVC') {
+                if (!ptc.gruppoColoreInt?.startsWith('gruppoA') && !ptc.gruppoColoreInt?.startsWith('gruppoB')) {
+                    ptc.gruppoColoreInt = 'gruppoA';
+                    ptc.coloreInt = '';
+                }
+            } else if (ptc.materialeInt === 'ALU') {
+                if (!ptc.gruppoColoreInt?.match(/^gruppo[0-3]$/) && !ptc.gruppoColoreInt?.match(/^gruppo1H$/)) {
+                    ptc.gruppoColoreInt = 'gruppo1';
+                    ptc.coloreInt = '';
+                }
+            } else if (ptc.materialeInt === 'LEGNO') {
+                if (!ptc.gruppoColoreInt?.match(/^gruppo[0-3]$/)) {
+                    ptc.gruppoColoreInt = 'gruppo0';
+                    ptc.coloreInt = '';
+                }
             }
             
-            if ((ptc.materialeEst || 'PVC') === 'PVC' && ptc.gruppoColoreEst?.startsWith('gruppo') && !ptc.gruppoColoreEst?.startsWith('gruppoA') && !ptc.gruppoColoreEst?.startsWith('gruppoB')) {
-                ptc.gruppoColoreEst = 'gruppoA';
-                ptc.coloreEst = '';
-            }
-            if (ptc.materialeEst === 'ALU' && (ptc.gruppoColoreEst === 'gruppoA' || ptc.gruppoColoreEst === 'gruppoB')) {
-                ptc.gruppoColoreEst = 'gruppo1';
-                ptc.coloreEst = '';
+            // Reset gruppi colore in base a materiale ESTERNO
+            if ((ptc.materialeEst || 'PVC') === 'PVC') {
+                if (!ptc.gruppoColoreEst?.startsWith('gruppoA') && !ptc.gruppoColoreEst?.startsWith('gruppoB')) {
+                    ptc.gruppoColoreEst = 'gruppoA';
+                    ptc.coloreEst = '';
+                }
+            } else if (ptc.materialeEst === 'ALU') {
+                if (!ptc.gruppoColoreEst?.match(/^gruppo[0-3]$/) && !ptc.gruppoColoreEst?.match(/^gruppo1H$/)) {
+                    ptc.gruppoColoreEst = 'gruppo1';
+                    ptc.coloreEst = '';
+                }
             }
             
-            console.log(`🧱 v5.22: Combinazione ${comb} - forme: ${formeDisp.map(f=>f.cod).join(',')}, ante: ${anteDisp.length}`);
+            console.log(`🧱 v5.23: Combinazione ${comb} - forme: ${formeDisp.map(f=>f.cod).join(',')}, ante: ${anteDisp.length}`);
             
             saveState();
             render();
@@ -16095,11 +16161,11 @@
             `;
         }
         
-        // 🚪 Configurazione PORTONCINO Finstral FIN-Door v5.22
+        // 🚪 Configurazione PORTONCINO Finstral FIN-Door v5.23
         function renderPortoncinoConfig(project, pos, ing) {
             const ptc = ing.portoncino || {};
             
-            // v5.22: Helper con nuova struttura combinazioni
+            // v5.23: Helper con nuova struttura combinazioni + LEGNO
             const comb = getCombinazioneMat(ptc);
             const formaTelaio = ptc.formaTelaio || '';
             const codTelaio = ptc.codTelaio || '';
@@ -16179,9 +16245,8 @@
                                                ${(ptc.materialeInt || 'PVC') === 'PVC' ? 'checked' : ''}
                                                onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeInt', 'PVC'); checkCombinazioneAndUpdate('${project.id}', '${pos.id}')"
                                                class="sr-only peer">
-                                        <div class="p-3 rounded-lg border-2 text-center transition-all peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-600 border-amber-300 bg-white hover:bg-amber-50">
-                                            <div class="font-bold">PVC</div>
-                                            <div class="text-xs opacity-75">Colori PVC</div>
+                                        <div class="p-2 rounded-lg border-2 text-center transition-all peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-600 border-amber-300 bg-white hover:bg-amber-50">
+                                            <div class="font-bold text-sm">PVC</div>
                                         </div>
                                     </label>
                                     <label class="flex-1 cursor-pointer">
@@ -16189,20 +16254,28 @@
                                                ${ptc.materialeInt === 'ALU' ? 'checked' : ''}
                                                onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeInt', 'ALU'); checkCombinazioneAndUpdate('${project.id}', '${pos.id}')"
                                                class="sr-only peer">
-                                        <div class="p-3 rounded-lg border-2 text-center transition-all peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-600 border-amber-300 bg-white hover:bg-amber-50">
-                                            <div class="font-bold">Alluminio</div>
-                                            <div class="text-xs opacity-75">Colori ALU</div>
+                                        <div class="p-2 rounded-lg border-2 text-center transition-all peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-600 border-amber-300 bg-white hover:bg-amber-50">
+                                            <div class="font-bold text-sm">Alluminio</div>
+                                        </div>
+                                    </label>
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="matInt-${pos.id}" value="LEGNO"
+                                               ${ptc.materialeInt === 'LEGNO' ? 'checked' : ''}
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeInt', 'LEGNO'); checkCombinazioneAndUpdate('${project.id}', '${pos.id}')"
+                                               class="sr-only peer">
+                                        <div class="p-2 rounded-lg border-2 text-center transition-all peer-checked:bg-amber-700 peer-checked:text-white peer-checked:border-amber-800 border-amber-300 bg-white hover:bg-amber-50">
+                                            <div class="font-bold text-sm">🪵 Legno</div>
                                         </div>
                                     </label>
                                 </div>
                             </div>
                             <div class="bg-orange-100 p-3 rounded-lg">
                                 <label class="text-sm font-bold text-orange-900 block mb-2">🌳 Materiale ESTERNO</label>
-                                ${(ptc.materialeInt || 'PVC') === 'ALU' ? `
-                                    <!-- ALU interno → SOLO ALU esterno -->
+                                ${(ptc.materialeInt === 'ALU' || ptc.materialeInt === 'LEGNO') ? `
+                                    <!-- ALU o LEGNO interno → SOLO ALU esterno -->
                                     <div class="p-3 rounded-lg border-2 bg-orange-500 text-white border-orange-600 text-center">
                                         <div class="font-bold">Alluminio</div>
-                                        <div class="text-xs opacity-75">Obbligatorio con ALU interno</div>
+                                        <div class="text-xs opacity-75">Obbligatorio con ${ptc.materialeInt === 'LEGNO' ? 'Legno' : 'ALU'} interno</div>
                                     </div>
                                 ` : `
                                     <!-- PVC interno → PVC o ALU esterno -->
@@ -16214,7 +16287,6 @@
                                                    class="sr-only peer">
                                             <div class="p-3 rounded-lg border-2 text-center transition-all peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-600 border-orange-300 bg-white hover:bg-orange-50">
                                                 <div class="font-bold">PVC</div>
-                                                <div class="text-xs opacity-75">Colori PVC</div>
                                             </div>
                                         </label>
                                         <label class="flex-1 cursor-pointer">
@@ -16224,7 +16296,6 @@
                                                    class="sr-only peer">
                                             <div class="p-3 rounded-lg border-2 text-center transition-all peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-600 border-orange-300 bg-white hover:bg-orange-50">
                                                 <div class="font-bold">Alluminio</div>
-                                                <div class="text-xs opacity-75">Riv. esterno</div>
                                             </div>
                                         </label>
                                     </div>
@@ -16388,19 +16459,22 @@
                         <div class="grid md:grid-cols-2 gap-3 mb-4">
                             <div>
                                 <label class="text-xs font-medium">Materiale Interno</label>
-                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeInt', this.value); renderPositionDetails(projects.find(p=>p.id==='${project.id}'), '${pos.id}')"
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeInt', this.value); checkCombinazioneAndUpdate('${project.id}', '${pos.id}')"
                                         class="w-full compact-input border rounded mt-1">
                                     <option value="PVC" ${(ptc.materialeInt || 'PVC') === 'PVC' ? 'selected' : ''}>PVC</option>
                                     <option value="ALU" ${ptc.materialeInt === 'ALU' ? 'selected' : ''}>Alluminio</option>
+                                    <option value="LEGNO" ${ptc.materialeInt === 'LEGNO' ? 'selected' : ''}>🪵 Legno</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="text-xs font-medium">Materiale Esterno</label>
-                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeEst', this.value); renderPositionDetails(projects.find(p=>p.id==='${project.id}'), '${pos.id}')"
-                                        class="w-full compact-input border rounded mt-1">
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeEst', this.value); checkCombinazioneAndUpdate('${project.id}', '${pos.id}')"
+                                        class="w-full compact-input border rounded mt-1"
+                                        ${(ptc.materialeInt === 'ALU' || ptc.materialeInt === 'LEGNO') ? 'disabled' : ''}>
                                     <option value="PVC" ${(ptc.materialeEst || 'PVC') === 'PVC' ? 'selected' : ''}>PVC</option>
                                     <option value="ALU" ${ptc.materialeEst === 'ALU' ? 'selected' : ''}>Alluminio</option>
                                 </select>
+                                ${(ptc.materialeInt === 'ALU' || ptc.materialeInt === 'LEGNO') ? '<div class="text-xs text-orange-600 mt-1">⚠️ ALU obbligatorio</div>' : ''}
                             </div>
                         </div>
                         
@@ -16425,6 +16499,28 @@
                                             <option value="">Seleziona...</option>
                                             ${(FINDOOR_COLORI_PVC[ptc.gruppoColoreInt || 'gruppoA']?.colori || []).map(c => 
                                                 `<option value="${c.cod}" ${ptc.coloreInt === c.cod ? 'selected' : ''}>${c.cod} - ${c.nome}</option>`
+                                            ).join('')}
+                                        </select>
+                                    </div>
+                                </div>
+                            ` : ptc.materialeInt === 'LEGNO' ? `
+                                <div class="grid md:grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-xs">🪵 Gruppo Legno</label>
+                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'gruppoColoreInt', this.value); renderPositionDetails(projects.find(p=>p.id==='${project.id}'), '${pos.id}')"
+                                                class="w-full compact-input border rounded mt-1 bg-amber-50">
+                                            ${Object.entries(FINDOOR_COLORI_LEGNO).map(([cod, g]) => 
+                                                `<option value="${cod}" ${(ptc.gruppoColoreInt || 'gruppo0') === cod ? 'selected' : ''}>${g.desc}</option>`
+                                            ).join('')}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs">Essenza Legno</label>
+                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'coloreInt', this.value)"
+                                                class="w-full compact-input border rounded mt-1 bg-amber-50">
+                                            <option value="">Seleziona...</option>
+                                            ${(FINDOOR_COLORI_LEGNO[ptc.gruppoColoreInt || 'gruppo0']?.colori || []).map(c => 
+                                                `<option value="${c}" ${ptc.coloreInt === c ? 'selected' : ''}>${c}</option>`
                                             ).join('')}
                                         </select>
                                     </div>
