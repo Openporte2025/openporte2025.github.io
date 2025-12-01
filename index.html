@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.16 - 🔐 MANIGLIE E CILINDRO BLINDATE ✅
+    Open Porte v5.17 - 🚪 PORTONCINI FINSTRAL FIN-DOOR ✅
     ═══════════════════════════════════════════════════════════════
     
-    🔧 v5.16 (28 NOV 2025) - MANIGLIE E CILINDRO EVOLUTI
+    🔧 v5.17 (28 NOV 2025) - PORTONCINI FINSTRAL FIN-DOOR
     ─────────────────────────────────────────────────────
-    - 🔐 CILINDRO: Tipo (Chiave-Chiave / Pomolo-Chiave), Numero Chiavi (3-6)
-    - 🚪 MANIGLIA INTERNA: Modello (MO-05, MO-07, MO-08, MO-13) + Finitura
-    - 🚪 MANIGLIA ESTERNA: Pomolo (PO-05, PO-02) o Maniglione (JUMBO) + Finitura
-    - 🎨 FINITURE: OL, OL TZ, CS, CL, VP, VL, VS (da listino EVO 2025)
-    - ✅ Prezzi da listino: Standard incluso, supplementi per upgrade
+    - 🚪 DATABASE FIN-DOOR: Telai L/Z/T, Tipi anta, Modelli
+    - 📋 TELAI: 961, 962, 963, 705, 706, 711, 718, 720, Z62, 967, etc.
+    - 🎨 TIPI ANTA: Frame-Frame, Planar-Planar, misti
+    - 📐 MODELLI: 01, 02, 04-07, 20-24, 41, 43 con prezzi
+    - 🔧 MATERIALI: PVC, Alluminio, Legno, Vetro, Ceramica, Metallo
+    - ✂️ TAGLI: Codici specifici per ogni telaio
+    - 🔐 MANIGLIE: 16 set + 10 maniglioni con prezzi
+    - 🎨 COLORI: Gruppi Alu 1/1H/2/3, PVC A/B
+    - 💰 CALCOLO: Prezzo base + supplementi automatici
     
-    🔧 v5.15 (28 NOV 2025) - NON DI SERIE RIVESTIMENTI
+    🔧 v5.16 (28 NOV 2025) - MANIGLIE E CILINDRO EVOLUTI
     
     📋 CHANGELOG v5.15:
     - 🔐 AGGIUNTO: Modello "Non di serie" in Linea Piano
@@ -3069,8 +3073,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.15';
-        const APP_VERSION_NOTE = 'Pulizia codice - Rimosso tab Blindate vecchio';
+        const APP_VERSION = '5.17';
+        const APP_VERSION_NOTE = '🚪 PORTONCINI FINSTRAL FIN-DOOR';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -3111,6 +3115,232 @@
                 'sotto-laterali': ['SOTTO', 'SX', 'DX']
             };
             return tagliMap[tagliTelaio] || [];
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // 🚪 DATABASE PORTONCINI FINSTRAL FIN-DOOR - Listino EUR 2025/3 Marzo 2025
+        // ═══════════════════════════════════════════════════════════════════════════════
+        
+        // TELAI FIN-DOOR (supplementi €/ml)
+        const FINDOOR_TELAI = {
+            'L-INT': {
+                '961': { desc: 'PVC-PVC 77mm', spessore: 77, supplPvc: 0, supplAlu: 5.20 },
+                '962': { desc: 'PVC-PVC 90mm', spessore: 90, supplPvc: 0, supplAlu: 5.61 },
+                '963': { desc: 'PVC-PVC 124mm', spessore: 124, supplPvc: 2.89, supplAlu: 9.31 },
+                '924': { desc: 'PVC-PVC 90mm', spessore: 90, supplPvc: 8.83, supplAlu: 14.30 },
+                '991': { desc: 'PVC-PVC 90mm Z', spessore: 90, supplPvc: 10.90, supplAlu: 16.50 },
+                '951': { desc: 'PVC-PVC 124mm', spessore: 124, supplPvc: 13.00, supplAlu: 20.10 },
+                '705': { desc: 'ALU-ALU 78mm', spessore: 78, supplAlu: 24.20, note: 'Cerniere a scomparsa' },
+                '706': { desc: 'ALU-ALU 84mm', spessore: 84, supplAlu: 32.40 },
+                '711': { desc: 'ALU-ALU 102mm', spessore: 102, supplAlu: 35.00 },
+                '718': { desc: 'ALU-ALU 87mm T', spessore: 87, supplAlu: 32.40 },
+                '720': { desc: 'ALU-ALU 90mm', spessore: 90, supplAlu: 24.20, note: 'Solo cerniere cod.220' }
+            },
+            'L-EST': {
+                'A961': { desc: 'PVC-PVC 77mm', spessore: 77, supplPvc: 0, supplAlu: 5.20 },
+                'A962': { desc: 'PVC-PVC 90mm', spessore: 90, supplPvc: 0, supplAlu: 5.61 },
+                'A705': { desc: 'ALU-ALU 78mm', spessore: 78, supplAlu: 24.20 },
+                'A706': { desc: 'ALU-ALU 84mm', spessore: 84, supplAlu: 32.40 }
+            },
+            'Z': {
+                'Z62': { desc: 'PVC-PVC 67mm', spessore: 67, supplPvc: 5.21, supplAlu: 10.40 },
+                '967': { desc: 'PVC-PVC 77mm', spessore: 77, supplPvc: 10.90, supplAlu: 15.30 },
+                'Z91': { desc: 'PVC-PVC 90mm', spessore: 90, supplPvc: 16.10, supplAlu: 21.70 },
+                '707': { desc: 'ALU-ALU 75mm', spessore: 75, supplAlu: 36.40 }
+            },
+            'T': {
+                '718T': { desc: 'ALU-ALU 87mm', spessore: 87, supplAlu: 32.40 },
+                'AZ63': { desc: 'PVC-PVC 77mm', spessore: 77, supplPvc: 5.07, supplAlu: 11.50 }
+            }
+        };
+        
+        // TIPI ANTA (Interno - Esterno)
+        const FINDOOR_TIPI_ANTA = [
+            { cod: 'STEP_FRAME-STEP_FRAME', desc: 'Step Frame - Step Frame', mat: 'PVC-PVC', tab: 'PVC' },
+            { cod: 'FLAT_FRAME-FLAT_FRAME', desc: 'Flat Frame - Flat Frame', mat: 'PVC-PVC', tab: 'PVC' },
+            { cod: 'FLAT_FRAME-STEP_FRAME', desc: 'Flat Frame - Step Frame', mat: 'PVC-PVC', tab: 'PVC' },
+            { cod: 'FLAT_PLANAR-FLAT_PLANAR', desc: 'Flat Planar - Flat Planar', mat: 'ALU-ALU', tab: 'ALU' },
+            { cod: 'STEP_PLANAR-STEP_PLANAR', desc: 'Step Planar - Step Planar', mat: 'ALU-ALU', tab: 'ALU' },
+            { cod: 'FLAT_PLANAR-STEP_PLANAR', desc: 'Flat Planar - Step Planar', mat: 'ALU-ALU', tab: 'ALU' },
+            { cod: 'STEP_PLANAR-FLAT_FRAME', desc: 'Step Planar - Flat Frame', mat: 'ALU-PVC', tab: 'ALU' },
+            { cod: 'STEP_PLANAR-STEP_FRAME', desc: 'Step Planar - Step Frame', mat: 'ALU-PVC', tab: 'ALU' }
+        ];
+        
+        // PREZZI BASE TIPO 720 (griglia L×H)
+        const FINDOOR_PREZZI_BASE = {
+            'PVC': {
+                larghezze: [990, 1115, 1240, 1365],
+                prezzi: {
+                    2040: [1240, 1297, 1351, 1408],
+                    2165: [1272, 1329, 1388, 1444],
+                    2290: [1303, 1362, 1422, 1482],
+                    2415: [1412, 1474, 1535, 1597],
+                    2540: [1443, 1507, 1570, 1633],
+                    2665: [1475, 1540, 1606, 1670],
+                    2790: [1506, 1573, 1640, 1708],
+                    2915: [1537, 1607, 1675, 1744]
+                }
+            },
+            'ALU': {
+                larghezze: [990, 1115, 1240, 1365, 1490],
+                prezzi: {
+                    2040: [1871, 1944, 2018, 2093, 2165],
+                    2165: [1922, 1998, 2074, 2149, 2225],
+                    2290: [1973, 2051, 2129, 2207, 2284],
+                    2415: [2036, 2117, 2197, 2276, 2355],
+                    2540: [2087, 2169, 2251, 2333, 2416],
+                    2665: [2139, 2223, 2307, 2391, 2475],
+                    2790: [2190, 2276, 2361, 2448, 2534],
+                    2915: [2241, 2329, 2418, 2506, 2594]
+                }
+            }
+        };
+        
+        // MODELLI ANTA con prezzi supplemento
+        const FINDOOR_MODELLI_ANTA = {
+            '01': { desc: 'Liscio', minL: 460, minH: 1770,
+                prezzi: { 'FLAT_PLANAR': [2511, 2651], 'STEP_PLANAR': [2417, 2551], 'STEP_FRAME': [1860, 1860] }
+            },
+            '02': { desc: 'Fresatura 1mm', minL: 750, minH: 1770,
+                prezzi: { 'FLAT_PLANAR': [2529, 2669], 'STEP_PLANAR': [2436, 2569], 'STEP_FRAME': [1878, 1878] }
+            },
+            '04': { desc: 'Fresatura laterale', minL: 600, minH: 1770, stessoPrezzoDi: '02' },
+            '05': { desc: 'Fresatura verticale', minL: 600, minH: 1770, stessoPrezzoDi: '02' },
+            '06': { desc: 'Fresatura orizzontale', minL: 600, minH: 1770, stessoPrezzoDi: '02' },
+            '07': { desc: 'Fresatura linee', minL: 460, minH: 1770, stessoPrezzoDi: '02' },
+            '20': { desc: 'Inserto inox', minL: 460, minH: 1770,
+                prezzi: { 'FLAT_PLANAR': [2610, 2750], 'STEP_PLANAR': [2516, 2650], 'STEP_FRAME': [1946, 1946] }
+            },
+            '21': { desc: 'Inserto inox 2', minL: 460, minH: 1770, stessoPrezzoDi: '20' },
+            '23': { desc: 'Inserto inox + fresatura', minL: 600, minH: 1770,
+                prezzi: { 'FLAT_PLANAR': [2877, 3017], 'STEP_PLANAR': [2783, 2917], 'STEP_FRAME': [2192, 2192] }
+            },
+            '24': { desc: 'Inserto inox variante', minL: 460, minH: 1770,
+                prezzi: { 'FLAT_PLANAR': [2610, 2750], 'STEP_PLANAR': [2307, 2413], 'STEP_FRAME': [1946, 1946] }
+            },
+            '41': { desc: 'Inserto vetro', minL: 800, minH: 1770,
+                prezzi: { 'FLAT_PLANAR': [3498, 3637], 'STEP_PLANAR': [3403, 3538], 'STEP_FRAME': [2704, 2704] }
+            },
+            '43': { desc: 'Inserto vetro grande', minL: 880, minH: 1900,
+                prezzi: { 'FLAT_PLANAR': [3796, 3936], 'STEP_PLANAR': [3702, 3836], 'STEP_FRAME': [3003, 3003] }
+            }
+        };
+        
+        // TAGLI TELAIO FIN-DOOR (€/ml)
+        const FINDOOR_TAGLI_PREZZI = {
+            '127': 2.19, '107': 2.19, '163': 2.19, '162': 2.19, '161': 2.19,
+            '164': 2.75, '165': 2.75, '166': 2.19, '167': 2.75, '118': 5.22,
+            '116': 2.75, '129': 2.75, '132': 2.75, '153': 2.75, '172': 5.22,
+            '151': 2.19, '156': 2.19, '157': 2.19, '119': 2.19, '124': 2.19,
+            '128': 2.19, '110': 2.19, '318': 5.36, '319': 5.36,
+            '179N': 2.19, '179X': 2.19, '5N': 2.19
+        };
+        
+        // TAGLI per telaio FIN-DOOR
+        const FINDOOR_TAGLI_PER_TELAIO = {
+            '961': ['127', '107', '163', '162', '164', '165', '179N'],
+            '962': ['127', '107', '161', '118', '163', '164', '165', '116', '167', '129', '132', '153', '179N', '172', '162', '166'],
+            '963': ['127', '107', '161', '162', '163', '164', '165', '105', '166', '170', '118', '134', '149', '172', '116', '129', '132', '167', '147', '148', '179N'],
+            '705': ['318'], '706': ['318'], '711': ['318'], '718': ['318'], '720': ['318'],
+            '707': ['318'], '967': ['128', '110', '115', '100', '120', '125', '130', '140', '179X', '179N'],
+            'Z62': ['128', '110', '179N'], 'Z91': ['128', '110', '179N']
+        };
+        
+        // MANIGLIE FIN-DOOR
+        const FINDOOR_MANIGLIE = {
+            'set': {
+                '450': { desc: 'Alluminio standard', colori: ['56', '44', '01', '02'], prezzo: 102 },
+                '452': { desc: 'Alluminio placca', colori: ['56', '44', '01', '02'], prezzo: 102 },
+                '401': { desc: 'Alluminio comfort', colori: ['56', '01', '02'], prezzo: 102 },
+                '404': { desc: 'Alluminio premium', colori: ['56', '01', '02'], prezzo: 138 },
+                '405': { desc: 'Alluminio economica', colori: ['56'], prezzo: 75.6 },
+                '501-56': { desc: 'Design moderna alu', colori: ['56'], prezzo: 138 },
+                '501-43': { desc: 'Design moderna inox', colori: ['43'], prezzo: 182 },
+                '507': { desc: 'Acciaio inox protezione', colori: ['43'], prezzo: 298 },
+                '420': { desc: 'Acciaio inox', colori: ['43'], prezzo: 281 },
+                '581': { desc: 'Serie 11', colori: ['56', 'E03'], prezzo: 151 },
+                '582': { desc: 'Serie 12', colori: ['56', 'E03', '43'], prezzo: 161 },
+                '583': { desc: 'Serie 13', colori: ['56', 'E03', '43'], prezzo: 210 }
+            },
+            'maniglioni': {
+                '506': { desc: 'Pomello fisso inox', prezzo: 219 },
+                '487': { desc: 'Barra 90mm', prezzo: 284 },
+                '488': { desc: 'Barra 98mm L485', prezzo: 509 },
+                '485': { desc: 'Barra 90mm L450', prezzo: 196 },
+                '468-56': { desc: 'Design 450mm alu', prezzo: 405 },
+                '468-E03': { desc: 'Design 450mm nero', prezzo: 513 },
+                '391': { desc: 'Compatto L300', prezzo: 130 },
+                '390': { desc: 'Quadrato inox', prezzo: 255 },
+                '341': { desc: 'Quadrato design', prezzo: 287 }
+            },
+            'colori': {
+                '01': 'Bianco', '02': 'Marrone', '43': 'Acciaio inox',
+                '44': 'Alu colore inox', '56': 'Alu neutro anod.', 'E03': 'Alu nero anod.'
+            }
+        };
+        
+        // COLORI ALLUMINIO FIN-DOOR
+        const FINDOOR_COLORI_ALU = {
+            'gruppo1': {
+                desc: 'Gruppo 1 (standard)',
+                suppl: 0,
+                colori: ['F716-Antracite', 'F905-Nero', 'F113-Bianco perla', 'M716-Antracite op.', 'M905-Nero op.', 'DB703-Antracite met.']
+            },
+            'gruppo1H': {
+                desc: 'Gruppo 1H (decoro legno)',
+                suppl: 0,
+                colori: ['L13-Castagno', 'L14-Mogano', 'L16-Douglas', 'L18-Noce', 'L19-Rovere', 'L55-Noce chiaro']
+            },
+            'gruppo2': {
+                desc: 'Gruppo 2 (+284€/ordine)',
+                suppl: 284,
+                colori: ['RAL a richiesta', 'F09-Bianco ghiaccio', 'F92-Grigio platino', 'LC31-Champagne', 'LC32-Dorato']
+            },
+            'gruppo3': {
+                desc: 'Gruppo 3 (+1410€/ordine)',
+                suppl: 1410,
+                colori: ['NCS a richiesta', 'DB speciali']
+            }
+        };
+        
+        // Funzione calcolo prezzo base portoncino
+        function calcolaPrezzoBasePortoncino(larghezza, altezza, tipoTabella) {
+            const tab = FINDOOR_PREZZI_BASE[tipoTabella];
+            if (!tab) return 0;
+            
+            // Trova indice colonna (larghezza >= valore)
+            let idxL = 0;
+            for (let i = 0; i < tab.larghezze.length; i++) {
+                if (larghezza <= tab.larghezze[i]) { idxL = i; break; }
+                idxL = i;
+            }
+            
+            // Trova riga altezza
+            const altezze = Object.keys(tab.prezzi).map(Number).sort((a,b) => a-b);
+            let rigaH = altezze[0];
+            for (const h of altezze) {
+                if (altezza <= h) { rigaH = h; break; }
+                rigaH = h;
+            }
+            
+            return tab.prezzi[rigaH]?.[idxL] || 0;
+        }
+        
+        // Funzione calcolo supplemento modello anta
+        function calcolaSupplModelloAnta(modello, tipoAnta, isGrande) {
+            let mod = FINDOOR_MODELLI_ANTA[modello];
+            if (!mod) return 0;
+            if (mod.stessoPrezzoDi) mod = FINDOOR_MODELLI_ANTA[mod.stessoPrezzoDi];
+            if (!mod?.prezzi) return 0;
+            
+            // Determina categoria: FLAT_PLANAR, STEP_PLANAR, STEP_FRAME
+            let cat = 'STEP_PLANAR';
+            if (tipoAnta.includes('FLAT_PLANAR')) cat = 'FLAT_PLANAR';
+            else if (tipoAnta.includes('STEP_FRAME') || tipoAnta.includes('FLAT_FRAME')) cat = 'STEP_FRAME';
+            
+            const prezzi = mod.prezzi[cat];
+            if (!prezzi) return 0;
+            return isGrande ? prezzi[1] : prezzi[0];
         }
 
         // 📄 Aggiorna title dinamicamente
@@ -15637,199 +15867,300 @@
             `;
         }
         
-        // 🚪 Configurazione PORTONCINO Finstral
+        // 🚪 Configurazione PORTONCINO Finstral FIN-Door v5.17
         function renderPortoncinoConfig(project, pos, ing) {
             const ptc = ing.portoncino || {};
+            
+            // Helper: genera options telaio filtrate per forma
+            const formaTelaio = ptc.formaTelaio || 'L-INT';
+            const telaiDisponibili = FINDOOR_TELAI[formaTelaio] || {};
+            const codTelaio = ptc.codTelaio || '';
+            const telaioSel = telaiDisponibili[codTelaio] || {};
+            
+            // Helper: genera options tagli per telaio
+            const tagli = FINDOOR_TAGLI_PER_TELAIO[codTelaio] || [];
+            
+            // Calcolo prezzo stimato
+            const L = parseInt(ptc.BRM_L) || 1000;
+            const H = parseInt(ptc.BRM_H) || 2100;
+            const tipoAnta = ptc.tipoAnta || 'STEP_FRAME-STEP_FRAME';
+            const tipoTab = FINDOOR_TIPI_ANTA.find(t => t.cod === tipoAnta)?.tab || 'PVC';
+            const isGrande = (L > 1115 || H > 2355);
+            
+            const prezzoBase = calcolaPrezzoBasePortoncino(L, H, tipoTab);
+            const supplAnta = calcolaSupplModelloAnta(ptc.modelloAnta || '01', tipoAnta, isGrande);
+            const maniglia = FINDOOR_MANIGLIE.set[ptc.codManiglia] || FINDOOR_MANIGLIE.maniglioni[ptc.codManiglia] || {};
+            const prezzoManiglia = maniglia.prezzo || 0;
+            const prezzoTotale = prezzoBase + supplAnta + prezzoManiglia;
+            
             return `
                 <div class="product-card border-teal-300">
                     <div class="flex justify-between items-start mb-3">
                         <h4 class="font-semibold text-teal-700 text-lg">🚪 Portoncino Finstral FIN-Door</h4>
+                        <div class="text-right">
+                            <div class="text-xs text-gray-500">Prezzo stimato</div>
+                            <div class="text-xl font-bold text-teal-600">€ ${prezzoTotale.toLocaleString('it-IT')}</div>
+                        </div>
                     </div>
                     
                     <!-- 📐 DIMENSIONI BRM -->
                     <div class="bg-teal-50 border-2 border-teal-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-teal-800 mb-3">📐 Dimensioni BRM</h5>
-                        <div class="grid md:grid-cols-2 gap-3">
+                        <h5 class="font-semibold text-teal-800 mb-3">📐 Dimensioni BRM (misura telaio)</h5>
+                        <div class="grid md:grid-cols-3 gap-3">
                             <div>
                                 <label class="text-xs font-medium">BRM Larghezza (mm)</label>
                                 <input type="number" value="${ptc.BRM_L || ''}" placeholder="es. 1000"
                                        onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'BRM_L', this.value)"
-                                       class="w-full compact-input border rounded mt-1 font-bold">
+                                       class="w-full compact-input border rounded mt-1 font-bold text-lg">
                             </div>
                             <div>
                                 <label class="text-xs font-medium">BRM Altezza (mm)</label>
                                 <input type="number" value="${ptc.BRM_H || ''}" placeholder="es. 2200"
                                        onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'BRM_H', this.value)"
-                                       class="w-full compact-input border rounded mt-1 font-bold">
+                                       class="w-full compact-input border rounded mt-1 font-bold text-lg">
+                            </div>
+                            <div class="flex items-end">
+                                <div class="bg-teal-100 p-2 rounded text-sm w-full text-center">
+                                    ${isGrande ? '📏 Misura GRANDE (>1115×2355)' : '📏 Misura standard'}
+                                </div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- 🏗️ TELAIO -->
                     <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-blue-800 mb-3">🏗️ Telaio</h5>
-                        <div class="grid md:grid-cols-4 gap-3">
+                        <h5 class="font-semibold text-blue-800 mb-3">🏗️ 1. Telaio</h5>
+                        <div class="grid md:grid-cols-3 gap-3">
                             <div>
-                                <label class="text-xs font-medium">Tipo Telaio</label>
-                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'tipoTelaio', this.value)"
+                                <label class="text-xs font-medium">Forma Telaio</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'formaTelaio', this.value)"
                                         class="w-full compact-input border rounded mt-1">
-                                    <option value="">Seleziona...</option>
-                                    <option value="L" ${ptc.tipoTelaio === 'L' ? 'selected' : ''}>L - Standard</option>
-                                    <option value="Z" ${ptc.tipoTelaio === 'Z' ? 'selected' : ''}>Z - Ribassato</option>
-                                    <option value="T" ${ptc.tipoTelaio === 'T' ? 'selected' : ''}>T - Termico</option>
+                                    <option value="L-INT" ${formaTelaio === 'L-INT' ? 'selected' : ''}>L - Apertura interno</option>
+                                    <option value="L-EST" ${formaTelaio === 'L-EST' ? 'selected' : ''}>L - Apertura esterno</option>
+                                    <option value="Z" ${formaTelaio === 'Z' ? 'selected' : ''}>Z - Per controtelaio</option>
+                                    <option value="T" ${formaTelaio === 'T' ? 'selected' : ''}>T - Forma a T</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="text-xs font-medium">Soglia</label>
-                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'soglia', this.value)"
+                                <label class="text-xs font-medium">Codice Telaio</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'codTelaio', this.value)"
                                         class="w-full compact-input border rounded mt-1">
                                     <option value="">Seleziona...</option>
-                                    <option value="standard" ${ptc.soglia === 'standard' ? 'selected' : ''}>Standard</option>
-                                    <option value="ribassata" ${ptc.soglia === 'ribassata' ? 'selected' : ''}>Ribassata</option>
-                                    <option value="filo-pavimento" ${ptc.soglia === 'filo-pavimento' ? 'selected' : ''}>Filo Pavimento</option>
+                                    ${Object.entries(telaiDisponibili).map(([cod, t]) => 
+                                        `<option value="${cod}" ${codTelaio === cod ? 'selected' : ''}>${cod} - ${t.desc} (${t.spessore}mm)</option>`
+                                    ).join('')}
                                 </select>
                             </div>
-                            <div>
-                                <label class="text-xs font-medium">Montante (mm)</label>
-                                <input type="text" value="${ptc.montante || ''}" placeholder="110"
-                                       onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'montante', this.value)"
-                                       class="w-full compact-input border rounded mt-1">
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium">Traversa (mm)</label>
-                                <input type="text" value="${ptc.traversa || ''}" placeholder="110"
-                                       onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'traversa', this.value)"
-                                       class="w-full compact-input border rounded mt-1">
+                            <div class="flex items-end">
+                                ${telaioSel.note ? `<div class="bg-blue-100 p-2 rounded text-xs w-full">ℹ️ ${telaioSel.note}</div>` : ''}
                             </div>
                         </div>
                     </div>
                     
-                    <!-- 🚪 ANTA -->
+                    <!-- 🚪 TIPO ANTA (Int-Est) -->
                     <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-purple-800 mb-3">🚪 Anta e Pannello</h5>
+                        <h5 class="font-semibold text-purple-800 mb-3">🚪 2. Tipo Anta (Interno - Esterno)</h5>
                         <div class="grid md:grid-cols-2 gap-3">
                             <div>
-                                <label class="text-xs font-medium">Modello Anta</label>
+                                <label class="text-xs font-medium">Combinazione Int-Est</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'tipoAnta', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    ${FINDOOR_TIPI_ANTA.map(t => 
+                                        `<option value="${t.cod}" ${tipoAnta === t.cod ? 'selected' : ''}>${t.desc} (${t.mat})</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="bg-purple-100 p-2 rounded text-sm flex-1 text-center">
+                                    Materiale: <strong>${FINDOOR_TIPI_ANTA.find(t => t.cod === tipoAnta)?.mat || 'PVC-PVC'}</strong>
+                                </div>
+                                <div class="bg-purple-200 p-2 rounded text-sm">
+                                    Base: <strong>€${prezzoBase.toLocaleString('it-IT')}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 🎨 MODELLO ANTA -->
+                    <div class="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-orange-800 mb-3">🎨 3. Modello Anta</h5>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-medium">Modello</label>
                                 <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'modelloAnta', this.value)"
                                         class="w-full compact-input border rounded mt-1">
                                     <option value="">Seleziona...</option>
-                                    <option value="D101" ${ptc.modelloAnta === 'D101' ? 'selected' : ''}>D101 - Base</option>
-                                    <option value="D102" ${ptc.modelloAnta === 'D102' ? 'selected' : ''}>D102 - Con vetro</option>
-                                    <option value="D201" ${ptc.modelloAnta === 'D201' ? 'selected' : ''}>D201 - Premium</option>
-                                    <option value="D202" ${ptc.modelloAnta === 'D202' ? 'selected' : ''}>D202 - Premium vetro</option>
-                                    <option value="D301" ${ptc.modelloAnta === 'D301' ? 'selected' : ''}>D301 - Design</option>
-                                    <option value="D401" ${ptc.modelloAnta === 'D401' ? 'selected' : ''}>D401 - Top</option>
+                                    ${Object.entries(FINDOOR_MODELLI_ANTA).map(([cod, m]) => 
+                                        `<option value="${cod}" ${ptc.modelloAnta === cod ? 'selected' : ''}>${cod} - ${m.desc} (min ${m.minL}×${m.minH})</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ${supplAnta > 0 ? `
+                                    <div class="bg-orange-200 p-2 rounded text-sm flex-1 text-center">
+                                        Suppl. modello: <strong>+€${supplAnta.toLocaleString('it-IT')}</strong>
+                                    </div>
+                                ` : `
+                                    <div class="bg-gray-100 p-2 rounded text-sm flex-1 text-center text-gray-500">
+                                        Seleziona modello per vedere supplemento
+                                    </div>
+                                `}
+                                <label class="flex items-center gap-1 text-sm">
+                                    <input type="checkbox" ${ptc.fonoassorbente ? 'checked' : ''}
+                                           onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'fonoassorbente', this.checked)">
+                                    Fonoass.
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ✂️ TAGLI TELAIO -->
+                    <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-red-800 mb-3">✂️ 4. Tagli Telaio</h5>
+                        <div class="grid md:grid-cols-4 gap-2">
+                            ${['SOPRA', 'SOTTO', 'SX', 'DX'].map(pos => `
+                                <div>
+                                    <label class="text-xs font-medium">${pos}</label>
+                                    <select onchange="updateIngressoTaglio('${project.id}', '${pos.id}', '${pos}', this.value)"
+                                            class="w-full compact-input border rounded mt-1 text-sm">
+                                        <option value="">Nessuno</option>
+                                        ${tagli.map(t => 
+                                            `<option value="${t}" ${(ptc.tagli?.[pos] || '') === t ? 'selected' : ''}>${t} (€${FINDOOR_TAGLI_PREZZI[t]}/ml)</option>`
+                                        ).join('')}
+                                    </select>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${codTelaio === '' ? '<p class="text-xs text-red-500 mt-2">⚠️ Seleziona prima un telaio per vedere i tagli disponibili</p>' : ''}
+                    </div>
+                    
+                    <!-- 🔐 MANIGLIE -->
+                    <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-gray-800 mb-3">🔐 5. Maniglie</h5>
+                        <div class="grid md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="text-xs font-medium">Tipo</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'tipoManiglia', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="set" ${(ptc.tipoManiglia || 'set') === 'set' ? 'selected' : ''}>Set maniglie (coppia)</option>
+                                    <option value="maniglione" ${ptc.tipoManiglia === 'maniglione' ? 'selected' : ''}>Maniglione</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="text-xs font-medium">Pannello</label>
-                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'pannello', this.value)"
+                                <label class="text-xs font-medium">Modello</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'codManiglia', this.value)"
                                         class="w-full compact-input border rounded mt-1">
                                     <option value="">Seleziona...</option>
-                                    <option value="liscio" ${ptc.pannello === 'liscio' ? 'selected' : ''}>Liscio</option>
-                                    <option value="bugna" ${ptc.pannello === 'bugna' ? 'selected' : ''}>Bugna</option>
-                                    <option value="design" ${ptc.pannello === 'design' ? 'selected' : ''}>Design</option>
+                                    ${(ptc.tipoManiglia === 'maniglione' 
+                                        ? Object.entries(FINDOOR_MANIGLIE.maniglioni)
+                                        : Object.entries(FINDOOR_MANIGLIE.set)
+                                    ).map(([cod, m]) => 
+                                        `<option value="${cod}" ${ptc.codManiglia === cod ? 'selected' : ''}>${cod} - ${m.desc} (€${m.prezzo})</option>`
+                                    ).join('')}
                                 </select>
+                            </div>
+                            <div class="flex items-center">
+                                ${prezzoManiglia > 0 ? `
+                                    <div class="bg-gray-200 p-2 rounded text-sm w-full text-center">
+                                        Maniglia: <strong>+€${prezzoManiglia}</strong>
+                                    </div>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
                     
                     <!-- 🎨 COLORI -->
                     <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-yellow-800 mb-3">🎨 Materiali e Colori</h5>
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <div class="bg-yellow-100 p-3 rounded-lg">
-                                <h6 class="font-semibold text-sm mb-2">Interno</h6>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="text-xs">Materiale</label>
-                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeInt', this.value)"
-                                                class="w-full compact-input border rounded mt-1 text-sm">
-                                            <option value="">Sel...</option>
-                                            <option value="pvc" ${ptc.materialeInt === 'pvc' ? 'selected' : ''}>PVC</option>
-                                            <option value="alluminio" ${ptc.materialeInt === 'alluminio' ? 'selected' : ''}>Alluminio</option>
-                                            <option value="legno" ${ptc.materialeInt === 'legno' ? 'selected' : ''}>Legno</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs">Colore</label>
-                                        <input type="text" value="${ptc.coloreInt || ''}" placeholder="RAL..."
-                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'coloreInt', this.value)"
-                                               class="w-full compact-input border rounded mt-1 text-sm">
-                                    </div>
-                                </div>
+                        <h5 class="font-semibold text-yellow-800 mb-3">🎨 6. Colori</h5>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-medium">Gruppo Colore Alluminio</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'gruppoColore', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    ${Object.entries(FINDOOR_COLORI_ALU).map(([cod, g]) => 
+                                        `<option value="${cod}" ${(ptc.gruppoColore || 'gruppo1') === cod ? 'selected' : ''}>${g.desc}</option>`
+                                    ).join('')}
+                                </select>
                             </div>
-                            <div class="bg-yellow-100 p-3 rounded-lg">
-                                <h6 class="font-semibold text-sm mb-2">Esterno</h6>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="text-xs">Materiale</label>
-                                        <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeEst', this.value)"
-                                                class="w-full compact-input border rounded mt-1 text-sm">
-                                            <option value="">Sel...</option>
-                                            <option value="pvc" ${ptc.materialeEst === 'pvc' ? 'selected' : ''}>PVC</option>
-                                            <option value="alluminio" ${ptc.materialeEst === 'alluminio' ? 'selected' : ''}>Alluminio</option>
-                                            <option value="legno" ${ptc.materialeEst === 'legno' ? 'selected' : ''}>Legno</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs">Colore</label>
-                                        <input type="text" value="${ptc.coloreEst || ''}" placeholder="RAL..."
-                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'coloreEst', this.value)"
-                                               class="w-full compact-input border rounded mt-1 text-sm">
-                                    </div>
-                                </div>
+                            <div>
+                                <label class="text-xs font-medium">Colore Specifico</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'colore', this.value)"
+                                        class="w-full compact-input border rounded mt-1">
+                                    <option value="">Seleziona...</option>
+                                    ${(FINDOOR_COLORI_ALU[ptc.gruppoColore || 'gruppo1']?.colori || []).map(c => 
+                                        `<option value="${c}" ${ptc.colore === c ? 'selected' : ''}>${c}</option>`
+                                    ).join('')}
+                                </select>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- 🔩 FERRAMENTA -->
-                    <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 mb-3">
-                        <h5 class="font-semibold text-gray-800 mb-3">🔩 Ferramenta e Maniglie</h5>
-                        <div class="grid md:grid-cols-4 gap-3">
+                    <!-- 🔒 CILINDRO E CERNIERE -->
+                    <div class="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-indigo-800 mb-3">🔒 7. Cilindro e Cerniere</h5>
+                        <div class="grid md:grid-cols-2 gap-3">
                             <div>
                                 <label class="text-xs font-medium">Cilindro</label>
                                 <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'cilindro', this.value)"
                                         class="w-full compact-input border rounded mt-1">
-                                    <option value="">Sel...</option>
-                                    <option value="standard" ${ptc.cilindro === 'standard' ? 'selected' : ''}>Standard</option>
-                                    <option value="europeo" ${ptc.cilindro === 'europeo' ? 'selected' : ''}>Europeo</option>
-                                    <option value="alta-sicurezza" ${ptc.cilindro === 'alta-sicurezza' ? 'selected' : ''}>Alta Sicurezza</option>
+                                    <option value="standard" ${(ptc.cilindro || 'standard') === 'standard' ? 'selected' : ''}>Standard (3 chiavi) - incluso</option>
+                                    <option value="1P" ${ptc.cilindro === '1P' ? 'selected' : ''}>Sicurezza 1P</option>
+                                    <option value="2P" ${ptc.cilindro === '2P' ? 'selected' : ''}>Sicurezza 2P</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="text-xs font-medium">Cerniere</label>
                                 <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'cerniere', this.value)"
                                         class="w-full compact-input border rounded mt-1">
-                                    <option value="">Sel...</option>
-                                    <option value="standard" ${ptc.cerniere === 'standard' ? 'selected' : ''}>Standard</option>
-                                    <option value="3d" ${ptc.cerniere === '3d' ? 'selected' : ''}>3D Regolabili</option>
-                                    <option value="nascoste" ${ptc.cerniere === 'nascoste' ? 'selected' : ''}>Nascoste</option>
+                                    <option value="vista" ${(ptc.cerniere || 'vista') === 'vista' ? 'selected' : ''}>A vista con rostri</option>
+                                    <option value="scomparsa" ${ptc.cerniere === 'scomparsa' ? 'selected' : ''}>A scomparsa (cod. 220)</option>
                                 </select>
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium">Maniglia Int</label>
-                                <input type="text" value="${ptc.manigliaInt || ''}" placeholder="Modello..."
-                                       onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'manigliaInt', this.value)"
-                                       class="w-full compact-input border rounded mt-1">
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium">Maniglia Est</label>
-                                <input type="text" value="${ptc.manigliaEst || ''}" placeholder="Pomolo..."
-                                       onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'manigliaEst', this.value)"
-                                       class="w-full compact-input border rounded mt-1">
                             </div>
                         </div>
                     </div>
                     
-                    <!-- 📝 NOTE -->
-                    <div>
-                        <label class="text-xs font-medium">📝 Note</label>
-                        <textarea onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'note', this.value)"
-                                  placeholder="Note aggiuntive..." class="w-full compact-input border rounded mt-1 h-16">${ptc.note || ''}</textarea>
+                    <!-- 📝 NOTE E RIEPILOGO -->
+                    <div class="grid md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs font-medium">📝 Note</label>
+                            <textarea onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'note', this.value)"
+                                      placeholder="Note aggiuntive..." class="w-full compact-input border rounded mt-1 h-20">${ptc.note || ''}</textarea>
+                        </div>
+                        <div class="bg-teal-100 border-2 border-teal-300 rounded-lg p-3">
+                            <h6 class="font-bold text-teal-800 mb-2">💰 Riepilogo Prezzi</h6>
+                            <div class="text-sm space-y-1">
+                                <div class="flex justify-between"><span>Base porta:</span><span>€${prezzoBase.toLocaleString('it-IT')}</span></div>
+                                <div class="flex justify-between"><span>Suppl. modello:</span><span>+€${supplAnta.toLocaleString('it-IT')}</span></div>
+                                <div class="flex justify-between"><span>Maniglia:</span><span>+€${prezzoManiglia.toLocaleString('it-IT')}</span></div>
+                                <hr class="border-teal-400">
+                                <div class="flex justify-between font-bold text-lg"><span>TOTALE:</span><span>€${prezzoTotale.toLocaleString('it-IT')}</span></div>
+                            </div>
+                            <p class="text-xs text-teal-600 mt-2">* Esclusi: tagli, colori gruppo 2/3, optional</p>
+                        </div>
                     </div>
                 </div>
             `;
+        }
+        
+        // Helper: aggiorna taglio specifico portoncino
+        function updateIngressoTaglio(projectId, posId, posizione, valore) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            const pos = project.positions.find(p => p.id === posId);
+            if (!pos) return;
+            
+            if (!pos.ingresso) pos.ingresso = {};
+            if (!pos.ingresso.portoncino) pos.ingresso.portoncino = {};
+            if (!pos.ingresso.portoncino.tagli) pos.ingresso.portoncino.tagli = {};
+            
+            if (valore) {
+                pos.ingresso.portoncino.tagli[posizione] = valore;
+            } else {
+                delete pos.ingresso.portoncino.tagli[posizione];
+            }
+            
+            saveState();
+            render();
         }
         
         // 🔐 Configurazione BLINDATA Oikos
