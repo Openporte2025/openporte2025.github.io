@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.18 - 🚪 PORTONCINI + LINK CATALOGO ✅
+    Open Porte v5.20 - 🚪 MODELLI ANTA COMPLETI (46-2, 47, 48-58) ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.17 (28 NOV 2025) - PORTONCINI FINSTRAL FIN-DOOR
@@ -3073,8 +3073,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.18';
-        const APP_VERSION_NOTE = '🚪 PORTONCINI + LINK CATALOGO';
+        const APP_VERSION = '5.20';
+        const APP_VERSION_NOTE = '🚪 MODELLI ANTA COMPLETI (46-2, 47, 48-58)';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -3223,7 +3223,25 @@
             },
             '43': { desc: 'Inserto vetro grande', minL: 880, minH: 1900,
                 prezzi: { 'FLAT_PLANAR': [3796, 3936], 'STEP_PLANAR': [3702, 3836], 'STEP_FRAME': [3003, 3003] }
-            }
+            },
+            '44': { desc: 'Vetro laterale', minL: 750, minH: 1770, stessoPrezzoDi: '43' },
+            '45': { desc: 'Vetro fascia', minL: 750, minH: 1770, stessoPrezzoDi: '43' },
+            '46-1': { desc: 'Vetro doppio v1', minL: 750, minH: 1860,
+                prezzi: { 'FLAT_PLANAR': [2899, 3039], 'STEP_PLANAR': [2806, 2939], 'STEP_FRAME': [2204, 2204] }
+            },
+            '46-2': { desc: 'Vetro doppio v2', minL: 750, minH: 1860,
+                prezzi: { 'FLAT_PLANAR': [2667, 2803], 'STEP_PLANAR': [2204, 2204], 'STEP_FRAME': [1991, 1991] }
+            },
+            '47-1': { desc: 'Vetro triplo v1', minL: 750, minH: 1860, stessoPrezzoDi: '46-1' },
+            '47-2': { desc: 'Vetro triplo v2', minL: 750, minH: 1860, stessoPrezzoDi: '46-2' },
+            '48': { desc: 'Vetro grande', minL: 880, minH: 1900, stessoPrezzoDi: '43' },
+            '49': { desc: 'Vetro panoramico', minL: 880, minH: 1900, stessoPrezzoDi: '43' },
+            '50-1': { desc: 'Vetro + fresatura v1', minL: 750, minH: 1770, stessoPrezzoDi: '46-1' },
+            '50-2': { desc: 'Vetro + fresatura v2', minL: 750, minH: 1770, stessoPrezzoDi: '46-2' },
+            '51': { desc: 'Vetro ovale', minL: 750, minH: 1770, stessoPrezzoDi: '43' },
+            '52': { desc: 'Vetro quadrato', minL: 750, minH: 1770, stessoPrezzoDi: '43' },
+            '54': { desc: 'Vetro rettangolare', minL: 750, minH: 1770, stessoPrezzoDi: '43' },
+            '58': { desc: 'Vetro design', minL: 750, minH: 1770, stessoPrezzoDi: '43' }
         };
         
         // TAGLI TELAIO FIN-DOOR (€/ml)
@@ -15898,7 +15916,7 @@
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex items-center gap-3">
                             <h4 class="font-semibold text-teal-700 text-lg">🚪 Portoncino Finstral FIN-Door</h4>
-                            <button onclick="window.open('https://openporte2025.github.io/catalogo-findoor-completo.html', '_blank')" 
+                            <button onclick="window.open('https://openporte2025.github.io/test-catalogo/catalogo-findoor-completo.html', '_blank')" 
                                     class="text-xs bg-teal-100 hover:bg-teal-200 text-teal-700 px-3 py-1 rounded-full transition-colors flex items-center gap-1">
                                 📖 Catalogo Modelli
                             </button>
