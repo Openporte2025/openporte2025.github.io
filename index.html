@@ -3142,27 +3142,32 @@
             'LEGNO': ['ALU']             // LEGNO interno → solo ALU esterno
         };
         
-        // 🆕 v5.23: COLORI LEGNO (da listino - gruppi colori legno)
+        // 🆕 v5.23: COLORI LEGNO (da listino pag. 14 - gruppi colori legno per telai 9705/9706)
+        // Supplementi variano per telaio: 9705 ha prezzi più bassi, 9706 più alti
         const FINDOOR_COLORI_LEGNO = {
             'gruppo0': {
                 desc: 'Gruppo 0 (base)',
-                suppl: 0,
+                suppl9705: 53.0,
+                suppl9706: 59.6,
                 colori: ['Rovere naturale', 'Faggio naturale', 'Acero naturale']
             },
             'gruppo1': {
-                desc: 'Gruppo 1 (+€53-59/porta)',
-                suppl: 53,
+                desc: 'Gruppo 1',
+                suppl9705: 58.9,
+                suppl9706: 65.5,
                 colori: ['Rovere tinto', 'Noce', 'Ciliegio']
             },
             'gruppo2': {
-                desc: 'Gruppo 2 (+€68-75/porta)',
-                suppl: 68,
+                desc: 'Gruppo 2',
+                suppl9705: 68.7,
+                suppl9706: 75.3,
                 colori: ['Wengé', 'Mogano', 'Teak']
             },
             'gruppo3': {
-                desc: 'Gruppo 3 (+€70-77/porta)',
-                suppl: 70,
-                colori: ['Essenze speciali', 'Colori RAL su legno']
+                desc: 'Gruppo 3',
+                suppl9705: 70.3,
+                suppl9706: 76.9,
+                colori: ['Essenze speciali', 'RAL su legno']
             }
         };
         
@@ -3492,7 +3497,9 @@
             // Se interno è ALU o LEGNO, esterno DEVE essere ALU
             if (matInt === 'ALU' || matInt === 'LEGNO') matEst = 'ALU';
             
-            return `${matInt}-${matEst}`;
+            const result = `${matInt}-${matEst}`;
+            console.log(`🧱 getCombinazioneMat: int=${matInt}, est=${matEst} → ${result}`);
+            return result;
         }
         
         // Ottiene materiali esterni disponibili per materiale interno
@@ -16165,6 +16172,11 @@
         function renderPortoncinoConfig(project, pos, ing) {
             const ptc = ing.portoncino || {};
             
+            // DEBUG v5.23
+            console.log('🚪 renderPortoncinoConfig - ptc:', JSON.stringify(ptc));
+            console.log('🚪 ptc.materialeInt:', ptc.materialeInt);
+            console.log('🚪 ptc.materialeEst:', ptc.materialeEst);
+            
             // v5.23: Helper con nuova struttura combinazioni + LEGNO
             const comb = getCombinazioneMat(ptc);
             const formaTelaio = ptc.formaTelaio || '';
@@ -16304,7 +16316,7 @@
                         </div>
                         <div class="mt-3 p-2 rounded bg-white border border-amber-200 text-center">
                             <span class="text-sm font-bold">📋 Combinazione: </span>
-                            <span class="text-lg font-bold text-amber-700">${getCombinazioneMat(ptc)}</span>
+                            <span class="text-lg font-bold text-amber-700">${comb}</span>
                         </div>
                     </div>
                     
@@ -16317,7 +16329,7 @@
                                 <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'formaTelaio', this.value)"
                                         class="w-full compact-input border rounded mt-1">
                                     <option value="">Seleziona forma...</option>
-                                    ${getFormeTelaioPerComb(getCombinazioneMat(ptc)).map(f => 
+                                    ${getFormeTelaioPerComb(comb).map(f => 
                                         `<option value="${f.cod}" ${formaTelaio === f.cod ? 'selected' : ''}>${f.desc}</option>`
                                     ).join('')}
                                 </select>
@@ -16327,7 +16339,7 @@
                                 <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'codTelaio', this.value)"
                                         class="w-full compact-input border rounded mt-1">
                                     <option value="">Seleziona...</option>
-                                    ${getTelaiPerCombForma(getCombinazioneMat(ptc), formaTelaio).map(t => 
+                                    ${getTelaiPerCombForma(comb, formaTelaio).map(t => 
                                         `<option value="${t.cod}" ${codTelaio === t.cod ? 'selected' : ''}>${t.cod} - ${t.desc}</option>`
                                     ).join('')}
                                 </select>
@@ -16347,14 +16359,14 @@
                                 <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'tipoAnta', this.value)"
                                         class="w-full compact-input border rounded mt-1">
                                     <option value="">Seleziona tipo anta...</option>
-                                    ${getAntePerComb(getCombinazioneMat(ptc)).map(t => 
+                                    ${getAntePerComb(comb).map(t => 
                                         `<option value="${t.cod}" ${tipoAnta === t.cod ? 'selected' : ''}>${t.desc}</option>`
                                     ).join('')}
                                 </select>
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="bg-purple-100 p-2 rounded text-sm flex-1 text-center">
-                                    Materiale: <strong>${FINDOOR_TIPI_ANTA.find(t => t.cod === tipoAnta)?.mat || 'PVC-PVC'}</strong>
+                                    Materiale: <strong>${comb}</strong>
                                 </div>
                                 <div class="bg-purple-200 p-2 rounded text-sm">
                                     Base: <strong>€${prezzoBase.toLocaleString('it-IT')}</strong>
@@ -16451,34 +16463,18 @@
                         </div>
                     </div>
                     
-                    <!-- 🎨 MATERIALI E COLORI INT/EST -->
+                    <!-- 🎨 COLORI INT/EST (basati su materiali scelti in sezione 1) -->
                     <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-3">
                         <h5 class="font-semibold text-yellow-800 mb-3">🎨 7. Colori (Interno/Esterno)</h5>
                         
-                        <!-- RIGA 1: Combinazione Materiali -->
-                        <div class="grid md:grid-cols-2 gap-3 mb-4">
-                            <div>
-                                <label class="text-xs font-medium">Materiale Interno</label>
-                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeInt', this.value); checkCombinazioneAndUpdate('${project.id}', '${pos.id}')"
-                                        class="w-full compact-input border rounded mt-1">
-                                    <option value="PVC" ${(ptc.materialeInt || 'PVC') === 'PVC' ? 'selected' : ''}>PVC</option>
-                                    <option value="ALU" ${ptc.materialeInt === 'ALU' ? 'selected' : ''}>Alluminio</option>
-                                    <option value="LEGNO" ${ptc.materialeInt === 'LEGNO' ? 'selected' : ''}>🪵 Legno</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium">Materiale Esterno</label>
-                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'materialeEst', this.value); checkCombinazioneAndUpdate('${project.id}', '${pos.id}')"
-                                        class="w-full compact-input border rounded mt-1"
-                                        ${(ptc.materialeInt === 'ALU' || ptc.materialeInt === 'LEGNO') ? 'disabled' : ''}>
-                                    <option value="PVC" ${(ptc.materialeEst || 'PVC') === 'PVC' ? 'selected' : ''}>PVC</option>
-                                    <option value="ALU" ${ptc.materialeEst === 'ALU' ? 'selected' : ''}>Alluminio</option>
-                                </select>
-                                ${(ptc.materialeInt === 'ALU' || ptc.materialeInt === 'LEGNO') ? '<div class="text-xs text-orange-600 mt-1">⚠️ ALU obbligatorio</div>' : ''}
-                            </div>
+                        <!-- Display combinazione corrente -->
+                        <div class="bg-white border border-yellow-300 rounded p-2 mb-3 text-center text-sm">
+                            📋 Materiali: <strong class="text-amber-700">${ptc.materialeInt || 'PVC'}</strong> (int) - 
+                            <strong class="text-orange-700">${(ptc.materialeInt === 'ALU' || ptc.materialeInt === 'LEGNO') ? 'ALU' : (ptc.materialeEst || 'PVC')}</strong> (est)
+                            → <span class="font-bold">${comb}</span>
                         </div>
                         
-                        <!-- RIGA 2: Colore INTERNO -->
+                        <!-- RIGA 1: Colore INTERNO -->
                         <div class="bg-amber-100 border border-amber-300 rounded-lg p-3 mb-3">
                             <label class="text-xs font-bold text-amber-800 block mb-2">🏠 COLORE INTERNO (${ptc.materialeInt || 'PVC'})</label>
                             ${(ptc.materialeInt || 'PVC') === 'PVC' ? `
