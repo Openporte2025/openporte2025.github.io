@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.23 - 🧱 MATERIALI INT/EST + LEGNO PORTONCINO FIN-Door ✅
+    Open Porte v5.24 - 🧱 MATERIALI + LEGNO + CATALOGO FIN-Door ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.17 (28 NOV 2025) - PORTONCINI FINSTRAL FIN-DOOR
@@ -1859,7 +1859,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.23 - Materiali Int/Est + Legno Portoncino</title>
+    <title>Open Porte v5.24 - Materiali + Legno + Catalogo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3073,8 +3073,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.23';
-        const APP_VERSION_NOTE = '🧱 MATERIALI + 🪵 LEGNO PORTONCINO';
+        const APP_VERSION = '5.24';
+        const APP_VERSION_NOTE = '🧱 MATERIALI + 🪵 LEGNO + 📥 CATALOGO LISTENER';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -16168,7 +16168,7 @@
             `;
         }
         
-        // 🚪 Configurazione PORTONCINO Finstral FIN-Door v5.23
+        // 🚪 Configurazione PORTONCINO Finstral FIN-Door v5.24
         function renderPortoncinoConfig(project, pos, ing) {
             const ptc = ing.portoncino || {};
             
@@ -16177,7 +16177,7 @@
             console.log('🚪 ptc.materialeInt:', ptc.materialeInt);
             console.log('🚪 ptc.materialeEst:', ptc.materialeEst);
             
-            // v5.23: Helper con nuova struttura combinazioni + LEGNO
+            // v5.24: Helper con nuova struttura combinazioni + LEGNO + catalogo
             const comb = getCombinazioneMat(ptc);
             const formaTelaio = ptc.formaTelaio || '';
             const codTelaio = ptc.codTelaio || '';
@@ -24582,6 +24582,70 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             // DOM già pronto, inizializza subito
             setTimeout(initMenuSistemaIntegrato, 100);
         }
+        
+        // 🆕 v5.24: Listener per messaggi dal catalogo FIN-Door esterno
+        window.addEventListener('message', function(event) {
+            // Verifica origine catalogo OpenPorte
+            if (!event.origin.includes('openporte2025.github.io') && !event.origin.includes('localhost')) {
+                return;
+            }
+            
+            const data = event.data;
+            console.log('📥 Messaggio dal catalogo:', data);
+            
+            // Gestisce selezione modello anta
+            if (data && data.type === 'findoor-modello') {
+                const modello = data.modello; // es. '05'
+                console.log(`🚪 Catalogo: Modello ${modello} ricevuto`);
+                
+                // Trova posizione attiva con portoncino
+                const activeProject = state.projects.find(p => 
+                    p.positions?.some(pos => pos.ingresso?.tipo === 'portoncino')
+                );
+                
+                if (activeProject) {
+                    const activePos = activeProject.positions.find(pos => 
+                        pos.ingresso?.tipo === 'portoncino'
+                    );
+                    
+                    if (activePos && activePos.ingresso?.portoncino) {
+                        activePos.ingresso.portoncino.modelloAnta = modello;
+                        saveState();
+                        render();
+                        showNotification(`✅ Modello ${modello} applicato!`, 'success');
+                    }
+                }
+            }
+        });
+        
+        // Listener per storage (fallback se il catalogo usa localStorage)
+        window.addEventListener('storage', function(event) {
+            if (event.key === 'findoor-modello-selezionato') {
+                const modello = event.newValue;
+                console.log(`🚪 Storage: Modello ${modello} ricevuto`);
+                
+                // Trova posizione attiva con portoncino
+                const activeProject = state.projects.find(p => 
+                    p.positions?.some(pos => pos.ingresso?.tipo === 'portoncino')
+                );
+                
+                if (activeProject) {
+                    const activePos = activeProject.positions.find(pos => 
+                        pos.ingresso?.tipo === 'portoncino'
+                    );
+                    
+                    if (activePos && activePos.ingresso?.portoncino) {
+                        activePos.ingresso.portoncino.modelloAnta = modello;
+                        saveState();
+                        render();
+                        showNotification(`✅ Modello ${modello} applicato!`, 'success');
+                        
+                        // Pulisci storage
+                        localStorage.removeItem('findoor-modello-selezionato');
+                    }
+                }
+            }
+        });
 
         // ============================================
         // 🍔 MENU SISTEMA - FASE 020 (VECCHIO - DISABILITATO)
