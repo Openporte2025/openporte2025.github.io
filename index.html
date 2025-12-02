@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.24 - 🧱 MATERIALI + LEGNO + CATALOGO FIN-Door ✅
+    Open Porte v5.25 - 🧱 MATERIALI + LEGNO + CATALOGO FIN-Door ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.17 (28 NOV 2025) - PORTONCINI FINSTRAL FIN-DOOR
@@ -1859,7 +1859,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.24 - Materiali + Legno + Catalogo</title>
+    <title>Open Porte v5.25 - Materiali + Legno + Catalogo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -16174,7 +16174,38 @@
             `;
         }
         
-        // 🚪 Configurazione PORTONCINO Finstral FIN-Door v5.24
+        // 🚪 Configurazione PORTONCINO Finstral FIN-Door v5.25
+        
+        // v5.25: Helper per info tipo apertura
+        function getTipoAperturaInfo(tipo) {
+            const info = {
+                '720': 'Porta singola - apertura verso interno o esterno',
+                '625': 'Porta singola - solo apertura verso esterno',
+                '621': 'Porta con elemento laterale fisso a sinistra',
+                '622': 'Porta con elemento laterale fisso a destra',
+                '621C': 'Porta accoppiata con laterale fisso a sinistra',
+                '622C': 'Porta accoppiata con laterale fisso a destra',
+                '633': 'Porta con due elementi laterali fissi',
+                '633C': 'Porta accoppiata con due laterali fissi',
+                '624': 'Porta con sopraluce fisso superiore',
+                '623': 'Porta con anta superiore (ribalta)',
+                '624C': 'Porta accoppiata con sopraluce',
+                '623C': 'Porta accoppiata con anta superiore',
+                '636': 'Doppia porta (due ante apribili)',
+                '626': 'Doppia porta + laterale fisso a sinistra',
+                '627': 'Doppia porta + laterale fisso a destra',
+                '649': 'Doppia porta + due elementi laterali fissi',
+                '628': 'Doppia porta + sopraluce fisso',
+                '629': 'Doppia porta + anta superiore',
+                '634': 'Porta + laterale + sopraluce (3 campi)',
+                '638': 'Porta + laterale + doppio sopraluce (4 campi)',
+                '644': 'Porta + laterale + anta superiore (3 campi)',
+                '640': 'Porta + 2 laterali + sopraluce centrale (6 campi)',
+                '663': 'Porta + 2 laterali + 3 sopraluce (6 campi)'
+            };
+            return info[tipo] || 'Seleziona tipo apertura';
+        }
+        
         function renderPortoncinoConfig(project, pos, ing) {
             const ptc = ing.portoncino || {};
             
@@ -16183,7 +16214,7 @@
             console.log('🚪 ptc.materialeInt:', ptc.materialeInt);
             console.log('🚪 ptc.materialeEst:', ptc.materialeEst);
             
-            // v5.24: Helper con nuova struttura combinazioni + LEGNO + catalogo
+            // v5.25: Helper con nuova struttura combinazioni + LEGNO + catalogo
             const comb = getCombinazioneMat(ptc);
             const formaTelaio = ptc.formaTelaio || '';
             const codTelaio = ptc.codTelaio || '';
@@ -16224,6 +16255,60 @@
                         <div class="text-right">
                             <div class="text-xs text-gray-500">Prezzo stimato</div>
                             <div class="text-xl font-bold text-teal-600">€ ${prezzoTotale.toLocaleString('it-IT')}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 📐 TIPO APERTURA (STEP 0) - v5.25 -->
+                    <div class="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-300 rounded-lg p-4 mb-3">
+                        <h5 class="font-semibold text-purple-800 mb-3">📐 0. Tipo Apertura (Configurazione vano)</h5>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-medium text-purple-700">Tipo configurazione</label>
+                                <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'tipoApertura', this.value)"
+                                        class="w-full compact-input border-2 border-purple-300 rounded mt-1 bg-white font-medium">
+                                    <optgroup label="─── Porta Singola ───">
+                                        <option value="720" ${(ptc.tipoApertura || '720') === '720' ? 'selected' : ''}>720 - Porta singola (int/est)</option>
+                                        <option value="625" ${ptc.tipoApertura === '625' ? 'selected' : ''}>625 - Porta singola (solo esterno)</option>
+                                    </optgroup>
+                                    <optgroup label="─── Porta + Laterale ───">
+                                        <option value="621" ${ptc.tipoApertura === '621' ? 'selected' : ''}>621 - Porta + laterale sx</option>
+                                        <option value="622" ${ptc.tipoApertura === '622' ? 'selected' : ''}>622 - Porta + laterale dx</option>
+                                        <option value="621C" ${ptc.tipoApertura === '621C' ? 'selected' : ''}>621C - Accoppiata + lat. sx</option>
+                                        <option value="622C" ${ptc.tipoApertura === '622C' ? 'selected' : ''}>622C - Accoppiata + lat. dx</option>
+                                    </optgroup>
+                                    <optgroup label="─── Porta + 2 Laterali ───">
+                                        <option value="633" ${ptc.tipoApertura === '633' ? 'selected' : ''}>633 - Porta + 2 laterali</option>
+                                        <option value="633C" ${ptc.tipoApertura === '633C' ? 'selected' : ''}>633C - Accoppiata + 2 lat.</option>
+                                    </optgroup>
+                                    <optgroup label="─── Porta + Sopraluce ───">
+                                        <option value="624" ${ptc.tipoApertura === '624' ? 'selected' : ''}>624 - Porta + sopraluce</option>
+                                        <option value="623" ${ptc.tipoApertura === '623' ? 'selected' : ''}>623 - Porta + anta sup. (ribalta)</option>
+                                        <option value="624C" ${ptc.tipoApertura === '624C' ? 'selected' : ''}>624C - Accoppiata + sopraluce</option>
+                                        <option value="623C" ${ptc.tipoApertura === '623C' ? 'selected' : ''}>623C - Accoppiata + anta sup.</option>
+                                    </optgroup>
+                                    <optgroup label="─── Doppia Porta ───">
+                                        <option value="636" ${ptc.tipoApertura === '636' ? 'selected' : ''}>636 - Doppia porta</option>
+                                        <option value="626" ${ptc.tipoApertura === '626' ? 'selected' : ''}>626 - Doppia + laterale sx</option>
+                                        <option value="627" ${ptc.tipoApertura === '627' ? 'selected' : ''}>627 - Doppia + laterale dx</option>
+                                        <option value="649" ${ptc.tipoApertura === '649' ? 'selected' : ''}>649 - Doppia + 2 laterali</option>
+                                        <option value="628" ${ptc.tipoApertura === '628' ? 'selected' : ''}>628 - Doppia + sopraluce</option>
+                                        <option value="629" ${ptc.tipoApertura === '629' ? 'selected' : ''}>629 - Doppia + anta sup.</option>
+                                    </optgroup>
+                                    <optgroup label="─── Config. Complesse ───">
+                                        <option value="634" ${ptc.tipoApertura === '634' ? 'selected' : ''}>634 - Porta + lat. + sopraluce</option>
+                                        <option value="638" ${ptc.tipoApertura === '638' ? 'selected' : ''}>638 - Porta + lat. + 2 sopraluce</option>
+                                        <option value="644" ${ptc.tipoApertura === '644' ? 'selected' : ''}>644 - Porta + lat. + anta sup.</option>
+                                        <option value="640" ${ptc.tipoApertura === '640' ? 'selected' : ''}>640 - Porta + 2 lat. + sopraluce</option>
+                                        <option value="663" ${ptc.tipoApertura === '663' ? 'selected' : ''}>663 - Porta + 2 lat. + 3 sopraluce</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="bg-purple-100 p-3 rounded-lg text-sm text-purple-800">
+                                    <div class="font-bold mb-1">ℹ️ Info tipo selezionato:</div>
+                                    <div id="tipoAperturaInfo-${pos.id}">${getTipoAperturaInfo(ptc.tipoApertura || '720')}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -24589,7 +24674,7 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             setTimeout(initMenuSistemaIntegrato, 100);
         }
         
-        // 🆕 v5.24: Listener per messaggi dal catalogo FIN-Door esterno
+        // 🆕 v5.25: Listener per messaggi dal catalogo FIN-Door esterno
         window.addEventListener('message', function(event) {
             // Verifica origine catalogo OpenPorte
             if (!event.origin.includes('openporte2025.github.io') && !event.origin.includes('localhost')) {
