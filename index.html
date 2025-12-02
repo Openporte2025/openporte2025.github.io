@@ -3194,7 +3194,13 @@
             'PVC-ALU': {
                 'L': {  // Con rivestimento ALU esterno
                     'A961': { desc: 'PVC int./ALU est. 77mm', spessore: 77, supplPvc: 0, supplAlu: 5.20 },
-                    'A962': { desc: 'PVC int./ALU est. 90mm', spessore: 90, supplPvc: 0, supplAlu: 5.61 }
+                    'A962': { desc: 'PVC int./ALU est. 90mm', spessore: 90, supplPvc: 0, supplAlu: 5.61 },
+                    'A963': { desc: 'PVC int./ALU est. 124mm', spessore: 124, supplPvc: 2.89, supplAlu: 9.31 }
+                },
+                'Z': {  // Forma Z con ALU esterno
+                    'AZ62': { desc: 'PVC int./ALU est. Z 67mm', spessore: 67, supplPvc: 5.21, supplAlu: 10.40 },
+                    'A967': { desc: 'PVC int./ALU est. Z 77mm', spessore: 77, supplPvc: 10.90, supplAlu: 15.30 },
+                    'AZ91': { desc: 'PVC int./ALU est. Z 90mm', spessore: 90, supplPvc: 16.10, supplAlu: 21.70 }
                 }
             },
             'LEGNO-ALU': {
@@ -24593,8 +24599,8 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
             const data = event.data;
             console.log('📥 Messaggio dal catalogo:', data);
             
-            // Gestisce selezione modello anta
-            if (data && data.type === 'findoor-modello') {
+            // Gestisce selezione modello anta (accetta entrambi i type per compatibilità)
+            if (data && (data.type === 'findoor-modello' || data.type === 'CATALOGO_SELECT_MODELLO')) {
                 const modello = data.modello; // es. '05'
                 console.log(`🚪 Catalogo: Modello ${modello} ricevuto`);
                 
