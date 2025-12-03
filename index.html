@@ -1,5 +1,17 @@
 <!DOCTYPE html>
 <!--
+    Open Porte v5.27 - 📎 LINK SCHIZZO NOTABILITY ✅
+    ═══════════════════════════════════════════════════════════════
+    
+    🔧 v5.27 (03 DIC 2025) - LINK SCHIZZO NOTABILITY
+    ─────────────────────────────────────────────────
+    - 📎 CAMPO linkSchizzo: Salva link Notability a livello cantiere
+    - 🖥️ PC: Apre PDF nel browser
+    - 📱 iPad: Apre direttamente Notability (deep link automatico)
+    - 📍 ICONA HEADER: Sempre visibile, grigia se vuoto, colorata se presente
+    - ✏️ MODIFICA: Click lungo o pulsante per modificare il link
+    - 💾 EXPORT: linkSchizzo incluso in export JSON/GitHub
+    
     Open Porte v5.26 - 🚪 PORTONCINO: versoApertura + sensoApertura ✅
     ═══════════════════════════════════════════════════════════════
     
@@ -1859,7 +1871,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.26 - Portoncino Apertura</title>
+    <title>Open Porte v5.27 - Link Schizzo Notability</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2164,6 +2176,20 @@
 
         .btn-icon:hover {
             background: rgba(255,255,255,0.2);
+        }
+
+        /* 📎 v5.27: Icona schizzo disabilitata */
+        .btn-icon.btn-disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+        .btn-icon.btn-disabled:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .btn-icon.btn-small {
+            font-size: 14px;
+            padding: 6px 8px;
+            margin-left: -4px;
         }
 
         /* Menu laterale progetto */
@@ -3073,8 +3099,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.24';
-        const APP_VERSION_NOTE = '🧱 MATERIALI + 🪵 LEGNO + 📥 CATALOGO LISTENER';
+        const APP_VERSION = '5.27';
+        const APP_VERSION_NOTE = '📎 LINK SCHIZZO NOTABILITY';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -7741,6 +7767,9 @@
                         note: updatedProject.clientData?.note || ''
                     },
                     
+                    // 📎 v5.27: LINK SCHIZZO NOTABILITY
+                    linkSchizzo: updatedProject.linkSchizzo || '',
+                    
                     // PRODOTTI ABILITATI
                     prodotti: {
                         infissi: updatedProject.prodotti?.infissi || false,
@@ -8968,6 +8997,16 @@
                         <span style="margin-left: 1rem; padding: 0.25rem 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 600; vertical-align: middle;">v${APP_VERSION}</span>
                     </h1>
                     <div class="header-actions">
+                        <button class="btn-icon ${project.linkSchizzo ? '' : 'btn-disabled'}" 
+                                onclick="openSchizzo('${project.id}')" 
+                                title="${project.linkSchizzo ? 'Apri schizzo' : 'Nessuno schizzo'}">
+                            📎
+                        </button>
+                        <button class="btn-icon btn-small" 
+                                onclick="editLinkSchizzo('${project.id}')" 
+                                title="Modifica link schizzo">
+                            ⚙️
+                        </button>
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
                         <button class="btn-icon" onclick="printCurrentProjectPDF()" title="Export PDF">🖨️</button>
                     </div>
@@ -10754,6 +10793,7 @@
                 name,
                 client,
                 clientData: {},
+                linkSchizzo: '',  // 📎 v5.27: Link schizzo Notability
                 prodotti: {},
                 caratteristicheMuro: {},
                 configInfissi: {},
@@ -23429,6 +23469,64 @@
                 showNotification(`Errore durante export Excel: ${error.message}`, 'error');
             }
         };
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // 📎 v5.27: LINK SCHIZZO NOTABILITY
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        /**
+         * Apre il link schizzo nel browser/app
+         * - Su PC: apre PDF nel browser
+         * - Su iPad: Notability gestisce il deep link automaticamente
+         */
+        window.openSchizzo = (projectId) => {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project || !project.linkSchizzo) {
+                showNotification('⚠️ Nessuno schizzo allegato. Tieni premuto per aggiungere.', 'warning');
+                return;
+            }
+            
+            // Apri in nuova tab - Notability.com gestisce automaticamente il deep link su iPad
+            window.open(project.linkSchizzo, '_blank');
+            console.log('📎 Aperto schizzo:', project.linkSchizzo);
+        };
+        
+        /**
+         * Modifica/Aggiungi link schizzo
+         */
+        window.editLinkSchizzo = (projectId) => {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) {
+                showNotification('Progetto non trovato', 'error');
+                return;
+            }
+            
+            const currentLink = project.linkSchizzo || '';
+            const newLink = prompt(
+                '📎 Link Schizzo Notability\n\n' +
+                'Incolla qui il link di condivisione da Notability.\n' +
+                'Esempio: https://notability.com/n/xxxx...\n\n' +
+                'Lascia vuoto per rimuovere.',
+                currentLink
+            );
+            
+            // Se l'utente ha premuto Annulla, newLink è null
+            if (newLink === null) return;
+            
+            // Salva il link (anche vuoto per rimuovere)
+            project.linkSchizzo = newLink.trim();
+            saveState();
+            render();
+            
+            if (newLink.trim()) {
+                showNotification('✅ Link schizzo salvato!', 'success');
+            } else {
+                showNotification('🗑️ Link schizzo rimosso', 'info');
+            }
+            
+            console.log('📎 Link schizzo aggiornato:', project.linkSchizzo);
+        };
+        
         window.exportCurrentProjectJSON = () => {
             try {
                 const project = state.projects.find(p => p.id === state.currentProject);
@@ -24956,5 +25054,3 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
     </script>
 </body>
 </html>
-
-    
