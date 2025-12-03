@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.25 - 🧱 MATERIALI + LEGNO + CATALOGO FIN-Door ✅
+    Open Porte v5.26 - 🚪 PORTONCINO: versoApertura + sensoApertura ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.17 (28 NOV 2025) - PORTONCINI FINSTRAL FIN-DOOR
@@ -1859,7 +1859,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.25 - Materiali + Legno + Catalogo</title>
+    <title>Open Porte v5.26 - Portoncino Apertura</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -16311,15 +16311,15 @@
                             </div>
                         </div>
                         
-                        <!-- DIREZIONE APERTURA: Tirare/Spingere + Sx/Dx -->
+                        <!-- APERTURA: Verso (Tirare/Spingere) + Senso (Sx/Dx) -->
                         <div class="grid md:grid-cols-2 gap-4 pt-3 border-t border-purple-200">
                             <div>
-                                <label class="text-xs font-medium text-purple-700 block mb-2">Direzione apertura</label>
+                                <label class="text-xs font-medium text-purple-700 block mb-2">Verso Apertura</label>
                                 <div class="flex gap-2">
                                     <label class="flex-1 cursor-pointer">
-                                        <input type="radio" name="dirApertura-${pos.id}" value="tirare" 
-                                               ${(ptc.direzioneApertura || 'tirare') === 'tirare' ? 'checked' : ''}
-                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'direzioneApertura', 'tirare')"
+                                        <input type="radio" name="versoApertura-${pos.id}" value="tirare" 
+                                               ${(ptc.versoApertura || 'tirare') === 'tirare' ? 'checked' : ''}
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'versoApertura', 'tirare')"
                                                class="sr-only peer">
                                         <div class="p-2 rounded-lg border-2 text-center transition-all peer-checked:bg-purple-500 peer-checked:text-white peer-checked:border-purple-600 border-purple-300 bg-white hover:bg-purple-50">
                                             <div class="font-bold text-sm">⬅️ Tirare</div>
@@ -16327,9 +16327,9 @@
                                         </div>
                                     </label>
                                     <label class="flex-1 cursor-pointer">
-                                        <input type="radio" name="dirApertura-${pos.id}" value="spingere" 
-                                               ${ptc.direzioneApertura === 'spingere' ? 'checked' : ''}
-                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'direzioneApertura', 'spingere')"
+                                        <input type="radio" name="versoApertura-${pos.id}" value="spingere" 
+                                               ${ptc.versoApertura === 'spingere' ? 'checked' : ''}
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'versoApertura', 'spingere')"
                                                class="sr-only peer">
                                         <div class="p-2 rounded-lg border-2 text-center transition-all peer-checked:bg-purple-500 peer-checked:text-white peer-checked:border-purple-600 border-purple-300 bg-white hover:bg-purple-50">
                                             <div class="font-bold text-sm">➡️ Spingere</div>
@@ -16339,21 +16339,21 @@
                                 </div>
                             </div>
                             <div>
-                                <label class="text-xs font-medium text-purple-700 block mb-2">Lato cerniere (visto da interno)</label>
+                                <label class="text-xs font-medium text-purple-700 block mb-2">Senso Apertura (visto da interno)</label>
                                 <div class="flex gap-2">
                                     <label class="flex-1 cursor-pointer">
-                                        <input type="radio" name="latoCerniere-${pos.id}" value="sx" 
-                                               ${(ptc.latoCerniere || 'sx') === 'sx' ? 'checked' : ''}
-                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'latoCerniere', 'sx')"
+                                        <input type="radio" name="sensoApertura-${pos.id}" value="SX" 
+                                               ${(ptc.sensoApertura || 'SX') === 'SX' ? 'checked' : ''}
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'sensoApertura', 'SX')"
                                                class="sr-only peer">
                                         <div class="p-2 rounded-lg border-2 text-center transition-all peer-checked:bg-purple-500 peer-checked:text-white peer-checked:border-purple-600 border-purple-300 bg-white hover:bg-purple-50">
                                             <div class="font-bold text-sm">◀️ Sinistra</div>
                                         </div>
                                     </label>
                                     <label class="flex-1 cursor-pointer">
-                                        <input type="radio" name="latoCerniere-${pos.id}" value="dx" 
-                                               ${ptc.latoCerniere === 'dx' ? 'checked' : ''}
-                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'latoCerniere', 'dx')"
+                                        <input type="radio" name="sensoApertura-${pos.id}" value="DX" 
+                                               ${ptc.sensoApertura === 'DX' ? 'checked' : ''}
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'sensoApertura', 'DX')"
                                                class="sr-only peer">
                                         <div class="p-2 rounded-lg border-2 text-center transition-all peer-checked:bg-purple-500 peer-checked:text-white peer-checked:border-purple-600 border-purple-300 bg-white hover:bg-purple-50">
                                             <div class="font-bold text-sm">▶️ Destra</div>
@@ -24956,3 +24956,5 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
     </script>
 </body>
 </html>
+
+    
