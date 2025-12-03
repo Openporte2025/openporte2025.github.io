@@ -16179,8 +16179,8 @@
         // v5.25: Helper per info tipo apertura
         function getTipoAperturaInfo(tipo) {
             const info = {
-                '720': 'Porta singola - apertura verso interno o esterno',
-                '625': 'Porta singola - solo apertura verso esterno',
+                '720': 'Porta singola standard',
+                '625': 'Porta singola (variante calcolo)',
                 '621': 'Porta con elemento laterale fisso a sinistra',
                 '622': 'Porta con elemento laterale fisso a destra',
                 '621C': 'Porta accoppiata con laterale fisso a sinistra',
@@ -16261,14 +16261,14 @@
                     <!-- 📐 TIPO APERTURA (STEP 0) - v5.25 -->
                     <div class="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-300 rounded-lg p-4 mb-3">
                         <h5 class="font-semibold text-purple-800 mb-3">📐 0. Tipo Apertura (Configurazione vano)</h5>
-                        <div class="grid md:grid-cols-2 gap-4">
+                        <div class="grid md:grid-cols-2 gap-4 mb-3">
                             <div>
                                 <label class="text-xs font-medium text-purple-700">Tipo configurazione</label>
                                 <select onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'tipoApertura', this.value)"
                                         class="w-full compact-input border-2 border-purple-300 rounded mt-1 bg-white font-medium">
                                     <optgroup label="─── Porta Singola ───">
-                                        <option value="720" ${(ptc.tipoApertura || '720') === '720' ? 'selected' : ''}>720 - Porta singola (int/est)</option>
-                                        <option value="625" ${ptc.tipoApertura === '625' ? 'selected' : ''}>625 - Porta singola (solo esterno)</option>
+                                        <option value="720" ${(ptc.tipoApertura || '720') === '720' ? 'selected' : ''}>720 - Porta singola</option>
+                                        <option value="625" ${ptc.tipoApertura === '625' ? 'selected' : ''}>625 - Porta singola (variante)</option>
                                     </optgroup>
                                     <optgroup label="─── Porta + Laterale ───">
                                         <option value="621" ${ptc.tipoApertura === '621' ? 'selected' : ''}>621 - Porta + laterale sx</option>
@@ -16307,6 +16307,58 @@
                                 <div class="bg-purple-100 p-3 rounded-lg text-sm text-purple-800">
                                     <div class="font-bold mb-1">ℹ️ Info tipo selezionato:</div>
                                     <div id="tipoAperturaInfo-${pos.id}">${getTipoAperturaInfo(ptc.tipoApertura || '720')}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- DIREZIONE APERTURA: Tirare/Spingere + Sx/Dx -->
+                        <div class="grid md:grid-cols-2 gap-4 pt-3 border-t border-purple-200">
+                            <div>
+                                <label class="text-xs font-medium text-purple-700 block mb-2">Direzione apertura</label>
+                                <div class="flex gap-2">
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="dirApertura-${pos.id}" value="tirare" 
+                                               ${(ptc.direzioneApertura || 'tirare') === 'tirare' ? 'checked' : ''}
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'direzioneApertura', 'tirare')"
+                                               class="sr-only peer">
+                                        <div class="p-2 rounded-lg border-2 text-center transition-all peer-checked:bg-purple-500 peer-checked:text-white peer-checked:border-purple-600 border-purple-300 bg-white hover:bg-purple-50">
+                                            <div class="font-bold text-sm">⬅️ Tirare</div>
+                                            <div class="text-xs opacity-75">verso interno</div>
+                                        </div>
+                                    </label>
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="dirApertura-${pos.id}" value="spingere" 
+                                               ${ptc.direzioneApertura === 'spingere' ? 'checked' : ''}
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'direzioneApertura', 'spingere')"
+                                               class="sr-only peer">
+                                        <div class="p-2 rounded-lg border-2 text-center transition-all peer-checked:bg-purple-500 peer-checked:text-white peer-checked:border-purple-600 border-purple-300 bg-white hover:bg-purple-50">
+                                            <div class="font-bold text-sm">➡️ Spingere</div>
+                                            <div class="text-xs opacity-75">verso esterno</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium text-purple-700 block mb-2">Lato cerniere (visto da interno)</label>
+                                <div class="flex gap-2">
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="latoCerniere-${pos.id}" value="sx" 
+                                               ${(ptc.latoCerniere || 'sx') === 'sx' ? 'checked' : ''}
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'latoCerniere', 'sx')"
+                                               class="sr-only peer">
+                                        <div class="p-2 rounded-lg border-2 text-center transition-all peer-checked:bg-purple-500 peer-checked:text-white peer-checked:border-purple-600 border-purple-300 bg-white hover:bg-purple-50">
+                                            <div class="font-bold text-sm">◀️ Sinistra</div>
+                                        </div>
+                                    </label>
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="latoCerniere-${pos.id}" value="dx" 
+                                               ${ptc.latoCerniere === 'dx' ? 'checked' : ''}
+                                               onchange="updateIngressoData('${project.id}', '${pos.id}', 'portoncino', 'latoCerniere', 'dx')"
+                                               class="sr-only peer">
+                                        <div class="p-2 rounded-lg border-2 text-center transition-all peer-checked:bg-purple-500 peer-checked:text-white peer-checked:border-purple-600 border-purple-300 bg-white hover:bg-purple-50">
+                                            <div class="font-bold text-sm">▶️ Destra</div>
+                                        </div>
+                                    </label>
                                 </div>
                             </div>
                         </div>
