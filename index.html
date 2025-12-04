@@ -1,7 +1,12 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.28 - 🎚️ TAPPARELLE: Checkbox cosa serve ✅
+    Open Porte v5.29 - 🎚️ FIX: Checkbox cosa serve → render() ✅
     ═══════════════════════════════════════════════════════════════
+    
+    🔧 v5.29 (03 DIC 2025) - FIX CHECKBOX COSA SERVE
+    ─────────────────────────────────────────────────
+    - 🔄 FIX: Aggiunto render() quando cambiano serveTapparella/serveMotore/serveAccessori
+    - 📋 Le sezioni ora si nascondono/mostrano correttamente in base ai checkbox
     
     🔧 v5.28 (03 DIC 2025) - CHECKBOX COSA SERVE TAPPARELLE
     ─────────────────────────────────────────────────────────────
@@ -1871,7 +1876,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.28 - Checkbox Cosa Serve Tapparelle</title>
+    <title>Open Porte v5.29 - Fix Checkbox Cosa Serve</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3099,8 +3104,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.28';
-        const APP_VERSION_NOTE = '🎚️ CHECKBOX COSA SERVE TAPPARELLE';
+        const APP_VERSION = '5.29';
+        const APP_VERSION_NOTE = '🔄 FIX CHECKBOX COSA SERVE → render()';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -11585,6 +11590,11 @@
                     
                     // 🔧 v4.44: Re-render se cambiato fissaggio persiane per mostrare/nascondere telai
                     if (productType === 'persiana' && field === 'fissaggio') {
+                        render();
+                    }
+                    
+                    // 🆕 v5.28: Re-render se cambiano i checkbox "cosa serve" tapparella
+                    if (productType === 'tapparella' && (field === 'serveTapparella' || field === 'serveMotore' || field === 'serveAccessori')) {
                         render();
                     }
                     
