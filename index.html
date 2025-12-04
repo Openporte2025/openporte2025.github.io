@@ -1,7 +1,13 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.36 - 📦 CAMPI CALCOLO PREZZI CASSONETTI ANCHE IN POSIZIONE ✅
+    Open Porte v5.37 - 📤 EXPORT JSON CASSONETTI COMPLETO ✅
     ═══════════════════════════════════════════════════════════════
+    
+    🔧 v5.37 (04 DIC 2025) - EXPORT JSON CASSONETTI COMPLETO
+    ✅ Export normalizzato: aggiunto BRM C/B, tutti campi Finstral, campi calcolo prezzi
+    ✅ Export Excel: 9 nuove colonne cassonetto (Materiale, Codice, Gruppo, Isolamento...)
+    ✅ Export riepilogo posizioni: campi completi calcolo prezzi
+    ✅ Riepilogo HTML: Azienda, Materiale, Codice, Gruppo Colore, Isolamento, B, C, BRM_L/H
     
     🔧 v5.36 (04 DIC 2025) - CAMPI CALCOLO PREZZI CASSONETTI IN POSIZIONE
     ✅ Stessi campi config globale ora anche in singola posizione:
@@ -1899,7 +1905,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.36 - Campi Calcolo Prezzi Cassonetti Posizione</title>
+    <title>Open Porte v5.37 - Export JSON Cassonetti Completo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -7853,11 +7859,31 @@
                         azienda: pos.cassonetto.azienda || 'Non specificata',
                         brm: {
                             L: pos.cassonetto.BRM_L || 0,
-                            H: pos.cassonetto.BRM_H || 0
+                            H: pos.cassonetto.BRM_H || 0,
+                            C: pos.cassonetto.BRM_C || 0,
+                            B: pos.cassonetto.BRM_B || 0
                         },
                         tipo: pos.cassonetto.tipo,
                         materiale: pos.cassonetto.materiale,
                         isolamento: pos.cassonetto.isolamento,
+                        // Campi Finstral
+                        cassonettoCheck: pos.cassonetto.cassonettoCheck,
+                        cassonettoText: pos.cassonetto.cassonettoText || '',
+                        posaCheck: pos.cassonetto.posaCheck,
+                        posaText: pos.cassonetto.posaText || '',
+                        colore: pos.cassonetto.colore || '',
+                        isolamentoPosaclima: pos.cassonetto.isolamentoPosaclima || false,
+                        aSoffitto: pos.cassonetto.aSoffitto || false,
+                        // v5.36: Campi calcolo prezzi
+                        materialeCass: pos.cassonetto.materialeCass || '',
+                        codiceCass: pos.cassonetto.codiceCass || '',
+                        gruppoColoreCass: pos.cassonetto.gruppoColoreCass || '',
+                        codiceIsolamento: pos.cassonetto.codiceIsolamento || '',
+                        // Misure
+                        LS: pos.cassonetto.LS || '0',
+                        HCASS: pos.cassonetto.HCASS || '0',
+                        B: pos.cassonetto.B || '0',
+                        C: pos.cassonetto.C || '0',
                         note: pos.cassonetto.note || '',
                         foto: pos.cassonetto.foto || []
                     };
@@ -23969,8 +23995,17 @@
                         'Cassonetto Tipo': pos.cassonetto?.tipo || '',
                         'Cassonetto Azienda': pos.cassonetto?.azienda || '',
                         'Cassonetto Colore': pos.cassonetto?.colore || '',
+                        'Cassonetto Materiale': pos.cassonetto?.materialeCass || '',
+                        'Cassonetto Codice': pos.cassonetto?.codiceCass || '',
+                        'Cassonetto Gruppo Colore': pos.cassonetto?.gruppoColoreCass || '',
+                        'Cassonetto Cod Isolamento': pos.cassonetto?.codiceIsolamento || '',
+                        'Cassonetto Isolamento Posaclima': pos.cassonetto?.isolamentoPosaclima ? 'Sì' : '',
+                        'Cassonetto A Soffitto': pos.cassonetto?.aSoffitto ? 'Sì' : '',
                         'Cassonetto BRM L': pos.cassonetto?.BRM_L || '',
                         'Cassonetto BRM H': pos.cassonetto?.BRM_H || '',
+                        'Cassonetto HCASS': pos.cassonetto?.HCASS || '',
+                        'Cassonetto B': pos.cassonetto?.B || '',
+                        'Cassonetto C': pos.cassonetto?.C || '',
                         'Cassonetto Note': pos.cassonetto?.note || '',
                         
                         // NOTE
@@ -24298,7 +24333,13 @@
                                 azienda: pos.cassonetto.azienda || '',
                                 colore: pos.cassonetto.colore || '',
                                 sovrappi_sostit: pos.cassonetto.sovrappiSostit || '',
-                                a_soffitto: pos.cassonetto.aSoffitto || '',
+                                a_soffitto: pos.cassonetto.aSoffitto || false,
+                                isolamento_posaclima: pos.cassonetto.isolamentoPosaclima || false,
+                                // v5.36: Campi calcolo prezzi
+                                materiale_cass: pos.cassonetto.materialeCass || '',
+                                codice_cass: pos.cassonetto.codiceCass || '',
+                                gruppo_colore_cass: pos.cassonetto.gruppoColoreCass || '',
+                                codice_isolamento: pos.cassonetto.codiceIsolamento || '',
                                 misure: {  // 📊 Template completo con ?? operator
                                     LS: pos.cassonetto.LS ?? 0,
                                     SRSX: pos.cassonetto.SRSX ?? 0,
@@ -24687,9 +24728,19 @@ ${pos.zanzariera.BRM_L !== undefined || pos.zanzariera.BRM_H !== undefined ? `<t
 <tr><td><strong>BRM H</strong></td><td><strong>${pos.zanzariera.BRM_H ?? '-'} mm</strong></td></tr>
 ${generateBRMExplanation(pos, pos.zanzariera, 'zanzariera', project)}` : ''}</table>` : ''}
 ${pos.cassonetto ? `<h4>📦 CASSONETTO</h4><table><tr><th>Campo</th><th>Valore</th></tr>
+<tr><td>Azienda</td><td>${pos.cassonetto.azienda || '-'}</td></tr>
 <tr><td>Tipo</td><td>${pos.cassonetto.tipo || '-'}</td></tr>
+<tr><td>Materiale</td><td>${pos.cassonetto.materialeCass || '-'}</td></tr>
+<tr><td>Codice</td><td>${pos.cassonetto.codiceCass || '-'}</td></tr>
+<tr><td>Gruppo Colore</td><td>${pos.cassonetto.gruppoColoreCass || '-'}</td></tr>
+${pos.cassonetto.isolamentoPosaclima ? `<tr><td>Isolamento</td><td>${pos.cassonetto.codiceIsolamento || 'Sì'}</td></tr>` : ''}
+${pos.cassonetto.aSoffitto ? `<tr><td>A Soffitto</td><td>Sì</td></tr>` : ''}
 <tr><td>LS</td><td>${pos.cassonetto.LS || 0} mm</td></tr>
 <tr><td>HCASS</td><td>${pos.cassonetto.HCASS || 0} mm</td></tr>
+<tr><td>B</td><td>${pos.cassonetto.B || 0} mm</td></tr>
+<tr><td>C</td><td>${pos.cassonetto.C || 0} mm</td></tr>
+${pos.cassonetto.BRM_L !== undefined && pos.cassonetto.BRM_L !== null ? `<tr><td><strong>BRM_L</strong></td><td><strong>${pos.cassonetto.BRM_L ?? '-'} mm</strong></td></tr>` : ''}
+${pos.cassonetto.BRM_H !== undefined && pos.cassonetto.BRM_H !== null ? `<tr><td><strong>BRM_H</strong></td><td><strong>${pos.cassonetto.BRM_H ?? '-'} mm</strong></td></tr>` : ''}
 ${pos.cassonetto.BRM_C !== undefined && pos.cassonetto.BRM_C !== null ? `<tr><td><strong>BRM_C</strong></td><td><strong>${pos.cassonetto.BRM_C ?? '-'} mm</strong></td></tr>` : ''}
 ${pos.cassonetto.BRM_B !== undefined && pos.cassonetto.BRM_B !== null ? `<tr><td><strong>BRM_B</strong></td><td><strong>${pos.cassonetto.BRM_B ?? '-'} mm</strong></td></tr>` : ''}
 ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` : ''}
