@@ -1,7 +1,16 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.35 - 📦 CAMPI CALCOLO PREZZI CASSONETTI FINSTRAL ✅
+    Open Porte v5.36 - 📦 CAMPI CALCOLO PREZZI CASSONETTI ANCHE IN POSIZIONE ✅
     ═══════════════════════════════════════════════════════════════
+    
+    🔧 v5.36 (04 DIC 2025) - CAMPI CALCOLO PREZZI CASSONETTI IN POSIZIONE
+    ✅ Stessi campi config globale ora anche in singola posizione:
+       - materialeCass, codiceCass, gruppoColoreCass, codiceIsolamento
+    ✅ Funzioni helper dedicate per posizione:
+       - renderSelectCodiceCassPos(cas, projectId, posId)
+       - renderSelectGruppoColoreCassPos(cas, projectId, posId)
+    ✅ Select dinamici basati su materiale selezionato
+    ✅ Codice isolamento visibile solo se isolamentoPosaclima checked
     
     🔧 v5.35 (04 DIC 2025) - CAMPI CALCOLO PREZZI CASSONETTI FINSTRAL
     ✅ NUOVI CAMPI CONFIG CASSONETTI (solo Finstral):
@@ -1890,7 +1899,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.35 - Campi Calcolo Prezzi Cassonetti</title>
+    <title>Open Porte v5.36 - Campi Calcolo Prezzi Cassonetti Posizione</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -5244,6 +5253,61 @@
                     <p class="text-xs text-yellow-600 mt-1">Usb: 0,87 W/m²K con isolamento</p>
                 </div>
             `;
+        }
+        
+        // 🆕 v5.35: Funzioni helper per Cassonetto in POSIZIONE SINGOLA
+        function renderSelectCodiceCassPos(cas, projectId, posId) {
+            const mat = cas.materialeCass || '';
+            const current = cas.codiceCass || '';
+            
+            if (mat === 'PVC') {
+                return `
+                    <select onchange="updateProduct('${projectId}', '${posId}', 'cassonetto', 'codiceCass', this.value)"
+                            class="w-full compact-input border rounded mt-1">
+                        <option value="">--</option>
+                        <option value="148" ${current === '148' ? 'selected' : ''}>148</option>
+                        <option value="148B" ${current === '148B' ? 'selected' : ''}>148B</option>
+                        <option value="300" ${current === '300' ? 'selected' : ''}>300</option>
+                        <option value="300B" ${current === '300B' ? 'selected' : ''}>300B</option>
+                    </select>
+                `;
+            } else if (mat === 'Legno') {
+                return `
+                    <select onchange="updateProduct('${projectId}', '${posId}', 'cassonetto', 'codiceCass', this.value)"
+                            class="w-full compact-input border rounded mt-1">
+                        <option value="">--</option>
+                        <option value="9-48" ${current === '9-48' ? 'selected' : ''}>9-48</option>
+                        <option value="9-48B" ${current === '9-48B' ? 'selected' : ''}>9-48B</option>
+                    </select>
+                `;
+            }
+            return '<span class="text-xs text-gray-400 mt-1 block">← Materiale</span>';
+        }
+        
+        function renderSelectGruppoColoreCassPos(cas, projectId, posId) {
+            const mat = cas.materialeCass || '';
+            const current = cas.gruppoColoreCass || '';
+            
+            if (mat === 'PVC') {
+                return `
+                    <select onchange="updateProduct('${projectId}', '${posId}', 'cassonetto', 'gruppoColoreCass', this.value)"
+                            class="w-full compact-input border rounded mt-1">
+                        <option value="">--</option>
+                        <option value="bianco" ${current === 'bianco' ? 'selected' : ''}>○ Bianco</option>
+                        <option value="scuri" ${current === 'scuri' ? 'selected' : ''}>● Scuri</option>
+                    </select>
+                `;
+            } else if (mat === 'Legno') {
+                return `
+                    <select onchange="updateProduct('${projectId}', '${posId}', 'cassonetto', 'gruppoColoreCass', this.value)"
+                            class="w-full compact-input border rounded mt-1">
+                        <option value="">--</option>
+                        <option value="legno1" ${current === 'legno1' ? 'selected' : ''}>Gr.1 Abete</option>
+                        <option value="legno2+3" ${current === 'legno2+3' ? 'selected' : ''}>Gr.2+3 Rovere</option>
+                    </select>
+                `;
+            }
+            return '<span class="text-xs text-gray-400 mt-1 block">← Materiale</span>';
         }
         
         // 🔄 FUNZIONE DINAMICA: Aggiorna dropdown colori quando cambia finitura - v4.39 (base v4.33)
@@ -20859,6 +20923,48 @@
                                                                class="w-4 h-4">
                                                         6. A Soffitto
                                                     </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- ===== v5.35: CAMPI CALCOLO PREZZI ===== -->
+                                            <div class="border-t-2 border-orange-300 pt-3 mt-3">
+                                                <p class="text-xs font-bold text-orange-700 mb-2">📊 Dati per Calcolo Prezzo:</p>
+                                                <div class="grid md:grid-cols-4 gap-3">
+                                                    <!-- 7. MATERIALE -->
+                                                    <div>
+                                                        <label class="text-xs font-medium">7. Materiale</label>
+                                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'materialeCass', this.value); render();"
+                                                                class="w-full compact-input border rounded mt-1">
+                                                            <option value="">--</option>
+                                                            <option value="PVC" ${cas.materialeCass === 'PVC' ? 'selected' : ''}>PVC</option>
+                                                            <option value="Legno" ${cas.materialeCass === 'Legno' ? 'selected' : ''}>Legno</option>
+                                                        </select>
+                                                    </div>
+                                                    
+                                                    <!-- 8. CODICE CASSONETTO -->
+                                                    <div>
+                                                        <label class="text-xs font-medium">8. Codice</label>
+                                                        ${renderSelectCodiceCassPos(cas, project.id, pos.id)}
+                                                    </div>
+                                                    
+                                                    <!-- 9. GRUPPO COLORE -->
+                                                    <div>
+                                                        <label class="text-xs font-medium">9. Gruppo Colore</label>
+                                                        ${renderSelectGruppoColoreCassPos(cas, project.id, pos.id)}
+                                                    </div>
+                                                    
+                                                    <!-- 10. CODICE ISOLAMENTO -->
+                                                    ${cas.isolamentoPosaclima ? `
+                                                    <div>
+                                                        <label class="text-xs font-medium">10. Isolamento</label>
+                                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'codiceIsolamento', this.value)"
+                                                                class="w-full compact-input border rounded mt-1 bg-yellow-50">
+                                                            <option value="">--</option>
+                                                            <option value="40830" ${cas.codiceIsolamento === '40830' ? 'selected' : ''}>40830 (25mm)</option>
+                                                            <option value="40831" ${cas.codiceIsolamento === '40831' ? 'selected' : ''}>40831 (13mm)</option>
+                                                        </select>
+                                                    </div>
+                                                    ` : ''}
                                                 </div>
                                             </div>
                                         `;
