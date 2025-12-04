@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.27 - 📎 LINK SCHIZZO NOTABILITY ✅
+    Open Porte v5.28 - 🎚️ TAPPARELLE: Checkbox cosa serve ✅
     ═══════════════════════════════════════════════════════════════
     
-    🔧 v5.27 (03 DIC 2025) - LINK SCHIZZO NOTABILITY
-    ─────────────────────────────────────────────────
-    - 📎 CAMPO linkSchizzo: Salva link Notability a livello cantiere
-    - 🖥️ PC: Apre PDF nel browser
-    - 📱 iPad: Apre direttamente Notability (deep link automatico)
-    - 📍 ICONA HEADER: Sempre visibile, grigia se vuoto, colorata se presente
-    - ✏️ MODIFICA: Click lungo o pulsante per modificare il link
-    - 💾 EXPORT: linkSchizzo incluso in export JSON/GitHub
+    🔧 v5.28 (03 DIC 2025) - CHECKBOX COSA SERVE TAPPARELLE
+    ─────────────────────────────────────────────────────────────
+    - 🎯 CHECKBOX: Tapparella nuova / Motore / Accessori
+    - 📋 SEZIONI CONDIZIONALI: Mostra solo ciò che serve
+    - 🔌 SOLO MOTORE: Configurazione motore senza tapparella nuova
+    - 🔧 SOLO ACCESSORI: Sostituzione componenti (rullo, guide, ecc.)
+    - 💾 EXPORT JSON: Inclusi serve_tapparella, serve_motore, serve_accessori
+    - 🔘 PULSANTE: Rinominato in "+ Aggiungi Intervento"
     
-    Open Porte v5.26 - 🚪 PORTONCINO: versoApertura + sensoApertura ✅
+    🔧 v5.27 (03 DIC 2025) - LINK SCHIZZO NOTABILITY
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.17 (28 NOV 2025) - PORTONCINI FINSTRAL FIN-DOOR
@@ -1871,7 +1871,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.27 - Link Schizzo Notability</title>
+    <title>Open Porte v5.28 - Checkbox Cosa Serve Tapparelle</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3099,8 +3099,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.27';
-        const APP_VERSION_NOTE = '📎 LINK SCHIZZO NOTABILITY';
+        const APP_VERSION = '5.28';
+        const APP_VERSION_NOTE = '🎚️ CHECKBOX COSA SERVE TAPPARELLE';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -11214,6 +11214,11 @@
                     // UNA SOLA TAPPARELLA per posizione
                     pos.tapparella = {
                         id: generateId(),
+                        // 🆕 v5.28: Checkbox cosa serve
+                        serveTapparella: true,  // Default: tapparella nuova
+                        serveMotore: false,
+                        serveAccessori: false,
+                        // Dati esistenti
                         qta: '1',
                         azienda: project.configTapparelle?.azienda || '',
                         modello: project.configTapparelle?.modello || '',
@@ -19502,12 +19507,12 @@
                     ${!tap ? `
                         <!-- 🎯 STATO INIZIALE: Prodotto non ancora creato -->
                         <div class="text-center py-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
-                            <p class="text-gray-700 mb-4 font-medium text-lg">Nessuna tapparella configurata</p>
+                            <p class="text-gray-700 mb-4 font-medium text-lg">Nessun intervento configurato</p>
                             <div class="flex flex-col items-center gap-3">
                                 ${!pos.prodottiAssenti?.includes('tapparella') ? `
                                     <button onclick="addTapparella('${project.id}', '${pos.id}')"
                                             class="px-6 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 shadow-sm hover:shadow-md transition-all">
-                                        + Aggiungi Tapparella
+                                        + Aggiungi Intervento
                                     </button>
                                 ` : ''}
                                 <label class="flex items-center gap-2 cursor-pointer text-sm bg-white px-4 py-2 rounded-lg border-2 border-yellow-400 shadow-sm hover:shadow-md transition-shadow">
@@ -19549,14 +19554,47 @@
                     ` : `
                         <div class="product-card">
                             <div class="flex justify-between items-start mb-3">
-                                <h4 class="font-semibold text-amber-700 text-lg">🎚️ Tapparella</h4>
+                                <h4 class="font-semibold text-amber-700 text-lg">🎚️ Intervento Tapparelle</h4>
                                 <button onclick="deleteProduct('${project.id}', '${pos.id}', 'tapparella')"
                                         class="px-3 py-1.5 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700">
                                     🗑️ Elimina
                                 </button>
                             </div>
                             
-                            <!-- 📋 DATI SPECIFICI -->
+                            <!-- 🆕 v5.28: CHECKBOX COSA SERVE -->
+                            <div class="bg-gradient-to-r from-amber-100 to-orange-100 border-2 border-amber-400 rounded-lg p-4 mb-4">
+                                <h5 class="font-bold text-amber-800 mb-3 flex items-center gap-2">
+                                    🎯 Cosa serve in questa posizione?
+                                </h5>
+                                <div class="flex flex-wrap gap-4">
+                                    <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border-2 ${tap.serveTapparella ? 'border-amber-500 bg-amber-50' : 'border-gray-300'} hover:border-amber-400 transition-all">
+                                        <input type="checkbox" 
+                                               ${tap.serveTapparella ? 'checked' : ''}
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'serveTapparella', this.checked)"
+                                               class="w-5 h-5 accent-amber-600">
+                                        <span class="font-semibold text-gray-800">🎚️ Tapparella nuova</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border-2 ${tap.serveMotore ? 'border-blue-500 bg-blue-50' : 'border-gray-300'} hover:border-blue-400 transition-all">
+                                        <input type="checkbox" 
+                                               ${tap.serveMotore ? 'checked' : ''}
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'serveMotore', this.checked)"
+                                               class="w-5 h-5 accent-blue-600">
+                                        <span class="font-semibold text-gray-800">🔌 Motore</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border-2 ${tap.serveAccessori ? 'border-purple-500 bg-purple-50' : 'border-gray-300'} hover:border-purple-400 transition-all">
+                                        <input type="checkbox" 
+                                               ${tap.serveAccessori ? 'checked' : ''}
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'serveAccessori', this.checked)"
+                                               class="w-5 h-5 accent-purple-600">
+                                        <span class="font-semibold text-gray-800">🔧 Accessori</span>
+                                    </label>
+                                </div>
+                                ${!tap.serveTapparella && !tap.serveMotore && !tap.serveAccessori ? `
+                                    <p class="text-sm text-red-600 mt-2 font-medium">⚠️ Seleziona almeno un'opzione</p>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- 📋 DATI SPECIFICI - sempre visibili -->
                             <div class="bg-amber-50 border-2 border-amber-200 rounded-lg p-4 mb-3">
                                 <h5 class="font-semibold text-amber-800 mb-3 flex items-center gap-2">
                                     📋 Dati Specifici
@@ -19574,7 +19612,8 @@
                                 </div>
                             </div>
 
-                            <!-- ⚙️ CONFIGURAZIONE -->
+                            <!-- ⚙️ CONFIGURAZIONE TAPPARELLA - solo se serveTapparella -->
+                            ${tap.serveTapparella ? `
                             <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-3">
                                 <h5 class="font-semibold text-yellow-800 mb-3 flex items-center gap-2">
                                     ⚙️ Configurazione
@@ -19712,22 +19751,25 @@
                                     </div>
                                 </div>
                             </div>
+                            ` : ''}
 
-                            <!-- 🔌 MOTORI (SISTEMA COMPLETO FASE 11a) -->
+                            <!-- 🔌 MOTORI - visibile se serveMotore O logica esistente -->
                             ${(() => {
                                 const tipoEsistente = pos.rilievoTapparelle?.tipo || '';
-                                const mostraMotori = (
+                                const mostraMotoriLogica = (
                                     // CASO A: Esistente Manuale → Nuova Motorizzata → Forniamo motore
                                     (tipoEsistente === 'Manuale' && tap.nuovaAutomazione === 'Motorizzata' && tap.forniMotore) ||
                                     // CASO B: Esistente Motorizzata → Sostituzione motore
                                     (tipoEsistente === 'Motorizzata' && tap.nuovaAutomazione === 'Sostituzione motore')
                                 );
+                                // 🆕 v5.28: Mostra anche se checkbox serveMotore è attivo
+                                const mostraMotori = mostraMotoriLogica || tap.serveMotore;
                                 
                                 return mostraMotori ? `
                             <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-3">
                                 <div class="flex justify-between items-center mb-3">
                                     <h5 class="font-semibold text-blue-800 flex items-center gap-2">
-                                        🔌 Motori
+                                        🔌 Motori ${tap.serveMotore && !tap.serveTapparella ? '<span class="text-xs font-normal">(solo motore)</span>' : ''}
                                     </h5>
                                     <button onclick="addMotoreTapparella('${project.id}', '${pos.id}')"
                                             class="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700">
@@ -19826,6 +19868,58 @@
                                 `}
                             </div>
                             ` : '' })()}
+
+                            <!-- 🔧 ACCESSORI - visibile se serveAccessori (senza tapparella) -->
+                            ${tap.serveAccessori && !tap.serveTapparella ? `
+                            <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                                    🔧 Accessori da Sostituire <span class="text-xs font-normal">(tapparella esistente)</span>
+                                </h5>
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
+                                    ${ACCESSORI_TAPPARELLA.filter(acc => acc.id !== 'motore').map(acc => {
+                                        const accessori = tap.accessoriDaSostituire || {};
+                                        const isChecked = accessori[acc.id];
+                                        return `
+                                            <label class="flex items-center gap-2 px-2 py-1.5 rounded ${isChecked ? 'bg-green-100 border-green-400' : 'bg-white'} border cursor-pointer hover:bg-purple-100 transition-colors">
+                                                <input type="checkbox" 
+                                                       ${isChecked ? 'checked' : ''} 
+                                                       onchange="updateAccessorio('${project.id}', '${pos.id}', '${acc.id}', this.checked)"
+                                                       class="w-4 h-4 accent-purple-600">
+                                                <span class="text-sm">${acc.icon} ${acc.label}</span>
+                                            </label>
+                                        `;
+                                    }).join('')}
+                                </div>
+                                
+                                <!-- Campi Guide (visibili solo se guide selezionate) -->
+                                ${(tap.accessoriDaSostituire?.guide) ? `
+                                    <div class="grid grid-cols-2 gap-2 p-2 bg-blue-50 rounded border border-blue-200">
+                                        <div>
+                                            <label class="text-xs font-medium text-blue-700">🛤️ Modello Guida</label>
+                                            <input type="text" value="${tap.guida || ''}"
+                                                   placeholder="Seleziona guida"
+                                                   list="guida-solo-acc-list-${pos.id}"
+                                                   onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'guida', this.value)"
+                                                   class="w-full compact-input border rounded mt-1">
+                                            <datalist id="guida-solo-acc-list-${pos.id}">
+                                                <option value="S25/20">
+                                                <option value="S25/40">
+                                                <option value="S30/20">
+                                                <option value="S30/40">
+                                                <option value="Rinforzata">
+                                            </datalist>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-medium text-blue-700">🎨 Colore Guida</label>
+                                            <input type="text" value="${tap.coloreGuida || ''}"
+                                                   placeholder="Colore guida"
+                                                   onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'coloreGuida', this.value)"
+                                                   class="w-full compact-input border rounded mt-1">
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            ` : ''}
 
                             <div class="bg-amber-50 border-2 border-amber-300 rounded-lg p-4 mb-3">
                                 <div class="flex justify-between items-center mb-3">
@@ -23711,6 +23805,11 @@
                         // Aggiungi tapparella se presente
                         if (pos.tapparella) {
                             posData.tapparella = {
+                                // 🆕 v5.28: Checkbox cosa serve
+                                serve_tapparella: pos.tapparella.serveTapparella ?? true,
+                                serve_motore: pos.tapparella.serveMotore ?? false,
+                                serve_accessori: pos.tapparella.serveAccessori ?? false,
+                                // Dati esistenti
                                 quantita: pos.tapparella.quantita || 1,
                                 azienda: pos.tapparella.azienda || '',
                                 modello: pos.tapparella.modello || '',
