@@ -1,33 +1,32 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.46 - 🔧 FERRAMENTA SEMPLIFICATA ✅
+    Open Porte v5.47 - 🔧 UI DINAMICA PER FORNITORE ✅
     ═══════════════════════════════════════════════════════════════
     
-    🔧 v5.46 (04 DIC 2025) - FERRAMENTA SEMPLIFICATA
+    🔧 v5.47 (04 DIC 2025) - UI DINAMICA PER FORNITORE
     
     ═══════════════════════════════════════════════════════════════════
-    📋 SEZIONE INFISSO CON CODICI FINSTRAL
+    📋 LOGICA DINAMICA IN BASE AD AZIENDA
     ═══════════════════════════════════════════════════════════════════
     
-    MODIFICHE v5.46:
-    - ✅ Rimossa sezione "Ferramenta Anta 2" (non necessaria)
-    - ✅ Per 2 ante: SX/DX indica quale anta è la principale
+    MODIFICHE v5.47:
+    - ✅ UI condizionale in base a campo "Azienda"
+    - ✅ Azienda = "finstral" → Codici Modello + Ferramenta Finstral
+    - ✅ Azienda = altro → Campi generici semplificati (Tipo, Apertura)
+    - ✅ Badge colorato per indicare fornitore selezionato
+    - ✅ Messaggio "codici specifici in futuro" per altri fornitori
     
-    STRUTTURA FERRAMENTA (singola):
-    - ✅ Tipo ferramenta (411, 211, 430, 425, 475, 710, etc.)
-    - ✅ Lato apertura (-1 = SX, -2 = DX)
-    - ✅ Esecuzione sicurezza (0, 3, 4)
-    - ✅ Opzioni checkbox (ribalta, aerazione, fermo)
+    STRUTTURA PER FINSTRAL:
+    - Codice Modello (101-500 con optgroup)
+    - Ferramenta (411, 211, 430, etc.)
+    - Lato apertura (-1 SX, -2 DX)
+    - Esecuzione sicurezza (0, 3, 4)
+    - Opzioni checkbox
     
-    NUOVI CAMPI DATI:
-    - inf.codiceModello (es. "201")
-    - inf.ferramenta1 (es. "411")
-    - inf.lato1 (es. "-1" o "-2")
-    - inf.esecuzione1 (es. "0", "3", "4")
-    - inf.ribaltaEstateInverno (boolean)
-    - inf.aerazioneLimitata (boolean)
-    - inf.fermoAntaFB200 (boolean)
-    - ✅ Rimossa vecchia sezione "Sostituzione Componenti" (4 radio)
+    STRUTTURA PER ALTRI:
+    - Quantità
+    - Tipo (F1, F2, PF1, PF2, Fisso, Vasistas, Scorrevole)
+    - Apertura (SX, DX, Fisso, Bilico)
     - ✅ Nuova UI: Toggle "Tutti" + checkboxes singoli
     - 🛤️ Guide: Modello/Colore visibili SOLO se checkbox Guide attivo
     - 🔄 Stessa logica per GENERALE e POSIZIONI
@@ -1964,7 +1963,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.46 - Ferramenta Semplificata</title>
+    <title>Open Porte v5.47 - UI Dinamica per Fornitore</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3192,8 +3191,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.46';
-        const APP_VERSION_NOTE = '🔧 FERRAMENTA SEMPLIFICATA';
+        const APP_VERSION = '5.47';
+        const APP_VERSION_NOTE = '🔧 UI DINAMICA PER FORNITORE';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -18912,10 +18911,12 @@
                                 </div>
                             </div>
                             
-                            <!-- 📋 DATI SPECIFICI -->
+                            <!-- ═══ SEZIONI SPECIFICHE PER FORNITORE ═══ -->
+                            ${(inf.azienda?.toLowerCase() === 'finstral') ? `
+                            <!-- 📋 DATI SPECIFICI FINSTRAL -->
                             <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-3">
                                 <h5 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-                                    📋 Dati Specifici
+                                    📋 Dati Specifici <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded">FINSTRAL</span>
                                 </h5>
                                 <div class="grid md:grid-cols-2 gap-3 mb-3">
                                     <div>
@@ -19129,6 +19130,51 @@
                                     </label>
                                 </div>
                             </div>
+                            ` : `
+                            <!-- 📋 DATI GENERICI (altri fornitori) -->
+                            <div class="bg-gray-50 border-2 border-gray-300 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                    📋 Dati Specifici <span class="text-xs bg-gray-500 text-white px-2 py-0.5 rounded">${inf.azienda?.toUpperCase() || 'GENERICO'}</span>
+                                </h5>
+                                <div class="grid md:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="text-xs font-medium">Quantità</label>
+                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'qta', this.value)"
+                                                class="w-full compact-input border rounded mt-1 font-semibold">
+                                            ${[0,1,2,3,4,5,6,7,8,9,10].map(n => 
+                                                '<option value="' + n + '" ' + ((inf.qta || '1') == n ? 'selected' : '') + '>' + n + '</option>'
+                                            ).join('')}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Tipo</label>
+                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'tipo', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">-- Seleziona --</option>
+                                            <option value="F1" ${(inf.tipo || '') === 'F1' ? 'selected' : ''}>F1 - Finestra 1 anta</option>
+                                            <option value="F2" ${(inf.tipo || '') === 'F2' ? 'selected' : ''}>F2 - Finestra 2 ante</option>
+                                            <option value="PF1" ${(inf.tipo || '') === 'PF1' ? 'selected' : ''}>PF1 - Porta-finestra 1 anta</option>
+                                            <option value="PF2" ${(inf.tipo || '') === 'PF2' ? 'selected' : ''}>PF2 - Porta-finestra 2 ante</option>
+                                            <option value="FISSO" ${(inf.tipo || '') === 'FISSO' ? 'selected' : ''}>Fisso</option>
+                                            <option value="VASISTAS" ${(inf.tipo || '') === 'VASISTAS' ? 'selected' : ''}>Vasistas</option>
+                                            <option value="SCORREVOLE" ${(inf.tipo || '') === 'SCORREVOLE' ? 'selected' : ''}>Scorrevole</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Apertura</label>
+                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'apertura', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">-- Seleziona --</option>
+                                            <option value="SX" ${(inf.apertura || '') === 'SX' ? 'selected' : ''}>SX (sinistra)</option>
+                                            <option value="DX" ${(inf.apertura || '') === 'DX' ? 'selected' : ''}>DX (destra)</option>
+                                            <option value="FISSO" ${(inf.apertura || '') === 'FISSO' ? 'selected' : ''}>Fisso</option>
+                                            <option value="BILICO" ${(inf.apertura || '') === 'BILICO' ? 'selected' : ''}>Bilico</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-3 italic">💡 Codici specifici per ${inf.azienda || 'questo fornitore'} saranno disponibili in futuro</p>
+                            </div>
+                            `}
 
                             <!-- 🔧 TIPO INFISSO ASSOCIATO -->
                             <div class="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mb-3">
