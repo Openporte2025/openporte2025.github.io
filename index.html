@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.30 - 🎚️ CONFIG GLOBALE: Checkbox cosa serve ✅
+    Open Porte v5.31 - 🔌 DATABASE MOTORI SOMFY + PREZZI ✅
     ═══════════════════════════════════════════════════════════════
     
-    🔧 v5.30 (03 DIC 2025) - CONFIG GLOBALE CHECKBOX
+    🔧 v5.31 (04 DIC 2025) - DATABASE MOTORI SOMFY
     ─────────────────────────────────────────────────
-    - 🎯 STEP 5: Checkbox "Cosa serve di default" nella config globale tapparelle
-    - 📋 EREDITARIETÀ: Nuove posizioni ereditano i valori dalla config globale
-    - 👁️ CONDIZIONALE: Mostra/nasconde campi in base ai checkbox anche in Step 5
-    - 💡 INFO: Messaggio esplicativo quando solo Motore/Accessori
+    - 🔌 DATABASE MOTORI: Oximo, RS100 Hybrid, LT50 Helios, LT60 Orion con prezzi
+    - 📻 DATABASE COMANDI: Amy 1 io, Situo 1/5, Smoove Origin con prezzi
+    - 🔧 DATABASE ACCESSORI MOTORE: Supporto, Corona, Ruota, IZYMO con prezzi
+    - ⚙️ CONFIG GLOBALE: Sezione "Configurazione Motore Default" quando serveMotore
+    - 💰 PREZZI: Mostrati nei dropdown per preventivi rapidi
     
-    🔧 v5.29 (03 DIC 2025) - FIX CHECKBOX COSA SERVE
+    🔧 v5.30 (03 DIC 2025) - CONFIG GLOBALE CHECKBOX
     ─────────────────────────────────────────────────────────────
     - 🎯 CHECKBOX: Tapparella nuova / Motore / Accessori
     - 📋 SEZIONI CONDIZIONALI: Mostra solo ciò che serve
@@ -1878,7 +1879,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.30 - Config Globale Checkbox</title>
+    <title>Open Porte v5.31 - Database Motori Somfy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3106,8 +3107,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.30';
-        const APP_VERSION_NOTE = '🎯 CONFIG GLOBALE CHECKBOX TAPPARELLE';
+        const APP_VERSION = '5.31';
+        const APP_VERSION_NOTE = '🔌 DATABASE MOTORI SOMFY + PREZZI';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -5432,6 +5433,32 @@
                 'RAL a richiesta'
             ];
         }
+        
+        // ───────────────────────────────────────────────────────────────
+        // 🔌 DATABASE MOTORI SOMFY - v5.31
+        // ───────────────────────────────────────────────────────────────
+        
+        const MOTORI_SOMFY = [
+            { id: 'oximo_20', modello: 'Oximo 50 io 20/17', coppia: 20, prezzo: 137.66 },
+            { id: 'oximo_30', modello: 'Oximo 50 io 30/17', coppia: 30, prezzo: 145.83 },
+            { id: 'rs100_hybrid', modello: 'RS100 io hybrid 20/17', coppia: 20, prezzo: 836.95 },
+            { id: 'lt50_helios', modello: 'LT 50 Helios WT 30/17', coppia: 30, prezzo: 1198.80 },
+            { id: 'lt60_orion', modello: 'LT60 Orion S 55/17', coppia: 55, prezzo: 174.00 }
+        ];
+        
+        const ACCESSORI_MOTORE_SOMFY = [
+            { id: 'supporto', nome: 'Supporto operatore da avvitare', prezzo: 94.60 },
+            { id: 'corona_60', nome: 'Corona OTT.60 I', prezzo: 17.67 },
+            { id: 'ruota_60', nome: 'Ruota per rullo ottagonale Ø60mm', prezzo: 21.00 },
+            { id: 'izymo', nome: 'IZYMO Shutter Receiver io', prezzo: 665.90 }
+        ];
+        
+        const COMANDI_SOMFY = [
+            { id: 'amy1', nome: 'Amy 1 io + cornice quadrata', prezzo: 234.60 },
+            { id: 'situo1', nome: 'Situo 1 IO Pure', prezzo: 84.20 },
+            { id: 'situo5', nome: 'Situo 5 IO Pure', prezzo: 111.10 },
+            { id: 'smoove', nome: 'Smoove Origin IO', prezzo: 77.60 }
+        ];
         
         // ───────────────────────────────────────────────────────────────
         // 🔧 ACCESSORI TAPPARELLA MANUALE - v4.91
@@ -14806,6 +14833,64 @@
                     </div>
                     `}
                     
+                    <!-- 🔌 v5.31: CONFIGURAZIONE MOTORE DEFAULT - visibile se serveMotore -->
+                    ${serveMotore ? `
+                    <div class="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4 mb-4">
+                        <h5 class="font-bold text-blue-800 mb-3 flex items-center gap-2">
+                            🔌 Configurazione Motore Default
+                        </h5>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <!-- Modello Motore -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Modello Motore</label>
+                                <select class="w-full px-3 py-2 border border-blue-300 rounded-lg bg-white"
+                                        onchange="updateConfigTapparelle('${project.id}', 'motoreModelloDefault', this.value)">
+                                    <option value="">Seleziona modello...</option>
+                                    ${MOTORI_SOMFY.map(m => `
+                                        <option value="${m.id}" ${project.configTapparelle?.motoreModelloDefault === m.id ? 'selected' : ''}>
+                                            ${m.modello} - €${m.prezzo.toFixed(2)}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            
+                            <!-- Comando -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Comando / Telecomando</label>
+                                <select class="w-full px-3 py-2 border border-blue-300 rounded-lg bg-white"
+                                        onchange="updateConfigTapparelle('${project.id}', 'comandoDefault', this.value)">
+                                    <option value="">Nessuno / Da definire</option>
+                                    ${COMANDI_SOMFY.map(c => `
+                                        <option value="${c.id}" ${project.configTapparelle?.comandoDefault === c.id ? 'selected' : ''}>
+                                            ${c.nome} - €${c.prezzo.toFixed(2)}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Accessori Motore -->
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium mb-2">Accessori Motore</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                ${ACCESSORI_MOTORE_SOMFY.map(acc => {
+                                    const checked = project.configTapparelle?.accessoriMotoreDefault?.[acc.id] || false;
+                                    return `
+                                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg border ${checked ? 'bg-blue-100 border-blue-400' : 'bg-white border-gray-300'} cursor-pointer hover:bg-blue-50">
+                                            <input type="checkbox" 
+                                                   ${checked ? 'checked' : ''}
+                                                   onchange="updateConfigTapparelleAccessorioMotore('${project.id}', '${acc.id}', this.checked)"
+                                                   class="w-4 h-4 accent-blue-600">
+                                            <span class="text-sm">${acc.nome} <span class="text-blue-600 font-semibold">€${acc.prezzo.toFixed(2)}</span></span>
+                                        </label>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                        <p class="text-xs text-blue-600 mt-2">💡 Questi valori saranno pre-impostati quando aggiungi un motore</p>
+                    </div>
+                    ` : ''}
+                    
                     ${renderBRMConfig(project, 'tapparelle', 'Tapparelle', '🎚️')}
                 </div>
             `;
@@ -22403,6 +22488,19 @@
                 syncConfigToPositions(project, 'tapparella', field, value, oldValue);
                 
                 saveState();
+            }
+        };
+        
+        // 🔌 v5.31: Funzione per gestire accessori motore nella config globale
+        window.updateConfigTapparelleAccessorioMotore = (projectId, accessorioId, checked) => {
+            const project = state.projects.find(p => p.id === projectId);
+            if (project) {
+                if (!project.configTapparelle) project.configTapparelle = {};
+                if (!project.configTapparelle.accessoriMotoreDefault) project.configTapparelle.accessoriMotoreDefault = {};
+                
+                project.configTapparelle.accessoriMotoreDefault[accessorioId] = checked;
+                saveState();
+                render();
             }
         };
 
