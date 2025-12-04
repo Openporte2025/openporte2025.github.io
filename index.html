@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.44 - 🔧 NUOVA UI COMPONENTI DA FORNIRE ✅
+    Open Porte v5.45 - 🔧 CODICI MODELLO FINSTRAL CORRETTI ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.44 (04 DIC 2025) - CODICI MODELLO + FERRAMENTA FINSTRAL
@@ -1968,7 +1968,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.44 - Nuova UI Componenti da Fornire</title>
+    <title>Open Porte v5.45 - Codici Modello Finstral Corretti</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3196,8 +3196,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.44';
-        const APP_VERSION_NOTE = '🔧 NUOVA UI COMPONENTI DA FORNIRE';
+        const APP_VERSION = '5.45';
+        const APP_VERSION_NOTE = '🔧 CODICI MODELLO FINSTRAL CORRETTI';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -18934,27 +18934,6 @@
                                     <div>
                                         <label class="text-xs font-medium">Codice Modello <span class="text-red-600">*</span></label>
                                         ${(() => {
-                                            const codiciModello = [
-                                                { value: '101', label: '101 - 1 anta (tab.101)' },
-                                                { value: '102', label: '102 - 1 anta (tab.102)' },
-                                                { value: '201', label: '201 - 2 ante orizzontali (101+101)' },
-                                                { value: '202', label: '202 - 2 ante orizzontali (101+102)' },
-                                                { value: '203', label: '203 - 2 ante orizzontali (102+101)' },
-                                                { value: '204', label: '204 - 2 ante orizzontali (102+102)' },
-                                                { value: '205', label: '205 - 2 ante verticali (101+101)' },
-                                                { value: '206', label: '206 - 2 ante verticali (101+102)' },
-                                                { value: '207', label: '207 - 2 ante verticali (102+101)' },
-                                                { value: '208', label: '208 - 2 ante verticali (102+102)' },
-                                                { value: '301', label: '301 - 3 campi orizzontali' },
-                                                { value: '302', label: '302 - 3 campi (101+102+101)' },
-                                                { value: '303', label: '303 - 3 campi (102+101+102)' },
-                                                { value: '304', label: '304 - 3 campi (102+102+102)' },
-                                                { value: '310', label: '310 - 3 campi a T' },
-                                                { value: '401', label: '401 - Forme speciali' },
-                                                { value: '414', label: '414 - Fisso + scorrevole' },
-                                                { value: '420', label: '420 - Anta + fisso centrale' },
-                                                { value: '424', label: '424 - 2 ante con montante' }
-                                            ];
                                             const current = inf.codiceModello || '';
                                             const isEmpty = !current;
                                             const borderClass = isEmpty ? 'border-2 border-orange-400 bg-orange-50' : 'border';
@@ -18963,9 +18942,72 @@
                                                 <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'codiceModello', this.value)"
                                                         class="w-full compact-input ${borderClass} rounded mt-1">
                                                     <option value="">-- Seleziona --</option>
-                                                    ${codiciModello.map(c => `
-                                                        <option value="${c.value}" ${current === c.value ? 'selected' : ''}>${c.label}</option>
-                                                    `).join('')}
+                                                    <optgroup label="📦 1 Campo">
+                                                        <option value="101" ${current === '101' ? 'selected' : ''}>101 - un campo, anta</option>
+                                                        <option value="102" ${current === '102' ? 'selected' : ''}>102 - un campo, fisso</option>
+                                                    </optgroup>
+                                                    <optgroup label="📦📦 2 Campi Orizzontali">
+                                                        <option value="201" ${current === '201' ? 'selected' : ''}>201 - anta SX, anta DX</option>
+                                                        <option value="202" ${current === '202' ? 'selected' : ''}>202 - anta SX, fisso DX</option>
+                                                        <option value="203" ${current === '203' ? 'selected' : ''}>203 - fisso SX, anta DX</option>
+                                                        <option value="204" ${current === '204' ? 'selected' : ''}>204 - fisso SX, fisso DX</option>
+                                                    </optgroup>
+                                                    <optgroup label="📦📦 2 Campi Verticali">
+                                                        <option value="205" ${current === '205' ? 'selected' : ''}>205 - anta basso, anta alto</option>
+                                                        <option value="206" ${current === '206' ? 'selected' : ''}>206 - anta basso, fisso alto</option>
+                                                        <option value="207" ${current === '207' ? 'selected' : ''}>207 - fisso basso, anta alto</option>
+                                                        <option value="208" ${current === '208' ? 'selected' : ''}>208 - fisso basso, fisso alto</option>
+                                                    </optgroup>
+                                                    <optgroup label="📦📦📦 3 Campi">
+                                                        <option value="301" ${current === '301' ? 'selected' : ''}>301 - anta SX, anta centro, anta DX</option>
+                                                        <option value="302" ${current === '302' ? 'selected' : ''}>302 - anta SX, fisso centro, anta DX</option>
+                                                        <option value="303" ${current === '303' ? 'selected' : ''}>303 - fisso SX, anta centro, fisso DX</option>
+                                                        <option value="304" ${current === '304' ? 'selected' : ''}>304 - fisso SX, fisso centro, fisso DX</option>
+                                                        <option value="305" ${current === '305' ? 'selected' : ''}>305 - fisso basso, anta centro, fisso alto</option>
+                                                        <option value="306" ${current === '306' ? 'selected' : ''}>306 - fisso basso, anta centro, anta alto</option>
+                                                        <option value="307" ${current === '307' ? 'selected' : ''}>307 - fisso basso, fisso centro, fisso alto</option>
+                                                        <option value="308" ${current === '308' ? 'selected' : ''}>308 - fisso basso, anta alto SX, anta alto DX</option>
+                                                        <option value="309" ${current === '309' ? 'selected' : ''}>309 - anta basso SX, anta basso DX, fisso alto</option>
+                                                        <option value="310" ${current === '310' ? 'selected' : ''}>310 - anta basso SX, anta basso DX, anta alto</option>
+                                                        <option value="321" ${current === '321' ? 'selected' : ''}>321 - fisso SX, anta centro, anta DX</option>
+                                                        <option value="322" ${current === '322' ? 'selected' : ''}>322 - anta SX, anta centro, fisso DX</option>
+                                                        <option value="324" ${current === '324' ? 'selected' : ''}>324 - anta SX, fisso centro, anta DX</option>
+                                                        <option value="340" ${current === '340' ? 'selected' : ''}>340 - anta basso, anta alto SX, anta alto DX</option>
+                                                    </optgroup>
+                                                    <optgroup label="📦📦📦📦 4 Campi">
+                                                        <option value="311" ${current === '311' ? 'selected' : ''}>311 - fisso basso SX/DX, anta alto SX/DX</option>
+                                                        <option value="314" ${current === '314' ? 'selected' : ''}>314 - anta basso SX/DX, fisso alto SX/DX</option>
+                                                        <option value="316" ${current === '316' ? 'selected' : ''}>316 - anta basso SX/DX, anta alto SX/DX</option>
+                                                        <option value="317" ${current === '317' ? 'selected' : ''}>317 - fisso basso SX/DX, fisso alto SX/DX</option>
+                                                    </optgroup>
+                                                    <optgroup label="🔗 Con Montante Mobile">
+                                                        <option value="401" ${current === '401' ? 'selected' : ''}>401 - 2 ante con montante mobile SX e DX</option>
+                                                        <option value="402" ${current === '402' ? 'selected' : ''}>402 - fisso basso, anta alto SX/DX + montante</option>
+                                                        <option value="403" ${current === '403' ? 'selected' : ''}>403 - anta basso SX/DX + montante, fisso alto</option>
+                                                        <option value="404" ${current === '404' ? 'selected' : ''}>404 - fisso SX/DX + montante, anta alto</option>
+                                                        <option value="405" ${current === '405' ? 'selected' : ''}>405 - anta basso, anta alto SX/DX + montante</option>
+                                                        <option value="414" ${current === '414' ? 'selected' : ''}>414 - fisso SX, centro/DX anta + montante</option>
+                                                        <option value="415" ${current === '415' ? 'selected' : ''}>415 - SX/centro anta + montante, fisso DX</option>
+                                                        <option value="420" ${current === '420' ? 'selected' : ''}>420 - anta SX, centro/DX anta + montante</option>
+                                                        <option value="421" ${current === '421' ? 'selected' : ''}>421 - SX/centro anta + montante, anta DX</option>
+                                                        <option value="424" ${current === '424' ? 'selected' : ''}>424 - SX/centro/DX anta con montante</option>
+                                                    </optgroup>
+                                                    <optgroup label="↔️ Anta a Bilico">
+                                                        <option value="450" ${current === '450' ? 'selected' : ''}>450 - anta a bilico</option>
+                                                        <option value="451" ${current === '451' ? 'selected' : ''}>451 - anta a bilico, fisso DX</option>
+                                                        <option value="452" ${current === '452' ? 'selected' : ''}>452 - anta a bilico, fisso SX</option>
+                                                        <option value="453" ${current === '453' ? 'selected' : ''}>453 - anta a bilico, fisso DX e SX</option>
+                                                        <option value="456" ${current === '456' ? 'selected' : ''}>456 - anta a bilico, sopraluce fisso</option>
+                                                        <option value="457" ${current === '457' ? 'selected' : ''}>457 - anta a bilico, sottoluce fisso</option>
+                                                    </optgroup>
+                                                    <optgroup label="🚪 Scorrevole Parallela">
+                                                        <option value="500" ${current === '500' ? 'selected' : ''}>500 - porta-finestra scorrevole parallela</option>
+                                                        <option value="501" ${current === '501' ? 'selected' : ''}>501 - scorrevole parallela SX</option>
+                                                        <option value="503" ${current === '503' ? 'selected' : ''}>503 - scorrevole SX, anta DX</option>
+                                                        <option value="504" ${current === '504' ? 'selected' : ''}>504 - scorrevole DX, anta SX</option>
+                                                        <option value="510" ${current === '510' ? 'selected' : ''}>510 - scorrevole parallela, 2 ante</option>
+                                                        <option value="511" ${current === '511' ? 'selected' : ''}>511 - scorrevole parallela DX</option>
+                                                    </optgroup>
                                                 </select>
                                             `;
                                         })()}
