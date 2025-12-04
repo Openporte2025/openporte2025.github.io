@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.29 - 🎚️ FIX: Checkbox cosa serve → render() ✅
+    Open Porte v5.30 - 🎚️ CONFIG GLOBALE: Checkbox cosa serve ✅
     ═══════════════════════════════════════════════════════════════
     
-    🔧 v5.29 (03 DIC 2025) - FIX CHECKBOX COSA SERVE
+    🔧 v5.30 (03 DIC 2025) - CONFIG GLOBALE CHECKBOX
     ─────────────────────────────────────────────────
-    - 🔄 FIX: Aggiunto render() quando cambiano serveTapparella/serveMotore/serveAccessori
-    - 📋 Le sezioni ora si nascondono/mostrano correttamente in base ai checkbox
+    - 🎯 STEP 5: Checkbox "Cosa serve di default" nella config globale tapparelle
+    - 📋 EREDITARIETÀ: Nuove posizioni ereditano i valori dalla config globale
+    - 👁️ CONDIZIONALE: Mostra/nasconde campi in base ai checkbox anche in Step 5
+    - 💡 INFO: Messaggio esplicativo quando solo Motore/Accessori
     
-    🔧 v5.28 (03 DIC 2025) - CHECKBOX COSA SERVE TAPPARELLE
+    🔧 v5.29 (03 DIC 2025) - FIX CHECKBOX COSA SERVE
     ─────────────────────────────────────────────────────────────
     - 🎯 CHECKBOX: Tapparella nuova / Motore / Accessori
     - 📋 SEZIONI CONDIZIONALI: Mostra solo ciò che serve
@@ -1876,7 +1878,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.29 - Fix Checkbox Cosa Serve</title>
+    <title>Open Porte v5.30 - Config Globale Checkbox</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3104,8 +3106,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.29';
-        const APP_VERSION_NOTE = '🔄 FIX CHECKBOX COSA SERVE → render()';
+        const APP_VERSION = '5.30';
+        const APP_VERSION_NOTE = '🎯 CONFIG GLOBALE CHECKBOX TAPPARELLE';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -11219,10 +11221,10 @@
                     // UNA SOLA TAPPARELLA per posizione
                     pos.tapparella = {
                         id: generateId(),
-                        // 🆕 v5.28: Checkbox cosa serve
-                        serveTapparella: true,  // Default: tapparella nuova
-                        serveMotore: false,
-                        serveAccessori: false,
+                        // 🆕 v5.30: Checkbox cosa serve - eredita da config globale
+                        serveTapparella: project.configTapparelle?.serveTapparella !== false,
+                        serveMotore: project.configTapparelle?.serveMotore || false,
+                        serveAccessori: project.configTapparelle?.serveAccessori || false,
                         // Dati esistenti
                         qta: '1',
                         azienda: project.configTapparelle?.azienda || '',
@@ -14606,6 +14608,12 @@
             if (!project.prodotti?.tapparelle) {
                 return `<div class="text-center py-8"><p class="text-gray-500">Le tapparelle non sono state selezionate. Salta questo step.</p></div>`;
             }
+            
+            // 🆕 v5.30: Leggi valori checkbox (default: tapparella true)
+            const serveTapparella = project.configTapparelle?.serveTapparella !== false;
+            const serveMotore = project.configTapparelle?.serveMotore || false;
+            const serveAccessori = project.configTapparelle?.serveAccessori || false;
+            
             return `
                 <div>
                     <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
@@ -14613,8 +14621,41 @@
                     </h2>
                     <p class="text-gray-600 mb-4">Imposta i valori di default per tutte le tapparelle:</p>
                     
+                    <!-- 🆕 v5.30: CHECKBOX COSA SERVE DEFAULT -->
+                    <div class="bg-gradient-to-r from-amber-100 to-orange-100 border-2 border-amber-400 rounded-lg p-4 mb-4">
+                        <h5 class="font-bold text-amber-800 mb-3 flex items-center gap-2">
+                            🎯 Cosa serve di default nelle nuove posizioni?
+                        </h5>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border-2 ${serveTapparella ? 'border-amber-500 bg-amber-50' : 'border-gray-300'} hover:border-amber-400 transition-all">
+                                <input type="checkbox" 
+                                       ${serveTapparella ? 'checked' : ''}
+                                       onchange="updateConfigTapparelle('${project.id}', 'serveTapparella', this.checked); render();"
+                                       class="w-5 h-5 accent-amber-600">
+                                <span class="font-semibold text-gray-800">🎚️ Tapparella nuova</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border-2 ${serveMotore ? 'border-blue-500 bg-blue-50' : 'border-gray-300'} hover:border-blue-400 transition-all">
+                                <input type="checkbox" 
+                                       ${serveMotore ? 'checked' : ''}
+                                       onchange="updateConfigTapparelle('${project.id}', 'serveMotore', this.checked); render();"
+                                       class="w-5 h-5 accent-blue-600">
+                                <span class="font-semibold text-gray-800">🔌 Motore</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border-2 ${serveAccessori ? 'border-purple-500 bg-purple-50' : 'border-gray-300'} hover:border-purple-400 transition-all">
+                                <input type="checkbox" 
+                                       ${serveAccessori ? 'checked' : ''}
+                                       onchange="updateConfigTapparelle('${project.id}', 'serveAccessori', this.checked); render();"
+                                       class="w-5 h-5 accent-purple-600">
+                                <span class="font-semibold text-gray-800">🔧 Accessori</span>
+                            </label>
+                        </div>
+                        <p class="text-xs text-amber-700 mt-2">💡 Questi valori saranno pre-impostati quando aggiungi una nuova posizione</p>
+                    </div>
+                    
                     ${renderRilievoGlobale(project, 'tapparelle', 'Tapparelle', '🎚️')}
                     
+                    <!-- Mostra config tapparella solo se serveTapparella -->
+                    ${serveTapparella ? `
                     <div class="space-y-2 mt-4">
                         <div class="grid md:grid-cols-2 gap-2">
                             <!-- 1. AZIENDA -->
@@ -14755,6 +14796,15 @@
                             </div>
                         </div>
                     </div>
+                    ` : `
+                    <!-- Messaggio quando solo motore/accessori -->
+                    <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mt-4 mb-4">
+                        <p class="text-blue-800">
+                            <strong>ℹ️ Configurazione ridotta:</strong> Hai selezionato solo Motore e/o Accessori (senza tapparella nuova).
+                            <br>Le opzioni di configurazione telo non sono necessarie.
+                        </p>
+                    </div>
+                    `}
                     
                     ${renderBRMConfig(project, 'tapparelle', 'Tapparelle', '🎚️')}
                 </div>
