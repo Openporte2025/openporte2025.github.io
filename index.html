@@ -1,7 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.38 - ⚡ TAB DINAMICO TAPPARELLE/MOTORE ✅
+    Open Porte v5.39 - 🔧 FIX DUPLICAZIONE SEZIONE MOTORI ✅
     ═══════════════════════════════════════════════════════════════
+    
+    🔧 v5.39 (04 DIC 2025) - FIX DUPLICAZIONE SEZIONE MOTORI
+    - 🗑️ RIMOSSA: Sezione duplicata "Configurazione Motore Default" in config globale
+    - 🔧 FIX: addMotoreTapparella() usa modelloMotore (non motoreModelloDefault)
+    - 🗑️ RIMOSSA: Funzione updateConfigTapparelleAccessorioMotore() non più usata
+    - 🧹 PULITI: Campi obsoleti da migrazione (motoreModelloDefault, comandoDefault, accessoriMotoreDefault)
+    - 📤 EXPORT JSON: Aggiunto motore_azienda nelle tapparelle
     
     🔧 v5.38 (04 DIC 2025) - TAB DINAMICO TAPPARELLE/MOTORE
     - ⚡ TAB DINAMICO: "Tapparelle" → "Motore" quando serveTapparella=false + serveMotore=true
@@ -1910,7 +1917,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.38 - Tab Dinamico Tapparelle/Motore</title>
+    <title>Open Porte v5.39 - Fix Duplicazione Motori</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3138,8 +3145,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.38';
-        const APP_VERSION_NOTE = '⚡ TAB DINAMICO TAPPARELLE/MOTORE + MOTORAZIENDA SOMFY';
+        const APP_VERSION = '5.39';
+        const APP_VERSION_NOTE = '🔧 FIX DUPLICAZIONE SEZIONE MOTORI';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -8109,10 +8116,6 @@
                         forniMotore: updatedProject.configTapparelle?.forniMotore || false,
                         modelloMotore: updatedProject.configTapparelle?.modelloMotore || '',
                         motoreAzienda: updatedProject.configTapparelle?.motoreAzienda || 'Somfy', // v5.38: Default Somfy
-                        // v5.31: Config motore default
-                        motoreModelloDefault: updatedProject.configTapparelle?.motoreModelloDefault || '',
-                        comandoDefault: updatedProject.configTapparelle?.comandoDefault || '',
-                        accessoriMotoreDefault: updatedProject.configTapparelle?.accessoriMotoreDefault || {},
                         // Legacy
                         motorizzazione: updatedProject.configTapparelle?.motorizzazione || '',
                         comando: updatedProject.configTapparelle?.comando || ''
@@ -15055,64 +15058,6 @@
                         </p>
                     </div>
                     `}
-                    
-                    <!-- 🔌 v5.31: CONFIGURAZIONE MOTORE DEFAULT - visibile se serveMotore -->
-                    ${serveMotore ? `
-                    <div class="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4 mb-4">
-                        <h5 class="font-bold text-blue-800 mb-3 flex items-center gap-2">
-                            🔌 Configurazione Motore Default
-                        </h5>
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <!-- Modello Motore -->
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Modello Motore</label>
-                                <select class="w-full px-3 py-2 border border-blue-300 rounded-lg bg-white"
-                                        onchange="updateConfigTapparelle('${project.id}', 'motoreModelloDefault', this.value)">
-                                    <option value="">Seleziona modello...</option>
-                                    ${MOTORI_SOMFY.map(m => `
-                                        <option value="${m.id}" ${project.configTapparelle?.motoreModelloDefault === m.id ? 'selected' : ''}>
-                                            ${m.modello} - €${m.prezzo.toFixed(2)}
-                                        </option>
-                                    `).join('')}
-                                </select>
-                            </div>
-                            
-                            <!-- Comando -->
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Comando / Telecomando</label>
-                                <select class="w-full px-3 py-2 border border-blue-300 rounded-lg bg-white"
-                                        onchange="updateConfigTapparelle('${project.id}', 'comandoDefault', this.value)">
-                                    <option value="">Nessuno / Da definire</option>
-                                    ${COMANDI_SOMFY.map(c => `
-                                        <option value="${c.id}" ${project.configTapparelle?.comandoDefault === c.id ? 'selected' : ''}>
-                                            ${c.nome} - €${c.prezzo.toFixed(2)}
-                                        </option>
-                                    `).join('')}
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <!-- Accessori Motore -->
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium mb-2">Accessori Motore</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                ${ACCESSORI_MOTORE_SOMFY.map(acc => {
-                                    const checked = project.configTapparelle?.accessoriMotoreDefault?.[acc.id] || false;
-                                    return `
-                                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg border ${checked ? 'bg-blue-100 border-blue-400' : 'bg-white border-gray-300'} cursor-pointer hover:bg-blue-50">
-                                            <input type="checkbox" 
-                                                   ${checked ? 'checked' : ''}
-                                                   onchange="updateConfigTapparelleAccessorioMotore('${project.id}', '${acc.id}', this.checked)"
-                                                   class="w-4 h-4 accent-blue-600">
-                                            <span class="text-sm">${acc.nome} <span class="text-blue-600 font-semibold">€${acc.prezzo.toFixed(2)}</span></span>
-                                        </label>
-                                    `;
-                                }).join('')}
-                            </div>
-                        </div>
-                        <p class="text-xs text-blue-600 mt-2">💡 Questi valori saranno pre-impostati quando aggiungi un motore</p>
-                    </div>
-                    ` : ''}
                     
                     ${renderBRMConfig(project, 'tapparelle', 'Tapparelle', '🎚️')}
                 </div>
@@ -22789,19 +22734,6 @@
                 saveState();
             }
         };
-        
-        // 🔌 v5.31: Funzione per gestire accessori motore nella config globale
-        window.updateConfigTapparelleAccessorioMotore = (projectId, accessorioId, checked) => {
-            const project = state.projects.find(p => p.id === projectId);
-            if (project) {
-                if (!project.configTapparelle) project.configTapparelle = {};
-                if (!project.configTapparelle.accessoriMotoreDefault) project.configTapparelle.accessoriMotoreDefault = {};
-                
-                project.configTapparelle.accessoriMotoreDefault[accessorioId] = checked;
-                saveState();
-                render();
-            }
-        };
 
         window.updateConfigZanzariere = (projectId, field, value) => {
             const project = state.projects.find(p => p.id === projectId);
@@ -23465,12 +23397,12 @@
                     if (!pos.tapparella.motori) {
                         pos.tapparella.motori = [];
                     }
-                    // 🆕 v5.34: Eredita valori dalla config globale
+                    // 🆕 v5.39: Usa modelloMotore da config globale (sezione "Forniamo motore")
                     const configDefault = project.configTapparelle || {};
                     pos.tapparella.motori.push({ 
-                        modelloId: configDefault.motoreModelloDefault || '',
-                        comandoId: configDefault.comandoDefault || '',
-                        accessori: configDefault.accessoriMotoreDefault ? {...configDefault.accessoriMotoreDefault} : {},
+                        modelloId: configDefault.modelloMotore || '',
+                        comandoId: '',
+                        accessori: {},
                         modelloManuale: '',
                         note: ''
                     });
@@ -24307,6 +24239,7 @@
                                 nuova_automazione: pos.tapparella.nuovaAutomazione || 'Manuale',
                                 forni_motore: pos.tapparella.forniMotore || false,
                                 modello_motore: pos.tapparella.modelloMotore || '',
+                                motore_azienda: pos.tapparella.motoreAzienda || 'Somfy', // v5.39
                                 brm: {  // 📊 Template completo BRM
                                     L: pos.tapparella.brm?.L ?? null,
                                     H: pos.tapparella.brm?.H ?? null,
