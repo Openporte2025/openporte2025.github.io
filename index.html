@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.47 - 🔧 UI DINAMICA PER FORNITORE ✅
+    Open Porte v5.48 - 🔧 PREVIEW CODICE DINAMICO ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.47 (04 DIC 2025) - UI DINAMICA PER FORNITORE
@@ -1963,7 +1963,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.47 - UI Dinamica per Fornitore</title>
+    <title>Open Porte v5.48 - Preview Codice Dinamico</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3191,8 +3191,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.47';
-        const APP_VERSION_NOTE = '🔧 UI DINAMICA PER FORNITORE';
+        const APP_VERSION = '5.48';
+        const APP_VERSION_NOTE = '🔧 PREVIEW CODICE DINAMICO';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -11835,6 +11835,11 @@
                     
                     // 🔧 v4.44: Re-render se cambiato fissaggio persiane per mostrare/nascondere telai
                     if (productType === 'persiana' && field === 'fissaggio') {
+                        render();
+                    }
+                    
+                    // 🔧 v5.47: Re-render se cambiano campi ferramenta per aggiornare preview codice
+                    if (productType === 'infisso' && (field === 'ferramenta1' || field === 'lato1' || field === 'esecuzione1' || field === 'azienda' || field === 'codiceModello')) {
                         render();
                     }
                     
