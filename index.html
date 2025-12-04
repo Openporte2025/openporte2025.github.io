@@ -5173,6 +5173,79 @@
             `;
         }
         
+        // 🆕 v5.35: Funzioni helper per Config Cassonetti Finstral
+        function renderSelectCodiceCassonetto(project) {
+            const mat = project.configCassonetti?.materialeCass || '';
+            const current = project.configCassonetti?.codiceCass || '';
+            
+            if (mat === 'PVC') {
+                return `
+                    <select onchange="updateConfigCassonetti('${project.id}', 'codiceCass', this.value)"
+                            class="w-full px-3 py-2 border rounded-lg">
+                        <option value="">Seleziona codice...</option>
+                        <option value="148" ${current === '148' ? 'selected' : ''}>148 - B≤148mm (standard)</option>
+                        <option value="148B" ${current === '148B' ? 'selected' : ''}>148B - B 335-600mm</option>
+                        <option value="300" ${current === '300' ? 'selected' : ''}>300 - B≤300mm</option>
+                        <option value="300B" ${current === '300B' ? 'selected' : ''}>300B - B 335-600mm</option>
+                    </select>
+                `;
+            } else if (mat === 'Legno') {
+                return `
+                    <select onchange="updateConfigCassonetti('${project.id}', 'codiceCass', this.value)"
+                            class="w-full px-3 py-2 border rounded-lg">
+                        <option value="">Seleziona codice...</option>
+                        <option value="9-48" ${current === '9-48' ? 'selected' : ''}>9-48 - B≤150mm (L max 2240)</option>
+                        <option value="9-48B" ${current === '9-48B' ? 'selected' : ''}>9-48B - B≤600mm (L max 2240)</option>
+                    </select>
+                `;
+            }
+            return '<p class="text-gray-400 text-sm py-2">← Seleziona prima materiale</p>';
+        }
+        
+        function renderSelectGruppoColoreCass(project) {
+            const mat = project.configCassonetti?.materialeCass || '';
+            const current = project.configCassonetti?.gruppoColoreCass || '';
+            
+            if (mat === 'PVC') {
+                return `
+                    <select onchange="updateConfigCassonetti('${project.id}', 'gruppoColoreCass', this.value)"
+                            class="w-full px-3 py-2 border rounded-lg">
+                        <option value="">Seleziona gruppo...</option>
+                        <option value="bianco" ${current === 'bianco' ? 'selected' : ''}>○ Tonalità Bianco (01,42,45,07,27)</option>
+                        <option value="scuri" ${current === 'scuri' ? 'selected' : ''}>● Colori Scuri (06,46,13,19,55)</option>
+                    </select>
+                `;
+            } else if (mat === 'Legno') {
+                return `
+                    <select onchange="updateConfigCassonetti('${project.id}', 'gruppoColoreCass', this.value)"
+                            class="w-full px-3 py-2 border rounded-lg">
+                        <option value="">Seleziona gruppo...</option>
+                        <option value="legno1" ${current === 'legno1' ? 'selected' : ''}>Gruppo 1 - Abete</option>
+                        <option value="legno2+3" ${current === 'legno2+3' ? 'selected' : ''}>Gruppo 2+3 - Rovere (prezzo maggiore)</option>
+                    </select>
+                `;
+            }
+            return '<p class="text-gray-400 text-sm py-2">← Seleziona prima materiale</p>';
+        }
+        
+        function renderSelectIsolamentoCass(project) {
+            if (!project.configCassonetti?.isolamentoPosaclima) return '';
+            const current = project.configCassonetti?.codiceIsolamento || '';
+            
+            return `
+                <div>
+                    <label class="block text-sm font-medium mb-1">10. Codice Isolamento</label>
+                    <select onchange="updateConfigCassonetti('${project.id}', 'codiceIsolamento', this.value)"
+                            class="w-full px-3 py-2 border rounded-lg bg-yellow-50">
+                        <option value="">Seleziona...</option>
+                        <option value="40830" ${current === '40830' ? 'selected' : ''}>40830 - 25mm (+63,1€/pz)</option>
+                        <option value="40831" ${current === '40831' ? 'selected' : ''}>40831 - 13mm (+47,4€/pz)</option>
+                    </select>
+                    <p class="text-xs text-yellow-600 mt-1">Usb: 0,87 W/m²K con isolamento</p>
+                </div>
+            `;
+        }
+        
         // 🔄 FUNZIONE DINAMICA: Aggiorna dropdown colori quando cambia finitura - v4.39 (base v4.33)
         window.aggiornaColoriPerFinitura = (finituraField, projectId, posId, productType) => {
             console.log(`🎨 Aggiorno colori per finitura: ${finituraField}`);
@@ -15204,74 +15277,17 @@
                                         <!-- 8. CODICE CASSONETTO (dipende da materiale) -->
                                         <div>
                                             <label class="block text-sm font-medium mb-1">8. Codice Cassonetto</label>
-                                            ${(() => {
-                                                const mat = project.configCassonetti?.materialeCass || '';
-                                                if (mat === 'PVC') {
-                                                    return \`
-                                                        <select onchange="updateConfigCassonetti('\${project.id}', 'codiceCass', this.value)"
-                                                                class="w-full px-3 py-2 border rounded-lg">
-                                                            <option value="">Seleziona codice...</option>
-                                                            <option value="148" \${project.configCassonetti?.codiceCass === '148' ? 'selected' : ''}>148 - B≤148mm (standard)</option>
-                                                            <option value="148B" \${project.configCassonetti?.codiceCass === '148B' ? 'selected' : ''}>148B - B 335-600mm</option>
-                                                            <option value="300" \${project.configCassonetti?.codiceCass === '300' ? 'selected' : ''}>300 - B≤300mm</option>
-                                                            <option value="300B" \${project.configCassonetti?.codiceCass === '300B' ? 'selected' : ''}>300B - B 335-600mm</option>
-                                                        </select>
-                                                    \`;
-                                                } else if (mat === 'Legno') {
-                                                    return \`
-                                                        <select onchange="updateConfigCassonetti('\${project.id}', 'codiceCass', this.value)"
-                                                                class="w-full px-3 py-2 border rounded-lg">
-                                                            <option value="">Seleziona codice...</option>
-                                                            <option value="9-48" \${project.configCassonetti?.codiceCass === '9-48' ? 'selected' : ''}>9-48 - B≤150mm (L max 2240)</option>
-                                                            <option value="9-48B" \${project.configCassonetti?.codiceCass === '9-48B' ? 'selected' : ''}>9-48B - B≤600mm (L max 2240)</option>
-                                                        </select>
-                                                    \`;
-                                                }
-                                                return '<p class="text-gray-400 text-sm py-2">← Seleziona prima materiale</p>';
-                                            })()}
+                                            ${renderSelectCodiceCassonetto(project)}
                                         </div>
                                         
                                         <!-- 9. GRUPPO COLORE (dipende da materiale) -->
                                         <div>
                                             <label class="block text-sm font-medium mb-1">9. Gruppo Colore</label>
-                                            ${(() => {
-                                                const mat = project.configCassonetti?.materialeCass || '';
-                                                if (mat === 'PVC') {
-                                                    return \`
-                                                        <select onchange="updateConfigCassonetti('\${project.id}', 'gruppoColoreCass', this.value)"
-                                                                class="w-full px-3 py-2 border rounded-lg">
-                                                            <option value="">Seleziona gruppo...</option>
-                                                            <option value="bianco" \${project.configCassonetti?.gruppoColoreCass === 'bianco' ? 'selected' : ''}>○ Tonalità Bianco (01,42,45,07,27)</option>
-                                                            <option value="scuri" \${project.configCassonetti?.gruppoColoreCass === 'scuri' ? 'selected' : ''}>● Colori Scuri (06,46,13,19,55)</option>
-                                                        </select>
-                                                    \`;
-                                                } else if (mat === 'Legno') {
-                                                    return \`
-                                                        <select onchange="updateConfigCassonetti('\${project.id}', 'gruppoColoreCass', this.value)"
-                                                                class="w-full px-3 py-2 border rounded-lg">
-                                                            <option value="">Seleziona gruppo...</option>
-                                                            <option value="legno1" \${project.configCassonetti?.gruppoColoreCass === 'legno1' ? 'selected' : ''}>Gruppo 1 - Abete</option>
-                                                            <option value="legno2+3" \${project.configCassonetti?.gruppoColoreCass === 'legno2+3' ? 'selected' : ''}>Gruppo 2+3 - Rovere (prezzo maggiore)</option>
-                                                        </select>
-                                                    \`;
-                                                }
-                                                return '<p class="text-gray-400 text-sm py-2">← Seleziona prima materiale</p>';
-                                            })()}
+                                            ${renderSelectGruppoColoreCass(project)}
                                         </div>
                                         
                                         <!-- 10. CODICE ISOLAMENTO (se isolamentoPosaclima checked) -->
-                                        ${project.configCassonetti?.isolamentoPosaclima ? \`
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">10. Codice Isolamento</label>
-                                            <select onchange="updateConfigCassonetti('\${project.id}', 'codiceIsolamento', this.value)"
-                                                    class="w-full px-3 py-2 border rounded-lg bg-yellow-50">
-                                                <option value="">Seleziona...</option>
-                                                <option value="40830" \${project.configCassonetti?.codiceIsolamento === '40830' ? 'selected' : ''}>40830 - 25mm (+63,1€/pz)</option>
-                                                <option value="40831" \${project.configCassonetti?.codiceIsolamento === '40831' ? 'selected' : ''}>40831 - 13mm (+47,4€/pz)</option>
-                                            </select>
-                                            <p class="text-xs text-yellow-600 mt-1">Usb: 0,87 W/m²K con isolamento</p>
-                                        </div>
-                                        \` : ''}
+                                        ${renderSelectIsolamentoCass(project)}
                                     `;
                                 }
                                 
