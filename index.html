@@ -1,7 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.42 - 🗑️ RIMOSSA SEZIONE "TIPO TAPPARELLA" ✅
+    Open Porte v5.43 - 🔧 NUOVA UI COMPONENTI DA FORNIRE ✅
     ═══════════════════════════════════════════════════════════════
+    
+    🔧 v5.43 (04 DIC 2025) - NUOVA UI COMPONENTI DA FORNIRE
+    - ✅ Rimossa vecchia sezione "Sostituzione Componenti" (4 radio)
+    - ✅ Nuova UI: Toggle "Tutti" + checkboxes singoli
+    - 🛤️ Guide: Modello/Colore visibili SOLO se checkbox Guide attivo
+    - 🔄 Stessa logica per GENERALE e POSIZIONI
+    - 🧹 Rimosso "Motore" da accessori (ora gestito separatamente)
     
     🔧 v5.42 (04 DIC 2025) - RIMOSSA SEZIONE "TIPO TAPPARELLA"
     - 🗑️ GENERALE: Rimossa sezione "5. Tipo Tapparella" (Manuale/Motore esistente/Motorizzata)
@@ -1934,7 +1941,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.42 - Rimossa Sezione Tipo Tapparella</title>
+    <title>Open Porte v5.43 - Nuova UI Componenti da Fornire</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3162,8 +3169,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.42';
-        const APP_VERSION_NOTE = '🗑️ RIMOSSA SEZIONE TIPO TAPPARELLA';
+        const APP_VERSION = '5.43';
+        const APP_VERSION_NOTE = '🔧 NUOVA UI COMPONENTI DA FORNIRE';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -5656,147 +5663,112 @@
             { id: 'cintino', label: 'Cintino', icon: '🎗️' },
             { id: 'passacinghia', label: 'Passacinghia', icon: '🔗' },
             { id: 'ganci', label: 'Ganci a molla', icon: '🪝' },
-            { id: 'guide', label: 'Guide', icon: '🛤️' },
-            { id: 'motore', label: 'Motore', icon: '⚡' }
+            { id: 'guide', label: 'Guide', icon: '🛤️' }
         ];
         
-        // Funzione per renderizzare sezione sostituzione componenti
-        function renderSostituzioneComponenti(projectId, posId, tap) {
-            const sostTipo = tap.sostTipo || 'tutto';
+        // 🆕 v5.43: Funzione per renderizzare componenti da fornire (semplificata)
+        function renderComponentiDaFornire(projectId, posId, tap) {
             const accessori = tap.accessoriDaSostituire || {};
             
-            // Se "tutto", tutti selezionati. Se "niente", tutti deselezionati.
-            const isDisabled = sostTipo !== 'selettiva';
-            const allChecked = sostTipo === 'tutto';
-            const noneChecked = sostTipo === 'niente';
+            // Verifica se tutti sono selezionati
+            const tuttiSelezionati = ACCESSORI_TAPPARELLA.every(acc => accessori[acc.id] === true);
             
             return `
-                <div class="mt-4 p-3 bg-gray-50 rounded-lg border">
-                    <label class="block text-sm font-bold mb-3">🔧 Sostituzione Componenti</label>
+                <div class="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <label class="block text-sm font-bold mb-3 text-green-800">🔧 Componenti da fornire</label>
                     
-                    <!-- Radio buttons -->
-                    <div class="flex flex-wrap gap-2 mb-3">
-                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'tutto' ? 'bg-blue-100 border-2 border-blue-500' : 'bg-white border'}">
-                            <input type="radio" name="sostTipo-${posId}" value="tutto"
-                                   ${sostTipo === 'tutto' ? 'checked' : ''}
-                                   onchange="updateSostTipo('${projectId}', '${posId}', 'tutto')"
-                                   class="w-4 h-4">
-                            <span class="text-sm font-medium">🔄 Sost. TUTTO</span>
-                        </label>
-                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'niente' ? 'bg-gray-200 border-2 border-gray-500' : 'bg-white border'}">
-                            <input type="radio" name="sostTipo-${posId}" value="niente"
-                                   ${sostTipo === 'niente' ? 'checked' : ''}
-                                   onchange="updateSostTipo('${projectId}', '${posId}', 'niente')"
-                                   class="w-4 h-4">
-                            <span class="text-sm font-medium">📄 Solo Telo</span>
-                        </label>
-                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'selettiva' ? 'bg-amber-100 border-2 border-amber-500' : 'bg-white border'}">
-                            <input type="radio" name="sostTipo-${posId}" value="selettiva"
-                                   ${sostTipo === 'selettiva' ? 'checked' : ''}
-                                   onchange="updateSostTipo('${projectId}', '${posId}', 'selettiva')"
-                                   class="w-4 h-4">
-                            <span class="text-sm font-medium">✏️ Selettiva</span>
-                        </label>
-                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'soloAccessori' ? 'bg-purple-100 border-2 border-purple-500' : 'bg-white border'}">
-                            <input type="radio" name="sostTipo-${posId}" value="soloAccessori"
-                                   ${sostTipo === 'soloAccessori' ? 'checked' : ''}
-                                   onchange="updateSostTipo('${projectId}', '${posId}', 'soloAccessori')"
-                                   class="w-4 h-4">
-                            <span class="text-sm font-medium">🔧 Solo Accessori</span>
+                    <!-- Toggle TUTTI -->
+                    <div class="mb-3">
+                        <label class="flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer ${tuttiSelezionati ? 'bg-green-200 border-2 border-green-500' : 'bg-white border-2 border-gray-300'} hover:border-green-400 transition-all">
+                            <input type="checkbox" 
+                                   ${tuttiSelezionati ? 'checked' : ''}
+                                   onchange="toggleTuttiComponenti('${projectId}', '${posId}', this.checked)"
+                                   class="w-5 h-5 accent-green-600">
+                            <span class="font-semibold text-green-800">✅ Tutti i componenti</span>
                         </label>
                     </div>
                     
-                    <!-- Checkbox accessori (visibili solo se non "niente") -->
-                    ${sostTipo !== 'niente' ? `
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
-                            ${ACCESSORI_TAPPARELLA.map(acc => {
-                                const isChecked = allChecked || accessori[acc.id];
-                                const isGuide = acc.id === 'guide';
-                                return `
-                                    <label class="flex items-center gap-2 px-2 py-1.5 rounded ${isChecked ? 'bg-green-100' : 'bg-white'} border cursor-pointer ${isDisabled ? 'opacity-60' : ''}">
-                                        <input type="checkbox" 
-                                               ${isChecked ? 'checked' : ''} 
-                                               ${isDisabled ? 'disabled' : ''}
-                                               onchange="updateAccessorio('${projectId}', '${posId}', '${acc.id}', this.checked)"
-                                               class="w-4 h-4">
-                                        <span class="text-xs">${acc.icon} ${acc.label}</span>
-                                    </label>
-                                `;
-                            }).join('')}
-                        </div>
-                        
-                        <!-- Campi Guide (visibili solo se guide selezionate) -->
-                        ${(allChecked || accessori.guide) ? `
-                            <div class="grid grid-cols-2 gap-2 p-2 bg-blue-50 rounded border border-blue-200">
-                                <div>
-                                    <label class="text-xs font-medium text-blue-700">🛤️ Modello Guida</label>
-                                    <input type="text" value="${tap.guida || ''}"
-                                           placeholder="Seleziona guida"
-                                           list="guida-tap-list-${posId}"
-                                           onchange="updateProduct('${projectId}', '${posId}', 'tapparella', 'guida', this.value)"
-                                           class="w-full compact-input border rounded mt-1">
-                                    <datalist id="guida-tap-list-${posId}">
-                                        ${GUIDE_PLASTICINO.map(g => `<option value="${g}">`).join('\\n')}
-                                    </datalist>
-                                </div>
-                                <div>
-                                    <label class="text-xs font-medium text-blue-700">🎨 Colore Guida</label>
-                                    <input type="text" value="${tap.coloreGuida || ''}"
-                                           placeholder="Seleziona colore"
-                                           list="colore-guida-list-${posId}"
-                                           onchange="updateProduct('${projectId}', '${posId}', 'tapparella', 'coloreGuida', this.value)"
-                                           class="w-full compact-input border rounded mt-1">
-                                    <datalist id="colore-guida-list-${posId}">
-                                        ${getColoriGuide().map(c => `<option value="${c}">`).join('\\n')}
-                                    </datalist>
-                                </div>
+                    <!-- Checkbox singoli -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
+                        ${ACCESSORI_TAPPARELLA.map(acc => {
+                            const isChecked = accessori[acc.id] === true;
+                            return `
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded ${isChecked ? 'bg-green-100 border-green-400' : 'bg-white border-gray-300'} border cursor-pointer hover:bg-green-50 transition-colors">
+                                    <input type="checkbox" 
+                                           ${isChecked ? 'checked' : ''} 
+                                           onchange="updateComponente('${projectId}', '${posId}', '${acc.id}', this.checked)"
+                                           class="w-4 h-4 accent-green-600">
+                                    <span class="text-xs">${acc.icon} ${acc.label}</span>
+                                </label>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <!-- Campi Guide (visibili solo se guide selezionate) -->
+                    ${accessori.guide ? `
+                        <div class="grid grid-cols-2 gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200 mt-3">
+                            <div>
+                                <label class="text-xs font-medium text-blue-700 block mb-1">🛤️ Modello Guida</label>
+                                <input type="text" value="${tap.guida || ''}"
+                                       placeholder="Seleziona guida"
+                                       list="guida-tap-list-${posId}"
+                                       onchange="updateProduct('${projectId}', '${posId}', 'tapparella', 'guida', this.value)"
+                                       class="w-full px-3 py-2 border rounded-lg text-sm">
+                                <datalist id="guida-tap-list-${posId}">
+                                    ${GUIDE_PLASTICINO.map(g => `<option value="${g}">`).join('\\n')}
+                                </datalist>
                             </div>
-                        ` : ''}
-                    ` : `
-                        <p class="text-xs text-gray-500 italic">Solo il telo verrà sostituito, nessun accessorio.</p>
-                    `}
+                            <div>
+                                <label class="text-xs font-medium text-blue-700 block mb-1">🎨 Colore Guida</label>
+                                <input type="text" value="${tap.coloreGuida || ''}"
+                                       placeholder="Seleziona colore"
+                                       list="colore-guida-list-${posId}"
+                                       onchange="updateProduct('${projectId}', '${posId}', 'tapparella', 'coloreGuida', this.value)"
+                                       class="w-full px-3 py-2 border rounded-lg text-sm">
+                                <datalist id="colore-guida-list-${posId}">
+                                    ${getColoriGuide().map(c => `<option value="${c}">`).join('\\n')}
+                                </datalist>
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }
         
-        // Funzioni di aggiornamento
-        function updateSostTipo(projectId, posId, tipo) {
-            updateProduct(projectId, posId, 'tapparella', 'sostTipo', tipo);
-            
-            // Gestione qta telo
-            if (tipo === 'soloAccessori') {
-                updateProduct(projectId, posId, 'tapparella', 'qta', 0); // No telo
-            } else {
-                updateProduct(projectId, posId, 'tapparella', 'qta', 1); // Con telo
-            }
-            
-            // Se "tutto", imposta tutti gli accessori a true
-            if (tipo === 'tutto') {
-                const allAccessori = {};
-                ACCESSORI_TAPPARELLA.forEach(a => allAccessori[a.id] = true);
-                updateProduct(projectId, posId, 'tapparella', 'accessoriDaSostituire', allAccessori);
-            }
-            // Se "niente", imposta tutti a false
-            else if (tipo === 'niente') {
-                const noAccessori = {};
-                ACCESSORI_TAPPARELLA.forEach(a => noAccessori[a.id] = false);
-                updateProduct(projectId, posId, 'tapparella', 'accessoriDaSostituire', noAccessori);
-            }
-            // Se "soloAccessori", accessori selezionabili ma niente telo
-            // (non resettiamo gli accessori, l'utente li sceglie)
-            
+        // 🆕 v5.43: Toggle tutti i componenti
+        window.toggleTuttiComponenti = (projectId, posId, checked) => {
+            const allAccessori = {};
+            ACCESSORI_TAPPARELLA.forEach(a => allAccessori[a.id] = checked);
+            updateProduct(projectId, posId, 'tapparella', 'accessoriDaSostituire', allAccessori);
             render();
-        }
+        };
         
-        function updateAccessorio(projectId, posId, accessorioId, checked) {
+        // 🆕 v5.43: Aggiorna singolo componente
+        window.updateComponente = (projectId, posId, accessorioId, checked) => {
             const project = state.projects.find(p => p.id === projectId);
             if (!project) return;
             const pos = project.positions.find(p => p.id === posId);
             if (!pos || !pos.tapparella) return;
             
-            const accessori = pos.tapparella.accessoriDaSostituire || {};
+            const accessori = {...(pos.tapparella.accessoriDaSostituire || {})};
             accessori[accessorioId] = checked;
             updateProduct(projectId, posId, 'tapparella', 'accessoriDaSostituire', accessori);
+            render();
+        };
+        
+        // LEGACY: Manteniamo le vecchie funzioni per compatibilità
+        function renderSostituzioneComponenti(projectId, posId, tap) {
+            return renderComponentiDaFornire(projectId, posId, tap);
+        }
+        
+        // Funzioni di aggiornamento LEGACY
+        function updateSostTipo(projectId, posId, tipo) {
+            // Legacy - non più usata ma mantenuta per compatibilità
+            render();
+        }
+        
+        function updateAccessorio(projectId, posId, accessorioId, checked) {
+            updateComponente(projectId, posId, accessorioId, checked);
             render();
         }
         
@@ -5970,136 +5942,109 @@
         }
         
         // Funzione per Config Globale Sostituzione Componenti
-        function renderSostituzioneComponentiConfig(projectId, configTapparelle) {
-            const sostTipo = configTapparelle?.sostTipo || 'tutto';
+        // 🆕 v5.43: Funzione per renderizzare componenti da fornire nel GENERALE
+        function renderComponentiDaFornireConfig(projectId, configTapparelle) {
             const accessori = configTapparelle?.accessoriDaSostituire || {};
             
-            const isDisabled = sostTipo !== 'selettiva';
-            const allChecked = sostTipo === 'tutto';
+            // Verifica se tutti sono selezionati
+            const tuttiSelezionati = ACCESSORI_TAPPARELLA.every(acc => accessori[acc.id] === true);
             
             return `
-                <div class="col-span-2 mt-2 p-3 bg-gray-50 rounded-lg border">
-                    <label class="block text-sm font-bold mb-3">🔧 4. Sostituzione Componenti Default</label>
+                <div class="col-span-2 mt-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <label class="block text-sm font-bold mb-3 text-green-800">🔧 Componenti da fornire (Default)</label>
                     
-                    <!-- Radio buttons -->
-                    <div class="flex flex-wrap gap-2 mb-3">
-                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'tutto' ? 'bg-blue-100 border-2 border-blue-500' : 'bg-white border'}">
-                            <input type="radio" name="sostTipoConfig-${projectId}" value="tutto"
-                                   ${sostTipo === 'tutto' ? 'checked' : ''}
-                                   onchange="updateSostTipoConfig('${projectId}', 'tutto')"
-                                   class="w-4 h-4">
-                            <span class="text-sm font-medium">🔄 Sost. TUTTO</span>
-                        </label>
-                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'niente' ? 'bg-gray-200 border-2 border-gray-500' : 'bg-white border'}">
-                            <input type="radio" name="sostTipoConfig-${projectId}" value="niente"
-                                   ${sostTipo === 'niente' ? 'checked' : ''}
-                                   onchange="updateSostTipoConfig('${projectId}', 'niente')"
-                                   class="w-4 h-4">
-                            <span class="text-sm font-medium">📄 Solo Telo</span>
-                        </label>
-                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'selettiva' ? 'bg-amber-100 border-2 border-amber-500' : 'bg-white border'}">
-                            <input type="radio" name="sostTipoConfig-${projectId}" value="selettiva"
-                                   ${sostTipo === 'selettiva' ? 'checked' : ''}
-                                   onchange="updateSostTipoConfig('${projectId}', 'selettiva')"
-                                   class="w-4 h-4">
-                            <span class="text-sm font-medium">✏️ Selettiva</span>
-                        </label>
-                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${sostTipo === 'soloAccessori' ? 'bg-purple-100 border-2 border-purple-500' : 'bg-white border'}">
-                            <input type="radio" name="sostTipoConfig-${projectId}" value="soloAccessori"
-                                   ${sostTipo === 'soloAccessori' ? 'checked' : ''}
-                                   onchange="updateSostTipoConfig('${projectId}', 'soloAccessori')"
-                                   class="w-4 h-4">
-                            <span class="text-sm font-medium">🔧 Solo Accessori</span>
+                    <!-- Toggle TUTTI -->
+                    <div class="mb-3">
+                        <label class="flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer ${tuttiSelezionati ? 'bg-green-200 border-2 border-green-500' : 'bg-white border-2 border-gray-300'} hover:border-green-400 transition-all">
+                            <input type="checkbox" 
+                                   ${tuttiSelezionati ? 'checked' : ''}
+                                   onchange="toggleTuttiComponentiConfig('${projectId}', this.checked)"
+                                   class="w-5 h-5 accent-green-600">
+                            <span class="font-semibold text-green-800">✅ Tutti i componenti</span>
                         </label>
                     </div>
                     
-                    <!-- Checkbox accessori -->
-                    ${sostTipo !== 'niente' ? `
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
-                            ${ACCESSORI_TAPPARELLA.map(acc => {
-                                const isChecked = allChecked || accessori[acc.id];
-                                return `
-                                    <label class="flex items-center gap-2 px-2 py-1.5 rounded ${isChecked ? 'bg-green-100' : 'bg-white'} border cursor-pointer ${isDisabled ? 'opacity-60' : ''}">
-                                        <input type="checkbox" 
-                                               ${isChecked ? 'checked' : ''} 
-                                               ${isDisabled ? 'disabled' : ''}
-                                               onchange="updateAccessorioConfig('${projectId}', '${acc.id}', this.checked)"
-                                               class="w-4 h-4">
-                                        <span class="text-xs">${acc.icon} ${acc.label}</span>
-                                    </label>
-                                `;
-                            }).join('')}
-                        </div>
-                        
-                        <!-- Campi Guide -->
-                        ${(allChecked || accessori.guide) ? `
-                            <div class="grid grid-cols-2 gap-2 p-2 bg-blue-50 rounded border border-blue-200">
-                                <div>
-                                    <label class="text-xs font-medium text-blue-700">🛤️ Modello Guida</label>
-                                    <input type="text" 
-                                           value="${configTapparelle?.guida || ''}"
-                                           placeholder="Seleziona guida"
-                                           list="config-guida-tap-list-${projectId}"
-                                           onchange="updateConfigTapparelle('${projectId}', 'guida', this.value)"
-                                           class="w-full px-2 py-1 border rounded mt-1 text-sm">
-                                    <datalist id="config-guida-tap-list-${projectId}">
-                                        ${GUIDE_PLASTICINO.map(g => `<option value="${g}">`).join('\\n')}
-                                    </datalist>
-                                </div>
-                                <div>
-                                    <label class="text-xs font-medium text-blue-700">🎨 Colore Guida</label>
-                                    <input type="text" 
-                                           value="${configTapparelle?.coloreGuida || ''}"
-                                           placeholder="Seleziona colore"
-                                           list="config-colore-guida-list-${projectId}"
-                                           onchange="updateConfigTapparelle('${projectId}', 'coloreGuida', this.value)"
-                                           class="w-full px-2 py-1 border rounded mt-1 text-sm">
-                                    <datalist id="config-colore-guida-list-${projectId}">
-                                        ${getColoriGuide().map(c => `<option value="${c}">`).join('\\n')}
-                                    </datalist>
-                                </div>
+                    <!-- Checkbox singoli -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
+                        ${ACCESSORI_TAPPARELLA.map(acc => {
+                            const isChecked = accessori[acc.id] === true;
+                            return `
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded ${isChecked ? 'bg-green-100 border-green-400' : 'bg-white border-gray-300'} border cursor-pointer hover:bg-green-50 transition-colors">
+                                    <input type="checkbox" 
+                                           ${isChecked ? 'checked' : ''} 
+                                           onchange="updateComponenteConfig('${projectId}', '${acc.id}', this.checked)"
+                                           class="w-4 h-4 accent-green-600">
+                                    <span class="text-xs">${acc.icon} ${acc.label}</span>
+                                </label>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <!-- Campi Guide (visibili solo se guide selezionate) -->
+                    ${accessori.guide ? `
+                        <div class="grid grid-cols-2 gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200 mt-3">
+                            <div>
+                                <label class="text-xs font-medium text-blue-700 block mb-1">🛤️ Modello Guida</label>
+                                <input type="text" 
+                                       value="${configTapparelle?.guida || ''}"
+                                       placeholder="Seleziona guida"
+                                       list="config-guida-tap-list-${projectId}"
+                                       onchange="updateConfigTapparelle('${projectId}', 'guida', this.value)"
+                                       class="w-full px-3 py-2 border rounded-lg text-sm">
+                                <datalist id="config-guida-tap-list-${projectId}">
+                                    ${GUIDE_PLASTICINO.map(g => `<option value="${g}">`).join('\\n')}
+                                </datalist>
                             </div>
-                        ` : ''}
-                    ` : `
-                        <p class="text-xs text-gray-500 italic">Default: Solo il telo verrà sostituito.</p>
-                    `}
+                            <div>
+                                <label class="text-xs font-medium text-blue-700 block mb-1">🎨 Colore Guida</label>
+                                <input type="text" 
+                                       value="${configTapparelle?.coloreGuida || ''}"
+                                       placeholder="Seleziona colore"
+                                       list="config-colore-guida-list-${projectId}"
+                                       onchange="updateConfigTapparelle('${projectId}', 'coloreGuida', this.value)"
+                                       class="w-full px-3 py-2 border rounded-lg text-sm">
+                                <datalist id="config-colore-guida-list-${projectId}">
+                                    ${getColoriGuide().map(c => `<option value="${c}">`).join('\\n')}
+                                </datalist>
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }
         
-        // Funzioni di aggiornamento Config
+        // 🆕 v5.43: Toggle tutti i componenti nel GENERALE
+        window.toggleTuttiComponentiConfig = (projectId, checked) => {
+            const allAccessori = {};
+            ACCESSORI_TAPPARELLA.forEach(a => allAccessori[a.id] = checked);
+            updateConfigTapparelle(projectId, 'accessoriDaSostituire', allAccessori);
+            render();
+        };
+        
+        // 🆕 v5.43: Aggiorna singolo componente nel GENERALE
+        window.updateComponenteConfig = (projectId, accessorioId, checked) => {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const accessori = {...(project.configTapparelle?.accessoriDaSostituire || {})};
+            accessori[accessorioId] = checked;
+            updateConfigTapparelle(projectId, 'accessoriDaSostituire', accessori);
+            render();
+        };
+        
+        // LEGACY: Manteniamo le vecchie funzioni per compatibilità
+        function renderSostituzioneComponentiConfig(projectId, configTapparelle) {
+            return renderComponentiDaFornireConfig(projectId, configTapparelle);
+        }
+        
+        // Funzioni di aggiornamento Config LEGACY
         function updateSostTipoConfig(projectId, tipo) {
-            updateConfigTapparelle(projectId, 'sostTipo', tipo);
-            
-            // Gestione qta telo default
-            if (tipo === 'soloAccessori') {
-                updateConfigTapparelle(projectId, 'qta', 0); // No telo
-            } else {
-                updateConfigTapparelle(projectId, 'qta', 1); // Con telo
-            }
-            
-            if (tipo === 'tutto') {
-                const allAccessori = {};
-                ACCESSORI_TAPPARELLA.forEach(a => allAccessori[a.id] = true);
-                updateConfigTapparelle(projectId, 'accessoriDaSostituire', allAccessori);
-            } else if (tipo === 'niente') {
-                const noAccessori = {};
-                ACCESSORI_TAPPARELLA.forEach(a => noAccessori[a.id] = false);
-                updateConfigTapparelle(projectId, 'accessoriDaSostituire', noAccessori);
-            }
-            // soloAccessori: accessori selezionabili manualmente
-            
+            // Legacy - non più usata
             render();
         }
         
         function updateAccessorioConfig(projectId, accessorioId, checked) {
-            const project = state.projects.find(p => p.id === projectId);
-            if (!project) return;
-            
-            const accessori = project.configTapparelle?.accessoriDaSostituire || {};
-            accessori[accessorioId] = checked;
-            updateConfigTapparelle(projectId, 'accessoriDaSostituire', accessori);
-            render();
+            updateComponenteConfig(projectId, accessorioId, checked);
         }
         
         // Mappa modello → categoria colori
@@ -20157,56 +20102,9 @@
                             </div>
                             ` : '' })()}
 
-                            <!-- 🔧 ACCESSORI - visibile se serveAccessori (senza tapparella) -->
+                            <!-- 🔧 COMPONENTI DA FORNIRE - visibile se serveAccessori (senza tapparella) -->
                             ${tap.serveAccessori && !tap.serveTapparella ? `
-                            <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 mb-3">
-                                <h5 class="font-semibold text-purple-800 mb-3 flex items-center gap-2">
-                                    🔧 Accessori da Sostituire <span class="text-xs font-normal">(tapparella esistente)</span>
-                                </h5>
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
-                                    ${ACCESSORI_TAPPARELLA.filter(acc => acc.id !== 'motore').map(acc => {
-                                        const accessori = tap.accessoriDaSostituire || {};
-                                        const isChecked = accessori[acc.id];
-                                        return `
-                                            <label class="flex items-center gap-2 px-2 py-1.5 rounded ${isChecked ? 'bg-green-100 border-green-400' : 'bg-white'} border cursor-pointer hover:bg-purple-100 transition-colors">
-                                                <input type="checkbox" 
-                                                       ${isChecked ? 'checked' : ''} 
-                                                       onchange="updateAccessorio('${project.id}', '${pos.id}', '${acc.id}', this.checked)"
-                                                       class="w-4 h-4 accent-purple-600">
-                                                <span class="text-sm">${acc.icon} ${acc.label}</span>
-                                            </label>
-                                        `;
-                                    }).join('')}
-                                </div>
-                                
-                                <!-- Campi Guide (visibili solo se guide selezionate) -->
-                                ${(tap.accessoriDaSostituire?.guide) ? `
-                                    <div class="grid grid-cols-2 gap-2 p-2 bg-blue-50 rounded border border-blue-200">
-                                        <div>
-                                            <label class="text-xs font-medium text-blue-700">🛤️ Modello Guida</label>
-                                            <input type="text" value="${tap.guida || ''}"
-                                                   placeholder="Seleziona guida"
-                                                   list="guida-solo-acc-list-${pos.id}"
-                                                   onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'guida', this.value)"
-                                                   class="w-full compact-input border rounded mt-1">
-                                            <datalist id="guida-solo-acc-list-${pos.id}">
-                                                <option value="S25/20">
-                                                <option value="S25/40">
-                                                <option value="S30/20">
-                                                <option value="S30/40">
-                                                <option value="Rinforzata">
-                                            </datalist>
-                                        </div>
-                                        <div>
-                                            <label class="text-xs font-medium text-blue-700">🎨 Colore Guida</label>
-                                            <input type="text" value="${tap.coloreGuida || ''}"
-                                                   placeholder="Colore guida"
-                                                   onchange="updateProduct('${project.id}', '${pos.id}', 'tapparella', 'coloreGuida', this.value)"
-                                                   class="w-full compact-input border rounded mt-1">
-                                        </div>
-                                    </div>
-                                ` : ''}
-                            </div>
+                            ${renderComponentiDaFornire(project.id, pos.id, tap)}
                             ` : ''}
 
                             <div class="bg-amber-50 border-2 border-amber-300 rounded-lg p-4 mb-3">
