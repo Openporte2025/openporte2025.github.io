@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.31 - 🔌 DATABASE MOTORI SOMFY + PREZZI ✅
+    Open Porte v5.34 - 🔌 DROPDOWN MOTORI CON PREZZI NELLE POSIZIONI ✅
     ═══════════════════════════════════════════════════════════════
     
-    🔧 v5.31 (04 DIC 2025) - DATABASE MOTORI SOMFY
+    🔧 v5.34 (04 DIC 2025) - DROPDOWN MOTORI POSIZIONI
     ─────────────────────────────────────────────────
-    - 🔌 DATABASE MOTORI: Oximo, RS100 Hybrid, LT50 Helios, LT60 Orion con prezzi
-    - 📻 DATABASE COMANDI: Amy 1 io, Situo 1/5, Smoove Origin con prezzi
-    - 🔧 DATABASE ACCESSORI MOTORE: Supporto, Corona, Ruota, IZYMO con prezzi
-    - ⚙️ CONFIG GLOBALE: Sezione "Configurazione Motore Default" quando serveMotore
-    - 💰 PREZZI: Mostrati nei dropdown per preventivi rapidi
+    - 🔌 POSIZIONI: Dropdown modello motore con prezzi (come config globale)
+    - 📻 POSIZIONI: Dropdown comando con prezzi
+    - 🔧 POSIZIONI: Checkbox accessori motore con prezzi
+    - 📋 EREDITARIETÀ: Nuovi motori ereditano valori dalla config globale
+    - 📝 ALTRO: Opzione "Altro" per modelli non in lista
     
-    🔧 v5.30 (03 DIC 2025) - CONFIG GLOBALE CHECKBOX
+    🔧 v5.33 (04 DIC 2025) - FIX EXPORT JSON
     ─────────────────────────────────────────────────────────────
     - 🎯 CHECKBOX: Tapparella nuova / Motore / Accessori
     - 📋 SEZIONI CONDIZIONALI: Mostra solo ciò che serve
@@ -1879,7 +1879,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.31 - Database Motori Somfy</title>
+    <title>Open Porte v5.34 - Dropdown Motori Prezzi Posizioni</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3107,8 +3107,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.31';
-        const APP_VERSION_NOTE = '🔌 DATABASE MOTORI SOMFY + PREZZI';
+        const APP_VERSION = '5.34';
+        const APP_VERSION_NOTE = '🔌 DROPDOWN MOTORI CON PREZZI NELLE POSIZIONI';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -5442,7 +5442,7 @@
             { id: 'oximo_20', modello: 'Oximo 50 io 20/17', coppia: 20, prezzo: 137.66 },
             { id: 'oximo_30', modello: 'Oximo 50 io 30/17', coppia: 30, prezzo: 145.83 },
             { id: 'rs100_hybrid', modello: 'RS100 io hybrid 20/17', coppia: 20, prezzo: 836.95 },
-            { id: 'lt50_helios', modello: 'LT 50 Helios WT 30/17', coppia: 30, prezzo: 1198.80 },
+            { id: 'lt50_helios', modello: 'LT 50 Helios WT 30/17', coppia: 30, prezzo: 119.88 },
             { id: 'lt60_orion', modello: 'LT60 Orion S 55/17', coppia: 55, prezzo: 174.00 }
         ];
         
@@ -5450,11 +5450,11 @@
             { id: 'supporto', nome: 'Supporto operatore da avvitare', prezzo: 94.60 },
             { id: 'corona_60', nome: 'Corona OTT.60 I', prezzo: 17.67 },
             { id: 'ruota_60', nome: 'Ruota per rullo ottagonale Ø60mm', prezzo: 21.00 },
-            { id: 'izymo', nome: 'IZYMO Shutter Receiver io', prezzo: 665.90 }
+            { id: 'izymo', nome: 'IZYMO Shutter Receiver io', prezzo: 66.59 }
         ];
         
         const COMANDI_SOMFY = [
-            { id: 'amy1', nome: 'Amy 1 io + cornice quadrata', prezzo: 234.60 },
+            { id: 'amy1', nome: 'Amy 1 io + cornice quadrata', prezzo: 23.46 },
             { id: 'situo1', nome: 'Situo 1 IO Pure', prezzo: 84.20 },
             { id: 'situo5', nome: 'Situo 5 IO Pure', prezzo: 111.10 },
             { id: 'smoove', nome: 'Smoove Origin IO', prezzo: 77.60 }
@@ -7911,9 +7911,29 @@
                     
                     // CONFIG TAPPARELLE
                     configTapparelle: {
+                        // Checkbox cosa serve (default)
+                        serveTapparella: updatedProject.configTapparelle?.serveTapparella !== false,
+                        serveMotore: updatedProject.configTapparelle?.serveMotore || false,
+                        serveAccessori: updatedProject.configTapparelle?.serveAccessori || false,
+                        // Dati tapparella
                         azienda: updatedProject.configTapparelle?.azienda || '',
+                        modello: updatedProject.configTapparelle?.modello || '',
                         tipo: updatedProject.configTapparelle?.tipo || '',
                         colore: updatedProject.configTapparelle?.colore || '',
+                        // Sostituzione componenti
+                        sostTipo: updatedProject.configTapparelle?.sostTipo || 'tutto',
+                        accessoriDaSostituire: updatedProject.configTapparelle?.accessoriDaSostituire || {},
+                        guida: updatedProject.configTapparelle?.guida || '',
+                        coloreGuida: updatedProject.configTapparelle?.coloreGuida || '',
+                        // Tipo tapparella
+                        nuovaAutomazione: updatedProject.configTapparelle?.nuovaAutomazione || 'Manuale',
+                        forniMotore: updatedProject.configTapparelle?.forniMotore || false,
+                        modelloMotore: updatedProject.configTapparelle?.modelloMotore || '',
+                        // v5.31: Config motore default
+                        motoreModelloDefault: updatedProject.configTapparelle?.motoreModelloDefault || '',
+                        comandoDefault: updatedProject.configTapparelle?.comandoDefault || '',
+                        accessoriMotoreDefault: updatedProject.configTapparelle?.accessoriMotoreDefault || {},
+                        // Legacy
                         motorizzazione: updatedProject.configTapparelle?.motorizzazione || '',
                         comando: updatedProject.configTapparelle?.comando || ''
                     },
@@ -19932,80 +19952,78 @@
                                                 </button>
                                             </div>
                                             
-                                            <!-- Marca Motore -->
-                                            <div class="mb-3">
-                                                <label class="text-xs font-medium text-gray-700">🏭 Marca</label>
-                                                <input type="text" 
-                                                       value="${motore.marca || ''}"
-                                                       placeholder="Es: Somfy, Nice..."
-                                                       list="marca-motore-list-${idx}"
-                                                       onchange="updateMotoreTapparellaField('${project.id}', '${pos.id}', ${idx}, 'marca', this.value)"
-                                                       class="w-full px-3 py-2 border rounded text-sm mt-1">
-                                                <datalist id="marca-motore-list-${idx}">
-                                                    <option value="Somfy">
-                                                    <option value="Nice">
-                                                    <option value="Cherubini">
-                                                    <option value="BTicino">
-                                                    <option value="Came">
-                                                    <option value="Faac">
-                                                </datalist>
-                                            </div>
-
-                                            <!-- Modello/Trasmettitore -->
-                                            <div class="mb-3">
-                                                <label class="text-xs font-medium text-gray-700">📡 Modello / Trasmettitore</label>
-                                                <input type="text" 
-                                                       value="${motore.modello || ''}"
-                                                       placeholder="Es: LT, Oximo, Hybrid..."
-                                                       list="modello-motore-list-${idx}"
-                                                       onchange="updateMotoreTapparellaField('${project.id}', '${pos.id}', ${idx}, 'modello', this.value)"
-                                                       class="w-full px-3 py-2 border rounded text-sm mt-1">
-                                                <datalist id="modello-motore-list-${idx}">
-                                                    <option value="LT">
-                                                    <option value="Oximo">
-                                                    <option value="Hybrid">
-                                                    <option value="Era">
-                                                    <option value="Neo">
-                                                    <option value="Spider">
-                                                </datalist>
-                                            </div>
-
-                                            <!-- Tipo Alimentazione -->
-                                            <div class="mb-3">
-                                                <label class="text-xs font-medium text-gray-700 block mb-2">⚡ Tipo Alimentazione</label>
-                                                <div class="flex gap-4">
-                                                    <label class="flex items-center gap-2 cursor-pointer">
-                                                        <input type="radio" 
-                                                               name="alimentazione-${idx}" 
-                                                               value="Filare"
-                                                               ${!motore.alimentazione || motore.alimentazione === 'Filare' ? 'checked' : ''}
-                                                               onchange="updateMotoreTapparellaField('${project.id}', '${pos.id}', ${idx}, 'alimentazione', this.value)"
-                                                               class="w-4 h-4">
-                                                        <span class="text-sm">🔌 Filare</span>
-                                                    </label>
-                                                    <label class="flex items-center gap-2 cursor-pointer">
-                                                        <input type="radio" 
-                                                               name="alimentazione-${idx}" 
-                                                               value="Telecomando"
-                                                               ${motore.alimentazione === 'Telecomando' ? 'checked' : ''}
-                                                               onchange="updateMotoreTapparellaField('${project.id}', '${pos.id}', ${idx}, 'alimentazione', this.value)"
-                                                               class="w-4 h-4">
-                                                        <span class="text-sm">📻 Telecomando</span>
-                                                    </label>
+                                            <div class="grid md:grid-cols-2 gap-3">
+                                                <!-- Modello Motore con prezzo -->
+                                                <div>
+                                                    <label class="text-xs font-medium text-gray-700">🔌 Modello Motore</label>
+                                                    <select class="w-full px-3 py-2 border border-blue-300 rounded text-sm mt-1 bg-white"
+                                                            onchange="updateMotoreTapparellaField('${project.id}', '${pos.id}', ${idx}, 'modelloId', this.value)">
+                                                        <option value="">Seleziona modello...</option>
+                                                        ${MOTORI_SOMFY.map(m => `
+                                                            <option value="${m.id}" ${motore.modelloId === m.id ? 'selected' : ''}>
+                                                                ${m.modello} - €${m.prezzo.toFixed(2)}
+                                                            </option>
+                                                        `).join('')}
+                                                        <option value="altro" ${motore.modelloId === 'altro' ? 'selected' : ''}>Altro (inserisci manualmente)</option>
+                                                    </select>
+                                                </div>
+                                                
+                                                <!-- Comando con prezzo -->
+                                                <div>
+                                                    <label class="text-xs font-medium text-gray-700">📻 Comando / Telecomando</label>
+                                                    <select class="w-full px-3 py-2 border border-blue-300 rounded text-sm mt-1 bg-white"
+                                                            onchange="updateMotoreTapparellaField('${project.id}', '${pos.id}', ${idx}, 'comandoId', this.value)">
+                                                        <option value="">Nessuno / Non fornito</option>
+                                                        ${COMANDI_SOMFY.map(c => `
+                                                            <option value="${c.id}" ${motore.comandoId === c.id ? 'selected' : ''}>
+                                                                ${c.nome} - €${c.prezzo.toFixed(2)}
+                                                            </option>
+                                                        `).join('')}
+                                                        <option value="altro" ${motore.comandoId === 'altro' ? 'selected' : ''}>Altro</option>
+                                                    </select>
                                                 </div>
                                             </div>
-
-                                            <!-- Trasmettitore (solo se Telecomando) -->
-                                            ${motore.alimentazione === 'Telecomando' ? `
-                                                <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-3">
-                                                    <label class="text-xs font-medium text-purple-800 block mb-2">📻 Trasmettitore</label>
+                                            
+                                            <!-- Modello manuale (se "Altro" selezionato) -->
+                                            ${motore.modelloId === 'altro' ? `
+                                                <div class="mt-3">
+                                                    <label class="text-xs font-medium text-gray-700">📝 Modello (manuale)</label>
                                                     <input type="text" 
-                                                           value="${motore.trasmettitore || ''}"
-                                                           placeholder="Es: RTS, IO, Telis..."
-                                                           onchange="updateMotoreTapparellaField('${project.id}', '${pos.id}', ${idx}, 'trasmettitore', this.value)"
-                                                           class="w-full px-3 py-2 border border-purple-300 rounded text-sm">
+                                                           value="${motore.modelloManuale || ''}"
+                                                           placeholder="Inserisci marca e modello..."
+                                                           onchange="updateMotoreTapparellaField('${project.id}', '${pos.id}', ${idx}, 'modelloManuale', this.value)"
+                                                           class="w-full px-3 py-2 border rounded text-sm mt-1">
                                                 </div>
                                             ` : ''}
+                                            
+                                            <!-- Accessori Motore -->
+                                            <div class="mt-3">
+                                                <label class="text-xs font-medium text-gray-700 block mb-2">🔧 Accessori Motore</label>
+                                                <div class="grid grid-cols-2 gap-2">
+                                                    ${ACCESSORI_MOTORE_SOMFY.map(acc => {
+                                                        const checked = motore.accessori?.[acc.id] || false;
+                                                        return `
+                                                            <label class="flex items-center gap-2 px-2 py-1.5 rounded text-xs ${checked ? 'bg-blue-100 border-blue-400' : 'bg-gray-50 border-gray-300'} border cursor-pointer hover:bg-blue-50">
+                                                                <input type="checkbox" 
+                                                                       ${checked ? 'checked' : ''}
+                                                                       onchange="updateMotoreTapparellaAccessorio('${project.id}', '${pos.id}', ${idx}, '${acc.id}', this.checked)"
+                                                                       class="w-3 h-3 accent-blue-600">
+                                                                <span>${acc.nome} <span class="text-blue-600 font-semibold">€${acc.prezzo.toFixed(2)}</span></span>
+                                                            </label>
+                                                        `;
+                                                    }).join('')}
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Note motore -->
+                                            <div class="mt-3">
+                                                <label class="text-xs font-medium text-gray-700">📝 Note</label>
+                                                <input type="text" 
+                                                       value="${motore.note || ''}"
+                                                       placeholder="Note aggiuntive..."
+                                                       onchange="updateMotoreTapparellaField('${project.id}', '${pos.id}', ${idx}, 'note', this.value)"
+                                                       class="w-full px-3 py-2 border rounded text-sm mt-1">
+                                            </div>
                                         </div>
                                     `).join('')}
                                 ` : `
@@ -23166,12 +23184,14 @@
                     if (!pos.tapparella.motori) {
                         pos.tapparella.motori = [];
                     }
-                    // FASE 11a: Inizializza motore con tutti i campi
+                    // 🆕 v5.34: Eredita valori dalla config globale
+                    const configDefault = project.configTapparelle || {};
                     pos.tapparella.motori.push({ 
-                        marca: '',
-                        modello: '',
-                        alimentazione: 'Filare',
-                        trasmettitore: ''
+                        modelloId: configDefault.motoreModelloDefault || '',
+                        comandoId: configDefault.comandoDefault || '',
+                        accessori: configDefault.accessoriMotoreDefault ? {...configDefault.accessoriMotoreDefault} : {},
+                        modelloManuale: '',
+                        note: ''
                     });
                     saveState();
                     render();
@@ -23198,10 +23218,26 @@
                 if (pos && pos.tapparella && pos.tapparella.motori && pos.tapparella.motori[motoreIdx]) {
                     pos.tapparella.motori[motoreIdx][field] = value;
                     saveState();
-                    // ⚡ FASE 024: Se cambia alimentazione, ri-renderizza con debounce per mostrare/nascondere trasmettitore
-                    if (field === 'alimentazione') {
+                    // ⚡ v5.34: Re-render se cambia modelloId (per mostrare/nascondere campo manuale)
+                    if (field === 'modelloId' || field === 'alimentazione') {
                         deferredRender();
                     }
+                }
+            }
+        };
+        
+        // 🔌 v5.34: Funzione per gestire accessori motore nelle posizioni
+        window.updateMotoreTapparellaAccessorio = (projectId, posId, motoreIdx, accessorioId, checked) => {
+            const project = state.projects.find(p => p.id === projectId);
+            if (project) {
+                const pos = project.positions.find(p => p.id === posId);
+                if (pos && pos.tapparella && pos.tapparella.motori && pos.tapparella.motori[motoreIdx]) {
+                    if (!pos.tapparella.motori[motoreIdx].accessori) {
+                        pos.tapparella.motori[motoreIdx].accessori = {};
+                    }
+                    pos.tapparella.motori[motoreIdx].accessori[accessorioId] = checked;
+                    saveState();
+                    render();
                 }
             }
         };
@@ -23977,6 +24013,10 @@
                                 accessori_da_sostituire: pos.tapparella.accessoriDaSostituire || {},
                                 guida: pos.tapparella.guida || '',
                                 colore_guida: pos.tapparella.coloreGuida || '',
+                                // 🆕 v5.32: Tipo automazione e motore
+                                nuova_automazione: pos.tapparella.nuovaAutomazione || 'Manuale',
+                                forni_motore: pos.tapparella.forniMotore || false,
+                                modello_motore: pos.tapparella.modelloMotore || '',
                                 brm: {  // 📊 Template completo BRM
                                     L: pos.tapparella.brm?.L ?? null,
                                     H: pos.tapparella.brm?.H ?? null,
