@@ -1,9 +1,36 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.43 - 🔧 NUOVA UI COMPONENTI DA FORNIRE ✅
+    Open Porte v5.44 - 🔧 NUOVA UI COMPONENTI DA FORNIRE ✅
     ═══════════════════════════════════════════════════════════════
     
-    🔧 v5.43 (04 DIC 2025) - NUOVA UI COMPONENTI DA FORNIRE
+    🔧 v5.44 (04 DIC 2025) - CODICI MODELLO + FERRAMENTA FINSTRAL
+    
+    ═══════════════════════════════════════════════════════════════════
+    📋 NUOVA SEZIONE INFISSO CON CODICI FINSTRAL
+    ═══════════════════════════════════════════════════════════════════
+    
+    MODIFICHE:
+    - ✅ Nuovo campo "Codice Modello" (101, 102, 201, 202, etc.)
+    - ✅ Sezione "Ferramenta Anta 1" con:
+      • Tipo ferramenta (411, 211, 430, 425, 475, 710, etc.)
+      • Lato apertura (-1 = SX, -2 = DX)
+      • Esecuzione sicurezza (0, 3, 4)
+    - ✅ Sezione "Ferramenta Anta 2" (opzionale per 2 ante)
+    - ✅ Opzioni ferramenta checkbox:
+      • Ribalta estate/inverno
+      • Aerazione limitata a ribalta
+      • Fermo anta FB200
+    - ✅ Dropdown raggruppati per categoria (optgroup)
+    - ✅ Preview codice ferramenta in tempo reale
+    
+    NUOVI CAMPI DATI:
+    - inf.codiceModello (es. "201")
+    - inf.ferramenta1 / inf.ferramenta2 (es. "411")
+    - inf.lato1 / inf.lato2 (es. "-1" o "-2")
+    - inf.esecuzione1 / inf.esecuzione2 (es. "0", "3", "4")
+    - inf.ribaltaEstateInverno (boolean)
+    - inf.aerazioneLimitata (boolean)
+    - inf.fermoAntaFB200 (boolean)
     - ✅ Rimossa vecchia sezione "Sostituzione Componenti" (4 radio)
     - ✅ Nuova UI: Toggle "Tutti" + checkboxes singoli
     - 🛤️ Guide: Modello/Colore visibili SOLO se checkbox Guide attivo
@@ -1941,7 +1968,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.43 - Nuova UI Componenti da Fornire</title>
+    <title>Open Porte v5.44 - Nuova UI Componenti da Fornire</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3169,7 +3196,7 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.43';
+        const APP_VERSION = '5.44';
         const APP_VERSION_NOTE = '🔧 NUOVA UI COMPONENTI DA FORNIRE';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
@@ -5666,7 +5693,7 @@
             { id: 'guide', label: 'Guide', icon: '🛤️' }
         ];
         
-        // 🆕 v5.43: Funzione per renderizzare componenti da fornire (semplificata)
+        // 🆕 v5.44: Funzione per renderizzare componenti da fornire (semplificata)
         function renderComponentiDaFornire(projectId, posId, tap) {
             const accessori = tap.accessoriDaSostituire || {};
             
@@ -5735,7 +5762,7 @@
             `;
         }
         
-        // 🆕 v5.43: Toggle tutti i componenti
+        // 🆕 v5.44: Toggle tutti i componenti
         window.toggleTuttiComponenti = (projectId, posId, checked) => {
             const allAccessori = {};
             ACCESSORI_TAPPARELLA.forEach(a => allAccessori[a.id] = checked);
@@ -5743,7 +5770,7 @@
             render();
         };
         
-        // 🆕 v5.43: Aggiorna singolo componente
+        // 🆕 v5.44: Aggiorna singolo componente
         window.updateComponente = (projectId, posId, accessorioId, checked) => {
             const project = state.projects.find(p => p.id === projectId);
             if (!project) return;
@@ -5942,7 +5969,7 @@
         }
         
         // Funzione per Config Globale Sostituzione Componenti
-        // 🆕 v5.43: Funzione per renderizzare componenti da fornire nel GENERALE
+        // 🆕 v5.44: Funzione per renderizzare componenti da fornire nel GENERALE
         function renderComponentiDaFornireConfig(projectId, configTapparelle) {
             const accessori = configTapparelle?.accessoriDaSostituire || {};
             
@@ -6013,7 +6040,7 @@
             `;
         }
         
-        // 🆕 v5.43: Toggle tutti i componenti nel GENERALE
+        // 🆕 v5.44: Toggle tutti i componenti nel GENERALE
         window.toggleTuttiComponentiConfig = (projectId, checked) => {
             const allAccessori = {};
             ACCESSORI_TAPPARELLA.forEach(a => allAccessori[a.id] = checked);
@@ -6021,7 +6048,7 @@
             render();
         };
         
-        // 🆕 v5.43: Aggiorna singolo componente nel GENERALE
+        // 🆕 v5.44: Aggiorna singolo componente nel GENERALE
         window.updateComponenteConfig = (projectId, accessorioId, checked) => {
             const project = state.projects.find(p => p.id === projectId);
             if (!project) return;
@@ -18894,7 +18921,7 @@
                                 <h5 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
                                     📋 Dati Specifici
                                 </h5>
-                                <div class="grid md:grid-cols-3 gap-3">
+                                <div class="grid md:grid-cols-2 gap-3 mb-3">
                                     <div>
                                         <label class="text-xs font-medium">Quantità</label>
                                         <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'qta', this.value)"
@@ -18905,66 +18932,254 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="text-xs font-medium">Tipo <span class="text-red-600">*</span></label>
+                                        <label class="text-xs font-medium">Codice Modello <span class="text-red-600">*</span></label>
                                         ${(() => {
-                                            const options = ['F1', 'PF1', 'F2', 'PF2', 'F3', 'PF3', 'HST', 'FISSO'];
-                                            const current = inf.tipo || '';
-                                            const isCustom = current && !options.includes(current);
-                                            const selectId = `inf-tipo-${pos.id}`;
-                                            const inputId = `inf-tipo-input-${pos.id}`;
-                                            // 🆕 v4.24: Campo obbligatorio - bordo arancione se vuoto
-                                            const isEmpty = !current || current === '';
+                                            const codiciModello = [
+                                                { value: '101', label: '101 - 1 anta (tab.101)' },
+                                                { value: '102', label: '102 - 1 anta (tab.102)' },
+                                                { value: '201', label: '201 - 2 ante orizzontali (101+101)' },
+                                                { value: '202', label: '202 - 2 ante orizzontali (101+102)' },
+                                                { value: '203', label: '203 - 2 ante orizzontali (102+101)' },
+                                                { value: '204', label: '204 - 2 ante orizzontali (102+102)' },
+                                                { value: '205', label: '205 - 2 ante verticali (101+101)' },
+                                                { value: '206', label: '206 - 2 ante verticali (101+102)' },
+                                                { value: '207', label: '207 - 2 ante verticali (102+101)' },
+                                                { value: '208', label: '208 - 2 ante verticali (102+102)' },
+                                                { value: '301', label: '301 - 3 campi orizzontali' },
+                                                { value: '302', label: '302 - 3 campi (101+102+101)' },
+                                                { value: '303', label: '303 - 3 campi (102+101+102)' },
+                                                { value: '304', label: '304 - 3 campi (102+102+102)' },
+                                                { value: '310', label: '310 - 3 campi a T' },
+                                                { value: '401', label: '401 - Forme speciali' },
+                                                { value: '414', label: '414 - Fisso + scorrevole' },
+                                                { value: '420', label: '420 - Anta + fisso centrale' },
+                                                { value: '424', label: '424 - 2 ante con montante' }
+                                            ];
+                                            const current = inf.codiceModello || '';
+                                            const isEmpty = !current;
                                             const borderClass = isEmpty ? 'border-2 border-orange-400 bg-orange-50' : 'border';
                                             
                                             return `
-                                                <select id="${selectId}" 
-                                                        onchange="handleProductSelectWithCustom('${project.id}', '${pos.id}', 'infisso', 'tipo', '${selectId}', '${inputId}', this.value)"
+                                                <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'codiceModello', this.value)"
                                                         class="w-full compact-input ${borderClass} rounded mt-1">
                                                     <option value="">-- Seleziona --</option>
-                                                    ${options.map(opt => `
-                                                        <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
+                                                    ${codiciModello.map(c => `
+                                                        <option value="${c.value}" ${current === c.value ? 'selected' : ''}>${c.label}</option>
                                                     `).join('')}
-                                                    <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ ALTRO - SCRIVO</option>
                                                 </select>
-                                                <input type="text" 
-                                                       id="${inputId}"
-                                                       value="${isCustom ? current : ''}"
-                                                       onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'tipo', this.value)"
-                                                       placeholder="Inserisci tipo personalizzato..."
-                                                       style="display: ${isCustom ? 'block' : 'none'};"
-                                                       class="w-full compact-input border rounded mt-2">
+                                            `;
+                                        })()}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 🔩 FERRAMENTA ANTA 1 -->
+                            <div class="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+                                    🔩 Ferramenta Anta 1
+                                </h5>
+                                <div class="grid md:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="text-xs font-medium">Tipo Ferramenta</label>
+                                        ${(() => {
+                                            const ferramenta = [
+                                                { group: '── ANTA/RIBALTA ──', options: [
+                                                    { value: '411', label: '411 - Anta/ribalta cerniere in vista' },
+                                                    { value: '211', label: '211 - Anta/ribalta cerniere scomparsa' },
+                                                    { value: '409', label: '409 - Ribalta primaria (in vista)' },
+                                                    { value: '209', label: '209 - Ribalta primaria (scomparsa)' }
+                                                ]},
+                                                { group: '── SOLO ANTA ──', options: [
+                                                    { value: '430', label: '430 - Anta interno (in vista)' },
+                                                    { value: '230', label: '230 - Anta interno (scomparsa)' },
+                                                    { value: '453', label: '453 - Anta esterno (in vista)' }
+                                                ]},
+                                                { group: '── SOLO RIBALTA ──', options: [
+                                                    { value: '432', label: '432 - Ribalta maniglia laterale' },
+                                                    { value: '232', label: '232 - Ribalta (scomparsa)' },
+                                                    { value: '431', label: '431 - Sopraluce maniglia sup.' },
+                                                    { value: '433', label: '433 - Sopraluce comando leva' },
+                                                    { value: '434', label: '434 - Sopraluce arganello' },
+                                                    { value: '436', label: '436 - Sopraluce motorizzato' }
+                                                ]},
+                                                { group: '── CON MONTANTE MOBILE ──', options: [
+                                                    { value: '425', label: '425 - Anta + comando leva (in vista)' },
+                                                    { value: '225', label: '225 - Anta + comando leva (scomparsa)' },
+                                                    { value: 'B411', label: 'B411 - Anta/rib. + montante alto' },
+                                                    { value: 'B211', label: 'B211 - Anta/rib. + montante (scomp.)' }
+                                                ]},
+                                                { group: '── PORTA-FINESTRA SERRATURA ──', options: [
+                                                    { value: '475', label: '475 - Anta/ribalta + serratura' },
+                                                    { value: '275', label: '275 - Anta/ribalta serr. (scomparsa)' },
+                                                    { value: '473', label: '473 - Anta + serratura interno' },
+                                                    { value: '471', label: '471 - Anta + serratura esterno' }
+                                                ]},
+                                                { group: '── SCORREVOLI ──', options: [
+                                                    { value: '710', label: '710 - Scorrevole parallela a ribalta' },
+                                                    { value: '711', label: '711 - Scorrevole + serratura' },
+                                                    { value: '720', label: '720 - Scorrevole parallela' },
+                                                    { value: '721', label: '721 - Scorrevole + serratura' }
+                                                ]}
+                                            ];
+                                            const current = inf.ferramenta1 || '';
+                                            
+                                            return `
+                                                <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'ferramenta1', this.value)"
+                                                        class="w-full compact-input border rounded mt-1">
+                                                    <option value="">-- Seleziona --</option>
+                                                    ${ferramenta.map(g => `
+                                                        <optgroup label="${g.group}">
+                                                            ${g.options.map(o => `
+                                                                <option value="${o.value}" ${current === o.value ? 'selected' : ''}>${o.label}</option>
+                                                            `).join('')}
+                                                        </optgroup>
+                                                    `).join('')}
+                                                </select>
                                             `;
                                         })()}
                                     </div>
                                     <div>
-                                        <label class="text-xs font-medium">Apertura</label>
+                                        <label class="text-xs font-medium">Lato Apertura</label>
+                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'lato1', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">--</option>
+                                            <option value="-1" ${(inf.lato1 || '') === '-1' ? 'selected' : ''}>SX (sinistra)</option>
+                                            <option value="-2" ${(inf.lato1 || '') === '-2' ? 'selected' : ''}>DX (destra)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Esecuzione Sicurezza</label>
+                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'esecuzione1', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="0" ${(inf.esecuzione1 || '0') === '0' ? 'selected' : ''}>0 - Standard</option>
+                                            <option value="3" ${(inf.esecuzione1 || '') === '3' ? 'selected' : ''}>3 - Perimetrale + angolare</option>
+                                            <option value="4" ${(inf.esecuzione1 || '') === '4' ? 'selected' : ''}>4 - Perimetrale</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-xs text-indigo-600 font-mono">
+                                    Codice: <strong>${inf.ferramenta1 || '---'}${inf.lato1 || ''}</strong> (esec. ${inf.esecuzione1 || '0'})
+                                </div>
+                            </div>
+                            
+                            <!-- 🔩 FERRAMENTA ANTA 2 (opzionale) -->
+                            <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                                    🔩 Ferramenta Anta 2 <span class="text-xs font-normal text-purple-500">(se presente)</span>
+                                </h5>
+                                <div class="grid md:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="text-xs font-medium">Tipo Ferramenta</label>
                                         ${(() => {
-                                            const options = ['SX', 'DX', 'Fisso', 'Ribalta', 'Sp. SX', 'Sp. DX', 'SCORR.PARALL'];
-                                            const current = inf.apertura || '';
-                                            const isCustom = current && !options.includes(current);
-                                            const selectId = `inf-apertura-${pos.id}`;
-                                            const inputId = `inf-apertura-input-${pos.id}`;
+                                            const ferramenta = [
+                                                { group: '── ANTA/RIBALTA ──', options: [
+                                                    { value: '411', label: '411 - Anta/ribalta cerniere in vista' },
+                                                    { value: '211', label: '211 - Anta/ribalta cerniere scomparsa' },
+                                                    { value: '409', label: '409 - Ribalta primaria (in vista)' },
+                                                    { value: '209', label: '209 - Ribalta primaria (scomparsa)' }
+                                                ]},
+                                                { group: '── SOLO ANTA ──', options: [
+                                                    { value: '430', label: '430 - Anta interno (in vista)' },
+                                                    { value: '230', label: '230 - Anta interno (scomparsa)' },
+                                                    { value: '453', label: '453 - Anta esterno (in vista)' }
+                                                ]},
+                                                { group: '── SOLO RIBALTA ──', options: [
+                                                    { value: '432', label: '432 - Ribalta maniglia laterale' },
+                                                    { value: '232', label: '232 - Ribalta (scomparsa)' },
+                                                    { value: '431', label: '431 - Sopraluce maniglia sup.' },
+                                                    { value: '433', label: '433 - Sopraluce comando leva' },
+                                                    { value: '434', label: '434 - Sopraluce arganello' },
+                                                    { value: '436', label: '436 - Sopraluce motorizzato' }
+                                                ]},
+                                                { group: '── CON MONTANTE MOBILE ──', options: [
+                                                    { value: '425', label: '425 - Anta + comando leva (in vista)' },
+                                                    { value: '225', label: '225 - Anta + comando leva (scomparsa)' },
+                                                    { value: 'B411', label: 'B411 - Anta/rib. + montante alto' },
+                                                    { value: 'B211', label: 'B211 - Anta/rib. + montante (scomp.)' }
+                                                ]},
+                                                { group: '── PORTA-FINESTRA SERRATURA ──', options: [
+                                                    { value: '475', label: '475 - Anta/ribalta + serratura' },
+                                                    { value: '275', label: '275 - Anta/ribalta serr. (scomparsa)' },
+                                                    { value: '473', label: '473 - Anta + serratura interno' },
+                                                    { value: '471', label: '471 - Anta + serratura esterno' }
+                                                ]},
+                                                { group: '── SCORREVOLI ──', options: [
+                                                    { value: '710', label: '710 - Scorrevole parallela a ribalta' },
+                                                    { value: '711', label: '711 - Scorrevole + serratura' },
+                                                    { value: '720', label: '720 - Scorrevole parallela' },
+                                                    { value: '721', label: '721 - Scorrevole + serratura' }
+                                                ]}
+                                            ];
+                                            const current = inf.ferramenta2 || '';
                                             
                                             return `
-                                                <select id="${selectId}" 
-                                                        onchange="handleProductSelectWithCustom('${project.id}', '${pos.id}', 'infisso', 'apertura', '${selectId}', '${inputId}', this.value)"
+                                                <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'ferramenta2', this.value)"
                                                         class="w-full compact-input border rounded mt-1">
-                                                    <option value="">--</option>
-                                                    ${options.map(opt => `
-                                                        <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
+                                                    <option value="">-- Nessuna --</option>
+                                                    ${ferramenta.map(g => `
+                                                        <optgroup label="${g.group}">
+                                                            ${g.options.map(o => `
+                                                                <option value="${o.value}" ${current === o.value ? 'selected' : ''}>${o.label}</option>
+                                                            `).join('')}
+                                                        </optgroup>
                                                     `).join('')}
-                                                    <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ ALTRO - SCRIVO</option>
                                                 </select>
-                                                <input type="text" 
-                                                       id="${inputId}"
-                                                       value="${isCustom ? current : ''}"
-                                                       onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'apertura', this.value)"
-                                                       placeholder="Inserisci apertura personalizzata..."
-                                                       style="display: ${isCustom ? 'block' : 'none'};"
-                                                       class="w-full compact-input border rounded mt-2">
                                             `;
                                         })()}
                                     </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Lato Apertura</label>
+                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'lato2', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="">--</option>
+                                            <option value="-1" ${(inf.lato2 || '') === '-1' ? 'selected' : ''}>SX (sinistra)</option>
+                                            <option value="-2" ${(inf.lato2 || '') === '-2' ? 'selected' : ''}>DX (destra)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium">Esecuzione Sicurezza</label>
+                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'esecuzione2', this.value)"
+                                                class="w-full compact-input border rounded mt-1">
+                                            <option value="0" ${(inf.esecuzione2 || '0') === '0' ? 'selected' : ''}>0 - Standard</option>
+                                            <option value="3" ${(inf.esecuzione2 || '') === '3' ? 'selected' : ''}>3 - Perimetrale + angolare</option>
+                                            <option value="4" ${(inf.esecuzione2 || '') === '4' ? 'selected' : ''}>4 - Perimetrale</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                ${inf.ferramenta2 ? `
+                                <div class="mt-2 text-xs text-purple-600 font-mono">
+                                    Codice: <strong>${inf.ferramenta2 || '---'}${inf.lato2 || ''}</strong> (esec. ${inf.esecuzione2 || '0'})
+                                </div>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- ⚙️ OPZIONI FERRAMENTA -->
+                            <div class="bg-amber-50 border-2 border-amber-200 rounded-lg p-4 mb-3">
+                                <h5 class="font-semibold text-amber-800 mb-3 flex items-center gap-2">
+                                    ⚙️ Opzioni Ferramenta
+                                </h5>
+                                <div class="grid md:grid-cols-3 gap-3">
+                                    <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded border">
+                                        <input type="checkbox" 
+                                               ${inf.ribaltaEstateInverno ? 'checked' : ''}
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'ribaltaEstateInverno', this.checked)"
+                                               class="w-4 h-4">
+                                        <span class="text-sm">Ribalta estate/inverno</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded border">
+                                        <input type="checkbox" 
+                                               ${inf.aerazioneLimitata ? 'checked' : ''}
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'aerazioneLimitata', this.checked)"
+                                               class="w-4 h-4">
+                                        <span class="text-sm">Aerazione limitata a ribalta</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded border">
+                                        <input type="checkbox" 
+                                               ${inf.fermoAntaFB200 ? 'checked' : ''}
+                                               onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'fermoAntaFB200', this.checked)"
+                                               class="w-4 h-4">
+                                        <span class="text-sm">Fermo anta FB200</span>
+                                    </label>
                                 </div>
                             </div>
 
