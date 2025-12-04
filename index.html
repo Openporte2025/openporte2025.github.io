@@ -1,33 +1,29 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.45 - 🔧 CODICI MODELLO FINSTRAL CORRETTI ✅
+    Open Porte v5.46 - 🔧 FERRAMENTA SEMPLIFICATA ✅
     ═══════════════════════════════════════════════════════════════
     
-    🔧 v5.44 (04 DIC 2025) - CODICI MODELLO + FERRAMENTA FINSTRAL
+    🔧 v5.46 (04 DIC 2025) - FERRAMENTA SEMPLIFICATA
     
     ═══════════════════════════════════════════════════════════════════
-    📋 NUOVA SEZIONE INFISSO CON CODICI FINSTRAL
+    📋 SEZIONE INFISSO CON CODICI FINSTRAL
     ═══════════════════════════════════════════════════════════════════
     
-    MODIFICHE:
-    - ✅ Nuovo campo "Codice Modello" (101, 102, 201, 202, etc.)
-    - ✅ Sezione "Ferramenta Anta 1" con:
-      • Tipo ferramenta (411, 211, 430, 425, 475, 710, etc.)
-      • Lato apertura (-1 = SX, -2 = DX)
-      • Esecuzione sicurezza (0, 3, 4)
-    - ✅ Sezione "Ferramenta Anta 2" (opzionale per 2 ante)
-    - ✅ Opzioni ferramenta checkbox:
-      • Ribalta estate/inverno
-      • Aerazione limitata a ribalta
-      • Fermo anta FB200
-    - ✅ Dropdown raggruppati per categoria (optgroup)
-    - ✅ Preview codice ferramenta in tempo reale
+    MODIFICHE v5.46:
+    - ✅ Rimossa sezione "Ferramenta Anta 2" (non necessaria)
+    - ✅ Per 2 ante: SX/DX indica quale anta è la principale
+    
+    STRUTTURA FERRAMENTA (singola):
+    - ✅ Tipo ferramenta (411, 211, 430, 425, 475, 710, etc.)
+    - ✅ Lato apertura (-1 = SX, -2 = DX)
+    - ✅ Esecuzione sicurezza (0, 3, 4)
+    - ✅ Opzioni checkbox (ribalta, aerazione, fermo)
     
     NUOVI CAMPI DATI:
     - inf.codiceModello (es. "201")
-    - inf.ferramenta1 / inf.ferramenta2 (es. "411")
-    - inf.lato1 / inf.lato2 (es. "-1" o "-2")
-    - inf.esecuzione1 / inf.esecuzione2 (es. "0", "3", "4")
+    - inf.ferramenta1 (es. "411")
+    - inf.lato1 (es. "-1" o "-2")
+    - inf.esecuzione1 (es. "0", "3", "4")
     - inf.ribaltaEstateInverno (boolean)
     - inf.aerazioneLimitata (boolean)
     - inf.fermoAntaFB200 (boolean)
@@ -1968,7 +1964,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.45 - Codici Modello Finstral Corretti</title>
+    <title>Open Porte v5.46 - Ferramenta Semplificata</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3196,8 +3192,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.45';
-        const APP_VERSION_NOTE = '🔧 CODICI MODELLO FINSTRAL CORRETTI';
+        const APP_VERSION = '5.46';
+        const APP_VERSION_NOTE = '🔧 FERRAMENTA SEMPLIFICATA';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -19015,10 +19011,10 @@
                                 </div>
                             </div>
                             
-                            <!-- 🔩 FERRAMENTA ANTA 1 -->
+                            <!-- 🔩 FERRAMENTA -->
                             <div class="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-4 mb-3">
                                 <h5 class="font-semibold text-indigo-800 mb-3 flex items-center gap-2">
-                                    🔩 Ferramenta Anta 1
+                                    🔩 Ferramenta
                                 </h5>
                                 <div class="grid md:grid-cols-3 gap-3">
                                     <div>
@@ -19102,97 +19098,6 @@
                                 <div class="mt-2 text-xs text-indigo-600 font-mono">
                                     Codice: <strong>${inf.ferramenta1 || '---'}${inf.lato1 || ''}</strong> (esec. ${inf.esecuzione1 || '0'})
                                 </div>
-                            </div>
-                            
-                            <!-- 🔩 FERRAMENTA ANTA 2 (opzionale) -->
-                            <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 mb-3">
-                                <h5 class="font-semibold text-purple-800 mb-3 flex items-center gap-2">
-                                    🔩 Ferramenta Anta 2 <span class="text-xs font-normal text-purple-500">(se presente)</span>
-                                </h5>
-                                <div class="grid md:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="text-xs font-medium">Tipo Ferramenta</label>
-                                        ${(() => {
-                                            const ferramenta = [
-                                                { group: '── ANTA/RIBALTA ──', options: [
-                                                    { value: '411', label: '411 - Anta/ribalta cerniere in vista' },
-                                                    { value: '211', label: '211 - Anta/ribalta cerniere scomparsa' },
-                                                    { value: '409', label: '409 - Ribalta primaria (in vista)' },
-                                                    { value: '209', label: '209 - Ribalta primaria (scomparsa)' }
-                                                ]},
-                                                { group: '── SOLO ANTA ──', options: [
-                                                    { value: '430', label: '430 - Anta interno (in vista)' },
-                                                    { value: '230', label: '230 - Anta interno (scomparsa)' },
-                                                    { value: '453', label: '453 - Anta esterno (in vista)' }
-                                                ]},
-                                                { group: '── SOLO RIBALTA ──', options: [
-                                                    { value: '432', label: '432 - Ribalta maniglia laterale' },
-                                                    { value: '232', label: '232 - Ribalta (scomparsa)' },
-                                                    { value: '431', label: '431 - Sopraluce maniglia sup.' },
-                                                    { value: '433', label: '433 - Sopraluce comando leva' },
-                                                    { value: '434', label: '434 - Sopraluce arganello' },
-                                                    { value: '436', label: '436 - Sopraluce motorizzato' }
-                                                ]},
-                                                { group: '── CON MONTANTE MOBILE ──', options: [
-                                                    { value: '425', label: '425 - Anta + comando leva (in vista)' },
-                                                    { value: '225', label: '225 - Anta + comando leva (scomparsa)' },
-                                                    { value: 'B411', label: 'B411 - Anta/rib. + montante alto' },
-                                                    { value: 'B211', label: 'B211 - Anta/rib. + montante (scomp.)' }
-                                                ]},
-                                                { group: '── PORTA-FINESTRA SERRATURA ──', options: [
-                                                    { value: '475', label: '475 - Anta/ribalta + serratura' },
-                                                    { value: '275', label: '275 - Anta/ribalta serr. (scomparsa)' },
-                                                    { value: '473', label: '473 - Anta + serratura interno' },
-                                                    { value: '471', label: '471 - Anta + serratura esterno' }
-                                                ]},
-                                                { group: '── SCORREVOLI ──', options: [
-                                                    { value: '710', label: '710 - Scorrevole parallela a ribalta' },
-                                                    { value: '711', label: '711 - Scorrevole + serratura' },
-                                                    { value: '720', label: '720 - Scorrevole parallela' },
-                                                    { value: '721', label: '721 - Scorrevole + serratura' }
-                                                ]}
-                                            ];
-                                            const current = inf.ferramenta2 || '';
-                                            
-                                            return `
-                                                <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'ferramenta2', this.value)"
-                                                        class="w-full compact-input border rounded mt-1">
-                                                    <option value="">-- Nessuna --</option>
-                                                    ${ferramenta.map(g => `
-                                                        <optgroup label="${g.group}">
-                                                            ${g.options.map(o => `
-                                                                <option value="${o.value}" ${current === o.value ? 'selected' : ''}>${o.label}</option>
-                                                            `).join('')}
-                                                        </optgroup>
-                                                    `).join('')}
-                                                </select>
-                                            `;
-                                        })()}
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Lato Apertura</label>
-                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'lato2', this.value)"
-                                                class="w-full compact-input border rounded mt-1">
-                                            <option value="">--</option>
-                                            <option value="-1" ${(inf.lato2 || '') === '-1' ? 'selected' : ''}>SX (sinistra)</option>
-                                            <option value="-2" ${(inf.lato2 || '') === '-2' ? 'selected' : ''}>DX (destra)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Esecuzione Sicurezza</label>
-                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'esecuzione2', this.value)"
-                                                class="w-full compact-input border rounded mt-1">
-                                            <option value="0" ${(inf.esecuzione2 || '0') === '0' ? 'selected' : ''}>0 - Standard</option>
-                                            <option value="3" ${(inf.esecuzione2 || '') === '3' ? 'selected' : ''}>3 - Perimetrale + angolare</option>
-                                            <option value="4" ${(inf.esecuzione2 || '') === '4' ? 'selected' : ''}>4 - Perimetrale</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                ${inf.ferramenta2 ? `
-                                <div class="mt-2 text-xs text-purple-600 font-mono">
-                                    Codice: <strong>${inf.ferramenta2 || '---'}${inf.lato2 || ''}</strong> (esec. ${inf.esecuzione2 || '0'})
-                                </div>
-                                ` : ''}
                             </div>
                             
                             <!-- ⚙️ OPZIONI FERRAMENTA -->
