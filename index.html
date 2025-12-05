@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.52 - 🔧 CODICI MODELLO COMPLETI + NO BARRA IN CONFIG ✅
+    Open Porte v5.53 - 🔩 CERNIERE AUTO DA FERRAMENTA ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.47 (04 DIC 2025) - UI DINAMICA PER FORNITORE
@@ -1963,7 +1963,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.52 - Codici Modello Completi</title>
+    <title>Open Porte v5.53 - Cerniere Auto da Ferramenta</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3191,8 +3191,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.52';
-        const APP_VERSION_NOTE = '🔧 CODICI MODELLO COMPLETI + NO BARRA IN CONFIG';
+        const APP_VERSION = '5.53';
+        const APP_VERSION_NOTE = '🔩 CERNIERE AUTO DA FERRAMENTA';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -11843,6 +11843,26 @@
                         render();
                     }
                     
+                    // 🔧 v5.53: AUTO-CALCOLO CERNIERE da ferramenta
+                    if (productType === 'infisso' && field === 'ferramenta1') {
+                        const ferr = value || '';
+                        let cerniere = '';
+                        // Cerniere A-VISTA: codici 4xx
+                        if (['411', '409', '430', '453', '425', '475', '473', '471', 'B411'].includes(ferr)) {
+                            cerniere = 'a-vista';
+                        }
+                        // Cerniere A-SCOMPARSA: codici 2xx
+                        else if (['211', '209', '230', '232', '225', '275', 'B211'].includes(ferr)) {
+                            cerniere = 'a-scomparsa';
+                        }
+                        // Scorrevoli 7xx: nessuna cerniera
+                        // Salva automaticamente
+                        if (cerniere) {
+                            pos.infisso.cerniere = cerniere;
+                            console.log(`🔩 v5.53: Cerniere auto-calcolate: ${ferr} → ${cerniere}`);
+                        }
+                    }
+                    
                     // 🆕 v5.28: Re-render se cambiano i checkbox "cosa serve" tapparella
                     if (productType === 'tapparella' && (field === 'serveTapparella' || field === 'serveMotore' || field === 'serveAccessori')) {
                         render();
@@ -14650,18 +14670,7 @@
                                 '9. Vetro'
                             )}
 
-                            <!-- 10. CERNIERE - v4.80 -->
-                            ${renderSelectWithCustom(
-                                'cerniere',
-                                project.configInfissi?.cerniere || '',
-                                ['a-vista', 'a-scomparsa'],
-                                project.id,
-                                null,
-                                'infisso',
-                                '10. Cerniere'
-                            )}
-
-                            <!-- 11. MANIGLIA - SEMPLIFICATO v4.39 -->
+                            <!-- 10. MANIGLIA - SEMPLIFICATO v4.39 -->
                             ${renderSelectWithCustom(
                                 'maniglia',
                                 project.configInfissi?.maniglia || '',
@@ -14669,7 +14678,7 @@
                                 project.id,
                                 null,
                                 'infisso',
-                                '11. Maniglia'
+                                '10. Maniglia'
                             )}
 
                             <!-- 12. COLORE MANIGLIA - AGGIORNATO v4.39 -->
@@ -14680,7 +14689,7 @@
                                 project.id,
                                 null,
                                 'infisso',
-                                '12. Colore Maniglia'
+                                '11. Colore Maniglia'
                             )}
 
                             <!-- 13. TAGLI TELAIO -->
@@ -14691,12 +14700,12 @@
                                 project.id,
                                 null,
                                 'infisso',
-                                '13. Tagli Telaio'
+                                '12. Tagli Telaio'
                             )}
 
-                            <!-- 14. COD.TAGLI (Editabili con etichette chiare) -->
+                            <!-- 13. COD.TAGLI (Editabili con etichette chiare) -->
                             <div>
-                                <label class="block text-base font-bold mb-1 text-gray-800">14. COD.TAGLI</label>
+                                <label class="block text-base font-bold mb-1 text-gray-800">13. COD.TAGLI</label>
                                 ${(() => {
                                     const tagliTelaio = project.configInfissi?.tagliTelaio || '';
                                     // 🆕 v4.81: Genera posizioni tagli da tagliTelaio (non più salvato)
@@ -19242,17 +19251,6 @@
                                         pos.id,
                                         'infisso',
                                         'Vetro'
-                                    )}
-
-                                    <!-- CERNIERE - v4.80 -->
-                                    ${renderSelectWithCustom(
-                                        'cerniere',
-                                        inf.cerniere || '',
-                                        ['a-vista', 'a-scomparsa'],
-                                        project.id,
-                                        pos.id,
-                                        'infisso',
-                                        'Cerniere'
                                     )}
 
                                     <!-- MANIGLIA - SEMPLIFICATO v4.39 -->
