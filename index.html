@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.54 - 🧱 CASSONETTI RISTRUTTURATI ✅
+    Open Porte v5.55 - 🦟 ZANZARIERE PALAGINA CASCATA ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.54 (05 DIC 2025) - CASSONETTI: CAMPI DA LISTINO
@@ -3922,6 +3922,77 @@
         };
 
         let syncInterval = null;  // Timer per sync automatica
+        
+        // ============================================================================
+        // DATABASE PALAGINA ZANZARIERE (per cascata dinamica)
+        // ============================================================================
+        const PALAGINA_ZANZARIERE = {
+            linee: {
+                'SINTESI': { nome: 'Linea SINTESI', tipo: 'Avvolgibile' },
+                'SV': { nome: 'Linea SV (NEW 2025)', tipo: 'Avvolgibile economica' },
+                'EVO': { nome: 'Linea EVO (NEW 2025)', tipo: 'Speciali/Lucernari' },
+                'COMPATTO': { nome: 'Serie X - COMPATTO', tipo: 'Compatta' }
+            },
+            modelli: {
+                'SINTESI': [
+                    { id: 'EXTREMA', nome: 'EXTREMA', cassonetti: '-', maxH: 230 },
+                    { id: 'EXTREMA_CENTRALE', nome: 'EXTREMA Centrale', cassonetti: '-', maxH: 230 },
+                    { id: 'EXTREMA_SR', nome: 'EXTREMA SR', cassonetti: '-', maxH: 460 },
+                    { id: 'EXTREMA_INCASSO', nome: 'EXTREMA Incasso', cassonetti: '46/50', maxH: 230 },
+                    { id: 'EXTREMA_INCASSO_CENTRALE', nome: 'EXTREMA Incasso Centrale', cassonetti: '46/50', maxH: 460 },
+                    { id: 'EXTREMA_INCASSO_SR', nome: 'EXTREMA Incasso SR', cassonetti: '46/50', maxH: 460 },
+                    { id: 'NANO_SINTESI', nome: 'NANO SINTESI', cassonetti: '22', maxH: 180 },
+                    { id: 'MICRO_SINTESI', nome: 'MICRO SINTESI', cassonetti: '36', maxH: 200 },
+                    { id: 'MICRO_SINTESI_CENTRALE', nome: 'MICRO SINTESI Centrale', cassonetti: '36', maxH: 200 },
+                    { id: 'SINTESI', nome: 'SINTESI', cassonetti: '46/50', maxH: 210 },
+                    { id: 'SINTESI_CENTRALE', nome: 'SINTESI Centrale', cassonetti: '46/50', maxH: 210 },
+                    { id: 'SINTESI_INCASSO', nome: 'SINTESI Incasso', cassonetti: '46/50', maxH: 210 },
+                    { id: 'SINTESI_INCASSO_CENTRALE', nome: 'SINTESI Incasso Centrale', cassonetti: '46/50', maxH: 420 }
+                ],
+                'SV': [
+                    { id: 'SV_700', nome: 'SV 700', cassonetti: '45/50', maxH: 250, note: 'Rete HC di serie' }
+                ],
+                'EVO': [
+                    { id: 'EVO_ROOF', nome: 'EVO ROOF', cassonetti: '40', maxH: 150, note: 'Per lucernari' }
+                ],
+                'COMPATTO': [
+                    { id: 'X1_INCASSO', nome: 'Serie X - X1 Incasso', cassonetti: '50', maxH: 200 },
+                    { id: 'X3_LUCE', nome: 'Serie X - X3 Luce', cassonetti: '53', maxH: 200 }
+                ]
+            },
+            colori: {
+                F1: [
+                    { cod: '5', nome: 'Bianco 9010' },
+                    { cod: '6', nome: 'Avorio 1013' },
+                    { cod: '28', nome: 'Nero 9011 OP' },
+                    { cod: '30', nome: 'Bianco crema 9001' },
+                    { cod: '35', nome: 'Bronzo Verniciato' },
+                    { cod: '41', nome: 'Bianco 9010 OP' },
+                    { cod: '90', nome: 'Marrone 8017 OP' },
+                    { cod: '91', nome: 'Grigio silver 9006' }
+                ],
+                F2: [
+                    { cod: '13', nome: 'Grigio Michelangelo' },
+                    { cod: '29', nome: 'Ferro micaceo' },
+                    { cod: '78', nome: 'Grigio antracite 7016' }
+                ],
+                F3: [
+                    { cod: '17', nome: 'Rovere P9' },
+                    { cod: '26', nome: 'Renolit chiaro' },
+                    { cod: '33', nome: 'Noce' },
+                    { cod: '48', nome: 'Rovere Scuro' }
+                ]
+            },
+            reti: [
+                { id: 'STD', nome: 'Standard PP' },
+                { id: 'HC', nome: 'HC Alto Contrasto (nera)' },
+                { id: 'FV', nome: 'Fibra vetro grigia' },
+                { id: 'AB', nome: 'Anti-batterica' },
+                { id: 'AT', nome: 'Alta trasparenza nera (+€5/m²)' },
+                { id: 'SOL', nome: 'Solar 0,35 (+€9,50/m²)' }
+            ],
+            coloriPlastica: ['Bianco', 'Avorio', 'Marrone', 'Nero', 'Bronzo', 'Grigio']
+        };
         
         // ============================================================================
         // SISTEMA INDICATORI COMPLETAMENTO
@@ -15321,6 +15392,10 @@
             if (!project.prodotti?.zanzariere) {
                 return `<div class="text-center py-8"><p class="text-gray-500">Le zanzariere non sono state selezionate. Salta questo step.</p></div>`;
             }
+            
+            const azienda = project.configZanzariere?.azienda || '';
+            const isPalagina = azienda === 'Palagina';
+            
             return `
                 <div>
                     <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
@@ -15328,7 +15403,8 @@
                     </h2>
                     <p class="text-gray-600 mb-4">Imposta i valori di default per tutte le zanzariere:</p>
                     
-                    <div class="space-y-2">
+                    <div class="space-y-3">
+                        <!-- RIGA 1: AZIENDA -->
                         <div class="grid md:grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-sm font-medium mb-1">1. Azienda</label>
@@ -15341,7 +15417,7 @@
                                     
                                     return `
                                         <select id="${selectId}" 
-                                                onchange="handleConfigSelectWithCustom('${project.id}', 'zanzariere', 'azienda', '${selectId}', '${inputId}', this.value)"
+                                                onchange="handleZanzariereAziendaChange('${project.id}', this.value, '${selectId}', '${inputId}')"
                                                 class="w-full px-3 py-2 border rounded-lg">
                                             <option value="">Seleziona azienda...</option>
                                             ${options.map(opt => `
@@ -15352,7 +15428,7 @@
                                         <input type="text" 
                                                id="${inputId}"
                                                value="${isCustom ? current : ''}"
-                                               onchange="updateConfigZanzariere('${project.id}', 'azienda', this.value)"
+                                               onchange="updateConfigZanzariere('${project.id}', 'azienda', this.value); render();"
                                                placeholder="Inserisci azienda personalizzata..."
                                                style="display: ${isCustom ? 'block' : 'none'};"
                                                class="w-full px-3 py-2 border rounded-lg mt-2">
@@ -15360,6 +15436,20 @@
                                 })()}
                             </div>
                             
+                            ${isPalagina ? `
+                            <!-- LINEA PALAGINA -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1">2. Linea</label>
+                                <select onchange="updateConfigZanzariere('${project.id}', 'linea', this.value); render();"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona linea...</option>
+                                    ${Object.entries(PALAGINA_ZANZARIERE.linee).map(([id, l]) => `
+                                        <option value="${id}" ${project.configZanzariere?.linea === id ? 'selected' : ''}>${l.nome}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            ` : `
+                            <!-- TIPO GENERICO -->
                             <div>
                                 <label class="block text-sm font-medium mb-1">2. Tipo Zanzariera</label>
                                 ${(() => {
@@ -15369,27 +15459,116 @@
                                     const selectId = `zanz-tipo-${project.id}`;
                                     const inputId = `zanz-tipo-input-${project.id}`;
                                     
-                                    return `
-                                        <select id="${selectId}" 
-                                                onchange="handleConfigSelectWithCustom('${project.id}', 'zanzariere', 'tipo', '${selectId}', '${inputId}', this.value)"
+                                    return \`
+                                        <select id="\${selectId}" 
+                                                onchange="handleConfigSelectWithCustom('\${project.id}', 'zanzariere', 'tipo', '\${selectId}', '\${inputId}', this.value)"
                                                 class="w-full px-3 py-2 border rounded-lg">
                                             <option value="">Seleziona tipo...</option>
-                                            ${options.map(opt => `
-                                                <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
-                                            `).join('')}
-                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altro e scrivo...</option>
+                                            \${options.map(opt => \`
+                                                <option value="\${opt}" \${current === opt ? 'selected' : ''}>\${opt}</option>
+                                            \`).join('')}
+                                            <option value="__ALTRO__" \${isCustom ? 'selected' : ''}>✏️ Altro...</option>
                                         </select>
                                         <input type="text" 
-                                               id="${inputId}"
-                                               value="${isCustom ? current : ''}"
-                                               onchange="updateConfigZanzariere('${project.id}', 'tipo', this.value)"
-                                               placeholder="Inserisci tipo personalizzato..."
-                                               style="display: ${isCustom ? 'block' : 'none'};"
+                                               id="\${inputId}"
+                                               value="\${isCustom ? current : ''}"
+                                               onchange="updateConfigZanzariere('\${project.id}', 'tipo', this.value)"
+                                               placeholder="Tipo personalizzato..."
+                                               style="display: \${isCustom ? 'block' : 'none'};"
                                                class="w-full px-3 py-2 border rounded-lg mt-2">
-                                    `;
+                                    \`;
                                 })()}
                             </div>
-                            
+                            `}
+                        </div>
+                        
+                        ${isPalagina && project.configZanzariere?.linea ? `
+                        <!-- RIGA 2 PALAGINA: MODELLO F + MODELLO PF -->
+                        <div class="grid md:grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">3. Modello Finestre (F)</label>
+                                <select onchange="updateConfigZanzariere('${project.id}', 'modelloF', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona modello F...</option>
+                                    ${(PALAGINA_ZANZARIERE.modelli[project.configZanzariere.linea] || []).map(m => `
+                                        <option value="${m.id}" ${project.configZanzariere?.modelloF === m.id ? 'selected' : ''}>
+                                            ${m.nome} ${m.cassonetti !== '-' ? '(cass. '+m.cassonetti+')' : ''}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">4. Modello Portefinestre (PF)</label>
+                                <select onchange="updateConfigZanzariere('${project.id}', 'modelloPF', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona modello PF...</option>
+                                    ${(PALAGINA_ZANZARIERE.modelli[project.configZanzariere.linea] || []).map(m => `
+                                        <option value="${m.id}" ${project.configZanzariere?.modelloPF === m.id ? 'selected' : ''}>
+                                            ${m.nome} ${m.cassonetti !== '-' ? '(cass. '+m.cassonetti+')' : ''}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- RIGA 3 PALAGINA: FASCIA + COLORE -->
+                        <div class="grid md:grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">5. Fascia Colore</label>
+                                <select onchange="updateConfigZanzariere('${project.id}', 'fasciaColore', this.value); render();"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona fascia...</option>
+                                    <option value="F1" ${project.configZanzariere?.fasciaColore === 'F1' ? 'selected' : ''}>Fascia 1 (Base)</option>
+                                    <option value="F2" ${project.configZanzariere?.fasciaColore === 'F2' ? 'selected' : ''}>Fascia 2 (Intermedia)</option>
+                                    <option value="F3" ${project.configZanzariere?.fasciaColore === 'F3' ? 'selected' : ''}>Fascia 3 (Premium)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">6. Colore Telaio</label>
+                                ${project.configZanzariere?.fasciaColore ? `
+                                <select onchange="updateConfigZanzariere('${project.id}', 'coloreTelaio', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona colore...</option>
+                                    ${(PALAGINA_ZANZARIERE.colori[project.configZanzariere.fasciaColore] || []).map(c => `
+                                        <option value="${c.nome}" ${project.configZanzariere?.coloreTelaio === c.nome ? 'selected' : ''}>${c.nome}</option>
+                                    `).join('')}
+                                </select>
+                                ` : `
+                                <input type="text" value="${project.configZanzariere?.coloreTelaio || ''}"
+                                       onchange="updateConfigZanzariere('${project.id}', 'coloreTelaio', this.value)"
+                                       placeholder="Prima seleziona la fascia..."
+                                       disabled
+                                       class="w-full px-3 py-2 border rounded-lg bg-gray-100">
+                                `}
+                            </div>
+                        </div>
+                        
+                        <!-- RIGA 4 PALAGINA: TIPO RETE + COLORE PLASTICA -->
+                        <div class="grid md:grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">7. Tipo Rete</label>
+                                <select onchange="updateConfigZanzariere('${project.id}', 'tipoRete', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona rete...</option>
+                                    ${PALAGINA_ZANZARIERE.reti.map(r => `
+                                        <option value="${r.id}" ${project.configZanzariere?.tipoRete === r.id ? 'selected' : ''}>${r.nome}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">8. Colore Plastica (carro/guide)</label>
+                                <select onchange="updateConfigZanzariere('${project.id}', 'colorePlastica', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona colore plastica...</option>
+                                    ${PALAGINA_ZANZARIERE.coloriPlastica.map(c => `
+                                        <option value="${c}" ${project.configZanzariere?.colorePlastica === c ? 'selected' : ''}>${c}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        ` : `
+                        <!-- CAMPI GENERICI (non Palagina o senza linea) -->
+                        <div class="grid md:grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-sm font-medium mb-1">3. Colore Telaio</label>
                                 <input type="text" value="${project.configZanzariere?.coloreTelaio || ''}"
@@ -15407,32 +15586,61 @@
                                     const selectId = `zanz-rete-${project.id}`;
                                     const inputId = `zanz-rete-input-${project.id}`;
                                     
-                                    return `
-                                        <select id="${selectId}" 
-                                                onchange="handleConfigSelectWithCustom('${project.id}', 'zanzariere', 'tipoRete', '${selectId}', '${inputId}', this.value)"
+                                    return \`
+                                        <select id="\${selectId}" 
+                                                onchange="handleConfigSelectWithCustom('\${project.id}', 'zanzariere', 'tipoRete', '\${selectId}', '\${inputId}', this.value)"
                                                 class="w-full px-3 py-2 border rounded-lg">
                                             <option value="">Seleziona...</option>
-                                            ${options.map(opt => `
-                                                <option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>
-                                            `).join('')}
-                                            <option value="__ALTRO__" ${isCustom ? 'selected' : ''}>✏️ Altro e scrivo...</option>
+                                            \${options.map(opt => \`
+                                                <option value="\${opt}" \${current === opt ? 'selected' : ''}>\${opt}</option>
+                                            \`).join('')}
+                                            <option value="__ALTRO__" \${isCustom ? 'selected' : ''}>✏️ Altro...</option>
                                         </select>
                                         <input type="text" 
-                                               id="${inputId}"
-                                               value="${isCustom ? current : ''}"
-                                               onchange="updateConfigZanzariere('${project.id}', 'tipoRete', this.value)"
-                                               placeholder="Inserisci tipo rete personalizzato..."
-                                               style="display: ${isCustom ? 'block' : 'none'};"
+                                               id="\${inputId}"
+                                               value="\${isCustom ? current : ''}"
+                                               onchange="updateConfigZanzariere('\${project.id}', 'tipoRete', this.value)"
+                                               placeholder="Tipo rete personalizzato..."
+                                               style="display: \${isCustom ? 'block' : 'none'};"
                                                class="w-full px-3 py-2 border rounded-lg mt-2">
-                                    `;
+                                    \`;
                                 })()}
                             </div>
                         </div>
+                        `}
                     </div>
                     
                     ${renderBRMConfig(project, 'zanzariere', 'Zanzariere', '🦟')}
                 </div>
             `;
+        }
+        
+        // Handler per cambio azienda zanzariere (reset campi Palagina)
+        function handleZanzariereAziendaChange(projectId, value, selectId, inputId) {
+            const project = projectsData.find(p => p.id === projectId);
+            if (!project) return;
+            
+            if (value === '__ALTRO__') {
+                document.getElementById(inputId).style.display = 'block';
+                return;
+            }
+            
+            document.getElementById(inputId).style.display = 'none';
+            
+            if (!project.configZanzariere) project.configZanzariere = {};
+            
+            // Se cambio azienda, resetto i campi specifici Palagina
+            if (value !== 'Palagina') {
+                delete project.configZanzariere.linea;
+                delete project.configZanzariere.modelloF;
+                delete project.configZanzariere.modelloPF;
+                delete project.configZanzariere.fasciaColore;
+                delete project.configZanzariere.colorePlastica;
+            }
+            
+            project.configZanzariere.azienda = value;
+            saveData();
+            render();
         }
 
         function renderStep7ConfigCassonetti(project) {
