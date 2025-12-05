@@ -34,6 +34,12 @@
     - ✅ Filtrato dinamicamente in base al Gruppo Colore selezionato
     - ✅ Codici da listino Finstral EUR 2025/3
     
+    SINCRONIZZAZIONE AUTOMATICA:
+    - ✅ Checkbox "🧱 Cassonetto stesso colore" in Config Infissi (default ON)
+    - ✅ Se attivo: cambio colore interno infisso → aggiorna automaticamente colore cassonetto
+    - ✅ Funziona sia in Config Globale che nelle singole posizioni
+    - ✅ Disattivabile per impostare colore cassonetto manualmente
+    
     NUOVE FUNZIONI:
     - renderSelectColoreCassPos() - Colore specifico in posizione
     - renderSelectColoreCassGlobal() - Colore specifico in config globale
@@ -8199,6 +8205,7 @@
                         finituraInt: updatedProject.configInfissi?.finituraInt || '',
                         finituraEst: updatedProject.configInfissi?.finituraEst || '',
                         coloreInt: updatedProject.configInfissi?.coloreInt || '',
+                        coloreCassonettoSync: updatedProject.configInfissi?.coloreCassonettoSync !== false, // v5.54 default true
                         coloreEst: updatedProject.configInfissi?.coloreEst || '',
                         tipoAnta: updatedProject.configInfissi?.tipoAnta || '',
                         vetro: updatedProject.configInfissi?.vetro || '',
@@ -12727,8 +12734,49 @@
                 if (field === 'azienda') {
                     render();
                 }
+                
+                // 🆕 v5.54: Se cambia coloreInt e sync attivo, aggiorna cassonetto
+                if (field === 'coloreInt' && project.configInfissi.coloreCassonettoSync !== false) {
+                    sincronizzaColoreCassonetto(projectId);
+                }
                 // render(); ← RIMOSSO: Evita reload pagina, mantiene focus
             }
+        };
+        
+        // 🆕 v5.54: Sincronizza colore cassonetto da colore interno infisso
+        window.sincronizzaColoreCassonetto = (projectId) => {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            // Controlla se sync è attivo (default: true)
+            if (project.configInfissi?.coloreCassonettoSync === false) {
+                console.log('🧱 Sync colore cassonetto DISATTIVATO');
+                return;
+            }
+            
+            const coloreInt = project.configInfissi?.coloreInt || '';
+            if (!coloreInt) {
+                console.log('🧱 Nessun colore interno da sincronizzare');
+                return;
+            }
+            
+            // Aggiorna Config Globale Cassonetti
+            if (!project.configCassonetti) project.configCassonetti = {};
+            project.configCassonetti.coloreCass = coloreInt;
+            console.log('🧱 Config Cassonetti: coloreCass =', coloreInt);
+            
+            // Aggiorna tutte le posizioni con cassonetto Finstral
+            if (project.positions) {
+                project.positions.forEach(pos => {
+                    if (pos.cassonetto && pos.cassonetto.azienda === 'Finstral') {
+                        pos.cassonetto.coloreCass = coloreInt;
+                        console.log(`🧱 Pos ${pos.id}: cassonetto coloreCass =`, coloreInt);
+                    }
+                });
+            }
+            
+            saveState();
+            render();
         };
         
         // Funzione per aggiornare i VALORI dei COD.TAGLI (non le etichette)
@@ -14821,6 +14869,17 @@
                                 'infisso',
                                 '5. Colore Interno'
                             )}
+                            
+                            <!-- 5b. CHECKBOX: Cassonetto stesso colore -->
+                            <div class="flex items-center mt-1">
+                                <label class="text-xs text-gray-600 flex items-center gap-1 cursor-pointer">
+                                    <input type="checkbox" 
+                                           ${project.configInfissi?.coloreCassonettoSync !== false ? 'checked' : ''}
+                                           onchange="updateConfigInfissi('${project.id}', 'coloreCassonettoSync', this.checked); sincronizzaColoreCassonetto('${project.id}');"
+                                           class="w-3 h-3">
+                                    <span>🧱 Cassonetto stesso colore</span>
+                                </label>
+                            </div>
 
                             <!-- 6. COLORE ESTERNO -->
                             ${renderSelectColoreStandard(
