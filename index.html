@@ -19,13 +19,14 @@
     - ✅ Quantità
     - ✅ Azienda  
     - ✅ 2. A Soffitto (checkbox)
+    - ✅ 3. Isolamento Posaclima (checkbox)
     
     NUOVA STRUTTURA - Dati per Calcolo Prezzo:
-    - ✅ 3. Materiale: PVC / Legno
-    - ✅ 4. Codice: 148 / 148B / 300 / 300B (PVC) o 9-48 / 9-48B (Legno)
-    - ✅ 5. Gruppo Colore: ○ Bianco / ● Scuri (PVC) o Gr.1/Gr.2+3 (Legno)
-    - ✅ 6. Colore: Codice specifico filtrato per gruppo (01,42,45,07,27 o 06,46,13,19,55)
-    - ✅ 7. Isolamento: -- / 40830 (25mm) / 40831 (13mm)
+    - ✅ 4. Materiale: PVC / Legno
+    - ✅ 5. Codice: 148 / 148B / 300 / 300B (PVC) o 9-48 / 9-48B (Legno)
+    - ✅ 6. Gruppo Colore: ○ Bianco / ● Scuri (PVC) o Gr.1/Gr.2+3 (Legno)
+    - ✅ 7. Colore: Codice specifico filtrato per gruppo (01,42,45,07,27 o 06,46,13,19,55)
+    - ✅ 8. Codice Isolamento: 40830 (25mm) / 40831 (13mm) - visibile solo se checkbox attivo
     
     LOGICA COLORE:
     - ⚡ Auto-recuperato da colore INTERNO infisso collegato
@@ -11727,6 +11728,9 @@
                         materiale: project.configCassonetti?.materiale || '',
                         finitura: project.configCassonetti?.finitura || '',
                         coibentazione: project.configCassonetti?.coibentazione || '',
+                        // v5.54: Checkbox ereditati
+                        aSoffitto: project.configCassonetti?.aSoffitto || false,
+                        isolamentoPosaclima: project.configCassonetti?.isolamentoPosaclima || false,
                         // v5.35: Nuovi campi per calcolo prezzi Finstral
                         materialeCass: project.configCassonetti?.materialeCass || '',
                         codiceCass: project.configCassonetti?.codiceCass || '',
@@ -15444,14 +15448,25 @@
                                             </label>
                                         </div>
                                         
+                                        <!-- 3. ISOLAMENTO POSACLIMA (checkbox) -->
+                                        <div>
+                                            <label class="block text-sm font-medium mb-2 flex items-center gap-2">
+                                                <input type="checkbox" 
+                                                       ${project.configCassonetti?.isolamentoPosaclima ? 'checked' : ''}
+                                                       onchange="updateConfigCassonetti('${project.id}', 'isolamentoPosaclima', this.checked); render();"
+                                                       class="w-4 h-4">
+                                                3. Isolamento Posaclima
+                                            </label>
+                                        </div>
+                                        
                                         <!-- ===== CAMPI CALCOLO PREZZI v5.54 ===== -->
                                         <div class="col-span-2 border-t-2 border-orange-300 pt-3 mt-2">
                                             <p class="text-sm font-bold text-orange-700 mb-2">📊 Dati per Calcolo Prezzo:</p>
                                         </div>
                                         
-                                        <!-- 3. MATERIALE CASSONETTO -->
+                                        <!-- 4. MATERIALE CASSONETTO -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">3. Materiale</label>
+                                            <label class="block text-sm font-medium mb-1">4. Materiale</label>
                                             <select onchange="updateConfigCassonetti('${project.id}', 'materialeCass', this.value); render();"
                                                     class="w-full px-3 py-2 border rounded-lg">
                                                 <option value="">Seleziona materiale...</option>
@@ -15460,27 +15475,29 @@
                                             </select>
                                         </div>
                                         
-                                        <!-- 4. CODICE CASSONETTO (dipende da materiale) -->
+                                        <!-- 5. CODICE CASSONETTO (dipende da materiale) -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">4. Codice Cassonetto</label>
+                                            <label class="block text-sm font-medium mb-1">5. Codice Cassonetto</label>
                                             ${renderSelectCodiceCassonetto(project)}
                                         </div>
                                         
-                                        <!-- 5. GRUPPO COLORE (dipende da materiale) -->
+                                        <!-- 6. GRUPPO COLORE (dipende da materiale) -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">5. Gruppo Colore</label>
+                                            <label class="block text-sm font-medium mb-1">6. Gruppo Colore</label>
                                             ${renderSelectGruppoColoreCass(project)}
                                         </div>
                                         
-                                        <!-- 6. COLORE SPECIFICO (dipende da gruppo) -->
+                                        <!-- 7. COLORE SPECIFICO (dipende da gruppo) -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">6. Colore</label>
+                                            <label class="block text-sm font-medium mb-1">7. Colore</label>
                                             ${renderSelectColoreCassGlobal(project)}
                                         </div>
+                                        </div>
                                         
-                                        <!-- 7. CODICE ISOLAMENTO -->
+                                        <!-- 8. CODICE ISOLAMENTO (solo se checkbox attivo) -->
+                                        ${project.configCassonetti?.isolamentoPosaclima ? `
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">7. Isolamento</label>
+                                            <label class="block text-sm font-medium mb-1">8. Codice Isolamento</label>
                                             <select onchange="updateConfigCassonetti('${project.id}', 'codiceIsolamento', this.value)"
                                                     class="w-full px-3 py-2 border rounded-lg bg-yellow-50">
                                                 <option value="" ${!project.configCassonetti?.codiceIsolamento ? 'selected' : ''}>--</option>
@@ -15488,6 +15505,7 @@
                                                 <option value="40831" ${project.configCassonetti?.codiceIsolamento === '40831' ? 'selected' : ''}>40831 (13mm)</option>
                                             </select>
                                         </div>
+                                        ` : ''}
                                     `;
                                 }
                                 
@@ -20964,15 +20982,26 @@
                                                         2. A Soffitto
                                                     </label>
                                                 </div>
+                                                
+                                                <!-- 3. ISOLAMENTO POSACLIMA (checkbox) -->
+                                                <div>
+                                                    <label class="text-xs font-medium flex items-center gap-2">
+                                                        <input type="checkbox" 
+                                                               ${cas.isolamentoPosaclima ? 'checked' : ''}
+                                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'isolamentoPosaclima', this.checked); render();"
+                                                               class="w-4 h-4">
+                                                        3. Isolamento Posaclima
+                                                    </label>
+                                                </div>
                                             </div>
                                             
                                             <!-- ===== v5.54: CAMPI CALCOLO PREZZI RISTRUTTURATI ===== -->
                                             <div class="border-t-2 border-orange-300 pt-3 mt-3">
                                                 <p class="text-xs font-bold text-orange-700 mb-2">📊 Dati per Calcolo Prezzo:</p>
                                                 <div class="grid md:grid-cols-4 gap-3">
-                                                    <!-- 3. MATERIALE -->
+                                                    <!-- 4. MATERIALE -->
                                                     <div>
-                                                        <label class="text-xs font-medium">3. Materiale</label>
+                                                        <label class="text-xs font-medium">4. Materiale</label>
                                                         <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'materialeCass', this.value); render();"
                                                                 class="w-full compact-input border rounded mt-1">
                                                             <option value="">--</option>
@@ -20981,29 +21010,30 @@
                                                         </select>
                                                     </div>
                                                     
-                                                    <!-- 4. CODICE CASSONETTO -->
+                                                    <!-- 5. CODICE CASSONETTO -->
                                                     <div>
-                                                        <label class="text-xs font-medium">4. Codice</label>
+                                                        <label class="text-xs font-medium">5. Codice</label>
                                                         ${renderSelectCodiceCassPos(cas, project.id, pos.id)}
                                                     </div>
                                                     
-                                                    <!-- 5. GRUPPO COLORE -->
+                                                    <!-- 6. GRUPPO COLORE -->
                                                     <div>
-                                                        <label class="text-xs font-medium">5. Gruppo Colore</label>
+                                                        <label class="text-xs font-medium">6. Gruppo Colore</label>
                                                         ${renderSelectGruppoColoreCassPos(cas, project.id, pos.id)}
                                                     </div>
                                                     
-                                                    <!-- 6. COLORE (codice specifico, auto da infisso) -->
+                                                    <!-- 7. COLORE (codice specifico, auto da infisso) -->
                                                     <div>
-                                                        <label class="text-xs font-medium">6. Colore</label>
+                                                        <label class="text-xs font-medium">7. Colore</label>
                                                         ${renderSelectColoreCassPos(cas, pos, project.id, pos.id)}
                                                     </div>
                                                 </div>
                                                 
-                                                <!-- 7. ISOLAMENTO (seconda riga) -->
+                                                <!-- 8. ISOLAMENTO (seconda riga, solo se checkbox attivo) -->
+                                                ${cas.isolamentoPosaclima ? `
                                                 <div class="grid md:grid-cols-4 gap-3 mt-3">
                                                     <div>
-                                                        <label class="text-xs font-medium">7. Isolamento</label>
+                                                        <label class="text-xs font-medium">8. Codice Isolamento</label>
                                                         <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'codiceIsolamento', this.value)"
                                                                 class="w-full compact-input border rounded mt-1 bg-yellow-50">
                                                             <option value="" ${!cas.codiceIsolamento ? 'selected' : ''}>--</option>
@@ -21012,6 +21042,7 @@
                                                         </select>
                                                     </div>
                                                 </div>
+                                                ` : ''}
                                             </div>
                                         `;
                                     }
