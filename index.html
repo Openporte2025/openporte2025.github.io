@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.48 - 🔧 PREVIEW CODICE DINAMICO ✅
+    Open Porte v5.49 - 🔧 FINSTRAL INLINE DOPO AZIENDA ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.47 (04 DIC 2025) - UI DINAMICA PER FORNITORE
@@ -1963,7 +1963,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.48 - Preview Codice Dinamico</title>
+    <title>Open Porte v5.49 - Finstral Inline dopo Azienda</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3191,8 +3191,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.48';
-        const APP_VERSION_NOTE = '🔧 PREVIEW CODICE DINAMICO';
+        const APP_VERSION = '5.49';
+        const APP_VERSION_NOTE = '🔧 FINSTRAL INLINE DOPO AZIENDA';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -18913,273 +18913,8 @@
                                             class="px-3 py-1.5 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700">
                                         🗑️ Elimina
                                     </button>
-                                </div>
                             </div>
-                            
-                            <!-- ═══ SEZIONI SPECIFICHE PER FORNITORE ═══ -->
-                            ${(inf.azienda?.toLowerCase() === 'finstral') ? `
-                            <!-- 📋 DATI SPECIFICI FINSTRAL -->
-                            <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-3">
-                                <h5 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-                                    📋 Dati Specifici <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded">FINSTRAL</span>
-                                </h5>
-                                <div class="grid md:grid-cols-2 gap-3 mb-3">
-                                    <div>
-                                        <label class="text-xs font-medium">Quantità</label>
-                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'qta', this.value)"
-                                                class="w-full compact-input border rounded mt-1 font-semibold">
-                                            ${[0,1,2,3,4,5,6,7,8,9,10].map(n => `
-                                                <option value="${n}" ${(inf.qta || '1') == n ? 'selected' : ''}>${n}</option>
-                                            `).join('')}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Codice Modello <span class="text-red-600">*</span></label>
-                                        ${(() => {
-                                            const current = inf.codiceModello || '';
-                                            const isEmpty = !current;
-                                            const borderClass = isEmpty ? 'border-2 border-orange-400 bg-orange-50' : 'border';
-                                            
-                                            return `
-                                                <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'codiceModello', this.value)"
-                                                        class="w-full compact-input ${borderClass} rounded mt-1">
-                                                    <option value="">-- Seleziona --</option>
-                                                    <optgroup label="📦 1 Campo">
-                                                        <option value="101" ${current === '101' ? 'selected' : ''}>101 - un campo, anta</option>
-                                                        <option value="102" ${current === '102' ? 'selected' : ''}>102 - un campo, fisso</option>
-                                                    </optgroup>
-                                                    <optgroup label="📦📦 2 Campi Orizzontali">
-                                                        <option value="201" ${current === '201' ? 'selected' : ''}>201 - anta SX, anta DX</option>
-                                                        <option value="202" ${current === '202' ? 'selected' : ''}>202 - anta SX, fisso DX</option>
-                                                        <option value="203" ${current === '203' ? 'selected' : ''}>203 - fisso SX, anta DX</option>
-                                                        <option value="204" ${current === '204' ? 'selected' : ''}>204 - fisso SX, fisso DX</option>
-                                                    </optgroup>
-                                                    <optgroup label="📦📦 2 Campi Verticali">
-                                                        <option value="205" ${current === '205' ? 'selected' : ''}>205 - anta basso, anta alto</option>
-                                                        <option value="206" ${current === '206' ? 'selected' : ''}>206 - anta basso, fisso alto</option>
-                                                        <option value="207" ${current === '207' ? 'selected' : ''}>207 - fisso basso, anta alto</option>
-                                                        <option value="208" ${current === '208' ? 'selected' : ''}>208 - fisso basso, fisso alto</option>
-                                                    </optgroup>
-                                                    <optgroup label="📦📦📦 3 Campi">
-                                                        <option value="301" ${current === '301' ? 'selected' : ''}>301 - anta SX, anta centro, anta DX</option>
-                                                        <option value="302" ${current === '302' ? 'selected' : ''}>302 - anta SX, fisso centro, anta DX</option>
-                                                        <option value="303" ${current === '303' ? 'selected' : ''}>303 - fisso SX, anta centro, fisso DX</option>
-                                                        <option value="304" ${current === '304' ? 'selected' : ''}>304 - fisso SX, fisso centro, fisso DX</option>
-                                                        <option value="305" ${current === '305' ? 'selected' : ''}>305 - fisso basso, anta centro, fisso alto</option>
-                                                        <option value="306" ${current === '306' ? 'selected' : ''}>306 - fisso basso, anta centro, anta alto</option>
-                                                        <option value="307" ${current === '307' ? 'selected' : ''}>307 - fisso basso, fisso centro, fisso alto</option>
-                                                        <option value="308" ${current === '308' ? 'selected' : ''}>308 - fisso basso, anta alto SX, anta alto DX</option>
-                                                        <option value="309" ${current === '309' ? 'selected' : ''}>309 - anta basso SX, anta basso DX, fisso alto</option>
-                                                        <option value="310" ${current === '310' ? 'selected' : ''}>310 - anta basso SX, anta basso DX, anta alto</option>
-                                                        <option value="321" ${current === '321' ? 'selected' : ''}>321 - fisso SX, anta centro, anta DX</option>
-                                                        <option value="322" ${current === '322' ? 'selected' : ''}>322 - anta SX, anta centro, fisso DX</option>
-                                                        <option value="324" ${current === '324' ? 'selected' : ''}>324 - anta SX, fisso centro, anta DX</option>
-                                                        <option value="340" ${current === '340' ? 'selected' : ''}>340 - anta basso, anta alto SX, anta alto DX</option>
-                                                    </optgroup>
-                                                    <optgroup label="📦📦📦📦 4 Campi">
-                                                        <option value="311" ${current === '311' ? 'selected' : ''}>311 - fisso basso SX/DX, anta alto SX/DX</option>
-                                                        <option value="314" ${current === '314' ? 'selected' : ''}>314 - anta basso SX/DX, fisso alto SX/DX</option>
-                                                        <option value="316" ${current === '316' ? 'selected' : ''}>316 - anta basso SX/DX, anta alto SX/DX</option>
-                                                        <option value="317" ${current === '317' ? 'selected' : ''}>317 - fisso basso SX/DX, fisso alto SX/DX</option>
-                                                    </optgroup>
-                                                    <optgroup label="🔗 Con Montante Mobile">
-                                                        <option value="401" ${current === '401' ? 'selected' : ''}>401 - 2 ante con montante mobile SX e DX</option>
-                                                        <option value="402" ${current === '402' ? 'selected' : ''}>402 - fisso basso, anta alto SX/DX + montante</option>
-                                                        <option value="403" ${current === '403' ? 'selected' : ''}>403 - anta basso SX/DX + montante, fisso alto</option>
-                                                        <option value="404" ${current === '404' ? 'selected' : ''}>404 - fisso SX/DX + montante, anta alto</option>
-                                                        <option value="405" ${current === '405' ? 'selected' : ''}>405 - anta basso, anta alto SX/DX + montante</option>
-                                                        <option value="414" ${current === '414' ? 'selected' : ''}>414 - fisso SX, centro/DX anta + montante</option>
-                                                        <option value="415" ${current === '415' ? 'selected' : ''}>415 - SX/centro anta + montante, fisso DX</option>
-                                                        <option value="420" ${current === '420' ? 'selected' : ''}>420 - anta SX, centro/DX anta + montante</option>
-                                                        <option value="421" ${current === '421' ? 'selected' : ''}>421 - SX/centro anta + montante, anta DX</option>
-                                                        <option value="424" ${current === '424' ? 'selected' : ''}>424 - SX/centro/DX anta con montante</option>
-                                                    </optgroup>
-                                                    <optgroup label="↔️ Anta a Bilico">
-                                                        <option value="450" ${current === '450' ? 'selected' : ''}>450 - anta a bilico</option>
-                                                        <option value="451" ${current === '451' ? 'selected' : ''}>451 - anta a bilico, fisso DX</option>
-                                                        <option value="452" ${current === '452' ? 'selected' : ''}>452 - anta a bilico, fisso SX</option>
-                                                        <option value="453" ${current === '453' ? 'selected' : ''}>453 - anta a bilico, fisso DX e SX</option>
-                                                        <option value="456" ${current === '456' ? 'selected' : ''}>456 - anta a bilico, sopraluce fisso</option>
-                                                        <option value="457" ${current === '457' ? 'selected' : ''}>457 - anta a bilico, sottoluce fisso</option>
-                                                    </optgroup>
-                                                    <optgroup label="🚪 Scorrevole Parallela">
-                                                        <option value="500" ${current === '500' ? 'selected' : ''}>500 - porta-finestra scorrevole parallela</option>
-                                                        <option value="501" ${current === '501' ? 'selected' : ''}>501 - scorrevole parallela SX</option>
-                                                        <option value="503" ${current === '503' ? 'selected' : ''}>503 - scorrevole SX, anta DX</option>
-                                                        <option value="504" ${current === '504' ? 'selected' : ''}>504 - scorrevole DX, anta SX</option>
-                                                        <option value="510" ${current === '510' ? 'selected' : ''}>510 - scorrevole parallela, 2 ante</option>
-                                                        <option value="511" ${current === '511' ? 'selected' : ''}>511 - scorrevole parallela DX</option>
-                                                    </optgroup>
-                                                </select>
-                                            `;
-                                        })()}
-                                    </div>
-                                </div>
                             </div>
-                            
-                            <!-- 🔩 FERRAMENTA -->
-                            <div class="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-4 mb-3">
-                                <h5 class="font-semibold text-indigo-800 mb-3 flex items-center gap-2">
-                                    🔩 Ferramenta
-                                </h5>
-                                <div class="grid md:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="text-xs font-medium">Tipo Ferramenta</label>
-                                        ${(() => {
-                                            const ferramenta = [
-                                                { group: '── ANTA/RIBALTA ──', options: [
-                                                    { value: '411', label: '411 - Anta/ribalta cerniere in vista' },
-                                                    { value: '211', label: '211 - Anta/ribalta cerniere scomparsa' },
-                                                    { value: '409', label: '409 - Ribalta primaria (in vista)' },
-                                                    { value: '209', label: '209 - Ribalta primaria (scomparsa)' }
-                                                ]},
-                                                { group: '── SOLO ANTA ──', options: [
-                                                    { value: '430', label: '430 - Anta interno (in vista)' },
-                                                    { value: '230', label: '230 - Anta interno (scomparsa)' },
-                                                    { value: '453', label: '453 - Anta esterno (in vista)' }
-                                                ]},
-                                                { group: '── SOLO RIBALTA ──', options: [
-                                                    { value: '432', label: '432 - Ribalta maniglia laterale' },
-                                                    { value: '232', label: '232 - Ribalta (scomparsa)' },
-                                                    { value: '431', label: '431 - Sopraluce maniglia sup.' },
-                                                    { value: '433', label: '433 - Sopraluce comando leva' },
-                                                    { value: '434', label: '434 - Sopraluce arganello' },
-                                                    { value: '436', label: '436 - Sopraluce motorizzato' }
-                                                ]},
-                                                { group: '── CON MONTANTE MOBILE ──', options: [
-                                                    { value: '425', label: '425 - Anta + comando leva (in vista)' },
-                                                    { value: '225', label: '225 - Anta + comando leva (scomparsa)' },
-                                                    { value: 'B411', label: 'B411 - Anta/rib. + montante alto' },
-                                                    { value: 'B211', label: 'B211 - Anta/rib. + montante (scomp.)' }
-                                                ]},
-                                                { group: '── PORTA-FINESTRA SERRATURA ──', options: [
-                                                    { value: '475', label: '475 - Anta/ribalta + serratura' },
-                                                    { value: '275', label: '275 - Anta/ribalta serr. (scomparsa)' },
-                                                    { value: '473', label: '473 - Anta + serratura interno' },
-                                                    { value: '471', label: '471 - Anta + serratura esterno' }
-                                                ]},
-                                                { group: '── SCORREVOLI ──', options: [
-                                                    { value: '710', label: '710 - Scorrevole parallela a ribalta' },
-                                                    { value: '711', label: '711 - Scorrevole + serratura' },
-                                                    { value: '720', label: '720 - Scorrevole parallela' },
-                                                    { value: '721', label: '721 - Scorrevole + serratura' }
-                                                ]}
-                                            ];
-                                            const current = inf.ferramenta1 || '';
-                                            
-                                            return `
-                                                <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'ferramenta1', this.value)"
-                                                        class="w-full compact-input border rounded mt-1">
-                                                    <option value="">-- Seleziona --</option>
-                                                    ${ferramenta.map(g => `
-                                                        <optgroup label="${g.group}">
-                                                            ${g.options.map(o => `
-                                                                <option value="${o.value}" ${current === o.value ? 'selected' : ''}>${o.label}</option>
-                                                            `).join('')}
-                                                        </optgroup>
-                                                    `).join('')}
-                                                </select>
-                                            `;
-                                        })()}
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Lato Apertura</label>
-                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'lato1', this.value)"
-                                                class="w-full compact-input border rounded mt-1">
-                                            <option value="">--</option>
-                                            <option value="-1" ${(inf.lato1 || '') === '-1' ? 'selected' : ''}>SX (sinistra)</option>
-                                            <option value="-2" ${(inf.lato1 || '') === '-2' ? 'selected' : ''}>DX (destra)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Esecuzione Sicurezza</label>
-                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'esecuzione1', this.value)"
-                                                class="w-full compact-input border rounded mt-1">
-                                            <option value="0" ${(inf.esecuzione1 || '0') === '0' ? 'selected' : ''}>0 - Standard</option>
-                                            <option value="3" ${(inf.esecuzione1 || '') === '3' ? 'selected' : ''}>3 - Perimetrale + angolare</option>
-                                            <option value="4" ${(inf.esecuzione1 || '') === '4' ? 'selected' : ''}>4 - Perimetrale</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="mt-2 text-xs text-indigo-600 font-mono">
-                                    Codice: <strong>${inf.ferramenta1 || '---'}${inf.lato1 || ''}</strong> (esec. ${inf.esecuzione1 || '0'})
-                                </div>
-                            </div>
-                            
-                            <!-- ⚙️ OPZIONI FERRAMENTA -->
-                            <div class="bg-amber-50 border-2 border-amber-200 rounded-lg p-4 mb-3">
-                                <h5 class="font-semibold text-amber-800 mb-3 flex items-center gap-2">
-                                    ⚙️ Opzioni Ferramenta
-                                </h5>
-                                <div class="grid md:grid-cols-3 gap-3">
-                                    <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded border">
-                                        <input type="checkbox" 
-                                               ${inf.ribaltaEstateInverno ? 'checked' : ''}
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'ribaltaEstateInverno', this.checked)"
-                                               class="w-4 h-4">
-                                        <span class="text-sm">Ribalta estate/inverno</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded border">
-                                        <input type="checkbox" 
-                                               ${inf.aerazioneLimitata ? 'checked' : ''}
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'aerazioneLimitata', this.checked)"
-                                               class="w-4 h-4">
-                                        <span class="text-sm">Aerazione limitata a ribalta</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded border">
-                                        <input type="checkbox" 
-                                               ${inf.fermoAntaFB200 ? 'checked' : ''}
-                                               onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'fermoAntaFB200', this.checked)"
-                                               class="w-4 h-4">
-                                        <span class="text-sm">Fermo anta FB200</span>
-                                    </label>
-                                </div>
-                            </div>
-                            ` : `
-                            <!-- 📋 DATI GENERICI (altri fornitori) -->
-                            <div class="bg-gray-50 border-2 border-gray-300 rounded-lg p-4 mb-3">
-                                <h5 class="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                                    📋 Dati Specifici <span class="text-xs bg-gray-500 text-white px-2 py-0.5 rounded">${inf.azienda?.toUpperCase() || 'GENERICO'}</span>
-                                </h5>
-                                <div class="grid md:grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="text-xs font-medium">Quantità</label>
-                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'qta', this.value)"
-                                                class="w-full compact-input border rounded mt-1 font-semibold">
-                                            ${[0,1,2,3,4,5,6,7,8,9,10].map(n => 
-                                                '<option value="' + n + '" ' + ((inf.qta || '1') == n ? 'selected' : '') + '>' + n + '</option>'
-                                            ).join('')}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Tipo</label>
-                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'tipo', this.value)"
-                                                class="w-full compact-input border rounded mt-1">
-                                            <option value="">-- Seleziona --</option>
-                                            <option value="F1" ${(inf.tipo || '') === 'F1' ? 'selected' : ''}>F1 - Finestra 1 anta</option>
-                                            <option value="F2" ${(inf.tipo || '') === 'F2' ? 'selected' : ''}>F2 - Finestra 2 ante</option>
-                                            <option value="PF1" ${(inf.tipo || '') === 'PF1' ? 'selected' : ''}>PF1 - Porta-finestra 1 anta</option>
-                                            <option value="PF2" ${(inf.tipo || '') === 'PF2' ? 'selected' : ''}>PF2 - Porta-finestra 2 ante</option>
-                                            <option value="FISSO" ${(inf.tipo || '') === 'FISSO' ? 'selected' : ''}>Fisso</option>
-                                            <option value="VASISTAS" ${(inf.tipo || '') === 'VASISTAS' ? 'selected' : ''}>Vasistas</option>
-                                            <option value="SCORREVOLE" ${(inf.tipo || '') === 'SCORREVOLE' ? 'selected' : ''}>Scorrevole</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium">Apertura</label>
-                                        <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'apertura', this.value)"
-                                                class="w-full compact-input border rounded mt-1">
-                                            <option value="">-- Seleziona --</option>
-                                            <option value="SX" ${(inf.apertura || '') === 'SX' ? 'selected' : ''}>SX (sinistra)</option>
-                                            <option value="DX" ${(inf.apertura || '') === 'DX' ? 'selected' : ''}>DX (destra)</option>
-                                            <option value="FISSO" ${(inf.apertura || '') === 'FISSO' ? 'selected' : ''}>Fisso</option>
-                                            <option value="BILICO" ${(inf.apertura || '') === 'BILICO' ? 'selected' : ''}>Bilico</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <p class="text-xs text-gray-500 mt-3 italic">💡 Codici specifici per ${inf.azienda || 'questo fornitore'} saranno disponibili in futuro</p>
-                            </div>
-                            `}
 
                             <!-- 🔧 TIPO INFISSO ASSOCIATO -->
                             <div class="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mb-3">
@@ -19246,6 +18981,95 @@
                                         'infisso',
                                         'Azienda'
                                     )}
+                                    
+                                    <!-- ═══ CAMPI SPECIFICI FINSTRAL (col-span-3) ═══ -->
+                                    ${(inf.azienda?.toLowerCase() === 'finstral') ? `
+                                    <div class="col-span-3 bg-blue-100 border-2 border-blue-300 rounded-lg p-3 my-2">
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-bold">FINSTRAL</span>
+                                            <span class="text-xs text-blue-700">Codici specifici</span>
+                                        </div>
+                                        <div class="grid md:grid-cols-4 gap-3">
+                                            <!-- CODICE MODELLO -->
+                                            <div>
+                                                <label class="text-xs font-medium">Cod. Modello</label>
+                                                <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'codiceModello', this.value)"
+                                                        class="w-full compact-input border rounded mt-1 text-xs ${!inf.codiceModello ? 'border-orange-400 bg-orange-50' : ''}">
+                                                    <option value="">--</option>
+                                                    <optgroup label="1 Campo">
+                                                        <option value="101" ${inf.codiceModello === '101' ? 'selected' : ''}>101 - anta</option>
+                                                        <option value="102" ${inf.codiceModello === '102' ? 'selected' : ''}>102 - fisso</option>
+                                                    </optgroup>
+                                                    <optgroup label="2 Campi">
+                                                        <option value="201" ${inf.codiceModello === '201' ? 'selected' : ''}>201 - 2 ante</option>
+                                                        <option value="202" ${inf.codiceModello === '202' ? 'selected' : ''}>202 - anta+fisso</option>
+                                                        <option value="203" ${inf.codiceModello === '203' ? 'selected' : ''}>203 - fisso+anta</option>
+                                                        <option value="401" ${inf.codiceModello === '401' ? 'selected' : ''}>401 - 2 ante montante</option>
+                                                    </optgroup>
+                                                    <optgroup label="3+ Campi">
+                                                        <option value="301" ${inf.codiceModello === '301' ? 'selected' : ''}>301 - 3 ante</option>
+                                                        <option value="302" ${inf.codiceModello === '302' ? 'selected' : ''}>302 - a+f+a</option>
+                                                    </optgroup>
+                                                    <optgroup label="Scorrevoli">
+                                                        <option value="500" ${inf.codiceModello === '500' ? 'selected' : ''}>500 - scorr. parallela</option>
+                                                        <option value="501" ${inf.codiceModello === '501' ? 'selected' : ''}>501 - scorr. SX</option>
+                                                    </optgroup>
+                                                </select>
+                                            </div>
+                                            <!-- FERRAMENTA -->
+                                            <div>
+                                                <label class="text-xs font-medium">Ferramenta</label>
+                                                <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'ferramenta1', this.value)"
+                                                        class="w-full compact-input border rounded mt-1 text-xs">
+                                                    <option value="">--</option>
+                                                    <optgroup label="Anta/Ribalta">
+                                                        <option value="411" ${inf.ferramenta1 === '411' ? 'selected' : ''}>411 - A/R vista</option>
+                                                        <option value="211" ${inf.ferramenta1 === '211' ? 'selected' : ''}>211 - A/R scomp.</option>
+                                                    </optgroup>
+                                                    <optgroup label="Solo Anta">
+                                                        <option value="430" ${inf.ferramenta1 === '430' ? 'selected' : ''}>430 - Anta int.</option>
+                                                        <option value="230" ${inf.ferramenta1 === '230' ? 'selected' : ''}>230 - Anta scomp.</option>
+                                                    </optgroup>
+                                                    <optgroup label="Con Montante">
+                                                        <option value="425" ${inf.ferramenta1 === '425' ? 'selected' : ''}>425 - +leva vista</option>
+                                                        <option value="225" ${inf.ferramenta1 === '225' ? 'selected' : ''}>225 - +leva scomp.</option>
+                                                    </optgroup>
+                                                    <optgroup label="Porta-Finestra">
+                                                        <option value="475" ${inf.ferramenta1 === '475' ? 'selected' : ''}>475 - A/R+serr.</option>
+                                                        <option value="473" ${inf.ferramenta1 === '473' ? 'selected' : ''}>473 - Anta+serr.</option>
+                                                    </optgroup>
+                                                    <optgroup label="Scorrevoli">
+                                                        <option value="710" ${inf.ferramenta1 === '710' ? 'selected' : ''}>710 - Scorr. ribalta</option>
+                                                        <option value="720" ${inf.ferramenta1 === '720' ? 'selected' : ''}>720 - Scorr. par.</option>
+                                                    </optgroup>
+                                                </select>
+                                            </div>
+                                            <!-- LATO -->
+                                            <div>
+                                                <label class="text-xs font-medium">Lato</label>
+                                                <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'lato1', this.value)"
+                                                        class="w-full compact-input border rounded mt-1 text-xs">
+                                                    <option value="">--</option>
+                                                    <option value="-1" ${inf.lato1 === '-1' ? 'selected' : ''}>SX (-1)</option>
+                                                    <option value="-2" ${inf.lato1 === '-2' ? 'selected' : ''}>DX (-2)</option>
+                                                </select>
+                                            </div>
+                                            <!-- ESECUZIONE -->
+                                            <div>
+                                                <label class="text-xs font-medium">Esec.</label>
+                                                <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'esecuzione1', this.value)"
+                                                        class="w-full compact-input border rounded mt-1 text-xs">
+                                                    <option value="0" ${(inf.esecuzione1 || '0') === '0' ? 'selected' : ''}>0 - Std</option>
+                                                    <option value="3" ${inf.esecuzione1 === '3' ? 'selected' : ''}>3 - Perim+ang</option>
+                                                    <option value="4" ${inf.esecuzione1 === '4' ? 'selected' : ''}>4 - Perim</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 text-xs text-blue-700 font-mono">
+                                            → Codice: <strong>${inf.codiceModello || '???'}</strong> | Ferr: <strong>${inf.ferramenta1 || '???'}${inf.lato1 || ''}</strong> (esec.${inf.esecuzione1 || '0'})
+                                        </div>
+                                    </div>
+                                    ` : ''}
 
                                     <!-- TIPO ANTA -->
                                     ${renderSelectWithCustom(
