@@ -28,7 +28,7 @@
     - ✅ 7. Isolamento: -- / 40830 (25mm) / 40831 (13mm)
     
     LOGICA COLORE:
-    - ⚡ Auto-recuperato da colore esterno infisso collegato
+    - ⚡ Auto-recuperato da colore INTERNO infisso collegato
     - ✅ Modificabile manualmente
     - ✅ Filtrato dinamicamente in base al Gruppo Colore selezionato
     - ✅ Codici da listino Finstral EUR 2025/3
@@ -5341,8 +5341,8 @@
             const mat = project.configCassonetti?.materialeCass || '';
             const current = project.configCassonetti?.coloreCass || '';
             
-            // Auto-recupera da infisso config globale se non impostato
-            const autoFromInfisso = project.configInfissi?.coloreEsterno || '';
+            // Auto-recupera da infisso INTERNO config globale se non impostato
+            const autoFromInfisso = project.configInfissi?.coloreInt || '';
             const displayValue = current || autoFromInfisso;
             
             // Colori PVC da listino Finstral
@@ -5491,8 +5491,8 @@
             const mat = cas.materialeCass || '';
             const current = cas.coloreCass || '';
             
-            // Auto-recupera da infisso se non impostato
-            const autoFromInfisso = pos.infisso?.coloreEsterno || '';
+            // Auto-recupera da infisso INTERNO se non impostato
+            const autoFromInfisso = pos.infisso?.coloreInt || '';
             const displayValue = current || autoFromInfisso;
             
             // Colori PVC da listino Finstral
