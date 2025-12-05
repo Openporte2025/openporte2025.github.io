@@ -19,14 +19,13 @@
     - ✅ Quantità
     - ✅ Azienda  
     - ✅ 2. A Soffitto (checkbox)
-    - ✅ 3. Isolamento Posaclima (checkbox)
     
     NUOVA STRUTTURA - Dati per Calcolo Prezzo:
-    - ✅ 4. Materiale: PVC / Legno
-    - ✅ 5. Codice: 148 / 148B / 300 / 300B (PVC) o 9-48 / 9-48B (Legno)
-    - ✅ 6. Gruppo Colore: ○ Bianco / ● Scuri (PVC) o Gr.1/Gr.2+3 (Legno)
-    - ✅ 7. Colore: Codice specifico filtrato per gruppo (01,42,45,07,27 o 06,46,13,19,55)
-    - ✅ 8. Codice Isolamento: 40830 (25mm) / 40831 (13mm) - visibile solo se checkbox attivo
+    - ✅ 3. Materiale: PVC / Legno
+    - ✅ 4. Codice: 148 / 148B / 300 / 300B (PVC) o 9-48 / 9-48B (Legno)
+    - ✅ 5. Gruppo Colore: ○ Bianco / ● Scuri (PVC) o Gr.1/Gr.2+3 (Legno)
+    - ✅ 6. Colore: Codice specifico + checkbox "= colore serramento"
+    - ✅ 7. Isolamento: -- / Isolamento Posaclima / 40830 (25mm) / 40831 (13mm)
     
     LOGICA COLORE:
     - ⚡ Auto-recuperato da colore INTERNO infisso collegato
@@ -35,9 +34,9 @@
     - ✅ Codici da listino Finstral EUR 2025/3
     
     SINCRONIZZAZIONE AUTOMATICA:
-    - ✅ Checkbox "🧱 Cassonetto stesso colore" in Config Infissi (default ON)
-    - ✅ Se attivo: cambio colore interno infisso → aggiorna automaticamente colore cassonetto
-    - ✅ Funziona sia in Config Globale che nelle singole posizioni
+    - ✅ Checkbox "= colore serramento" in Cassonetti (Config Globale + Posizioni)
+    - ✅ Default ON: cassonetto prende colore interno infisso
+    - ✅ Se cambio colore infisso → cassonetti con sync attivo si aggiornano
     - ✅ Disattivabile per impostare colore cassonetto manualmente
     
     NUOVE FUNZIONI:
@@ -8070,6 +8069,7 @@
                         codiceCass: pos.cassonetto.codiceCass || '',
                         gruppoColoreCass: pos.cassonetto.gruppoColoreCass || '',
                         coloreCass: pos.cassonetto.coloreCass || '', // v5.54
+                        coloreDaInfisso: pos.cassonetto.coloreDaInfisso !== false, // v5.54 default true
                         codiceIsolamento: pos.cassonetto.codiceIsolamento || '',
                         // Misure
                         LS: pos.cassonetto.LS || '0',
@@ -8205,7 +8205,6 @@
                         finituraInt: updatedProject.configInfissi?.finituraInt || '',
                         finituraEst: updatedProject.configInfissi?.finituraEst || '',
                         coloreInt: updatedProject.configInfissi?.coloreInt || '',
-                        coloreCassonettoSync: updatedProject.configInfissi?.coloreCassonettoSync !== false, // v5.54 default true
                         coloreEst: updatedProject.configInfissi?.coloreEst || '',
                         tipoAnta: updatedProject.configInfissi?.tipoAnta || '',
                         vetro: updatedProject.configInfissi?.vetro || '',
@@ -8373,6 +8372,7 @@
                         codiceCass: updatedProject.configCassonetti?.codiceCass || '',
                         gruppoColoreCass: updatedProject.configCassonetti?.gruppoColoreCass || '',
                         coloreCass: updatedProject.configCassonetti?.coloreCass || '', // v5.54
+                        coloreDaInfisso: updatedProject.configCassonetti?.coloreDaInfisso !== false, // v5.54 default true
                         codiceIsolamento: updatedProject.configCassonetti?.codiceIsolamento || ''
                     },
                     
@@ -11743,6 +11743,7 @@
                         codiceCass: project.configCassonetti?.codiceCass || '',
                         gruppoColoreCass: project.configCassonetti?.gruppoColoreCass || '',
                         coloreCass: project.configCassonetti?.coloreCass || '', // v5.54
+                        coloreDaInfisso: project.configCassonetti?.coloreDaInfisso !== false, // v5.54 default true
                         codiceIsolamento: project.configCassonetti?.codiceIsolamento || '',
                         // Inizializza le misure a 0
                         LS: '0',
@@ -12735,24 +12736,48 @@
                     render();
                 }
                 
-                // 🆕 v5.54: Se cambia coloreInt e sync attivo, aggiorna cassonetto
-                if (field === 'coloreInt' && project.configInfissi.coloreCassonettoSync !== false) {
-                    sincronizzaColoreCassonetto(projectId);
+                // 🆕 v5.54: Se cambia coloreInt, aggiorna cassonetti con sync attivo
+                if (field === 'coloreInt') {
+                    sincronizzaColoreCassonettoSeAttivo(projectId);
                 }
                 // render(); ← RIMOSSO: Evita reload pagina, mantiene focus
             }
         };
         
-        // 🆕 v5.54: Sincronizza colore cassonetto da colore interno infisso
-        window.sincronizzaColoreCassonetto = (projectId) => {
+        // 🆕 v5.54: Sincronizza colore cassonetto SE checkbox coloreDaInfisso è attivo
+        window.sincronizzaColoreCassonettoSeAttivo = (projectId) => {
             const project = state.projects.find(p => p.id === projectId);
             if (!project) return;
             
-            // Controlla se sync è attivo (default: true)
-            if (project.configInfissi?.coloreCassonettoSync === false) {
-                console.log('🧱 Sync colore cassonetto DISATTIVATO');
-                return;
+            const coloreInt = project.configInfissi?.coloreInt || '';
+            if (!coloreInt) return;
+            
+            // Aggiorna Config Globale Cassonetti SE sync attivo
+            if (project.configCassonetti?.coloreDaInfisso !== false) {
+                if (!project.configCassonetti) project.configCassonetti = {};
+                project.configCassonetti.coloreCass = coloreInt;
+                console.log('🧱 Config Cassonetti: coloreCass =', coloreInt);
             }
+            
+            // Aggiorna posizioni con cassonetto Finstral SE sync attivo
+            if (project.positions) {
+                project.positions.forEach(pos => {
+                    if (pos.cassonetto && pos.cassonetto.azienda === 'Finstral' && pos.cassonetto.coloreDaInfisso !== false) {
+                        // Prende colore dall'infisso della stessa posizione
+                        const coloreInfissoPos = pos.infisso?.coloreInt || coloreInt;
+                        pos.cassonetto.coloreCass = coloreInfissoPos;
+                        console.log(`🧱 Pos ${pos.id}: cassonetto coloreCass =`, coloreInfissoPos);
+                    }
+                });
+            }
+            
+            saveState();
+        };
+        
+        // 🆕 v5.54: Sincronizza colore cassonetto da config globale (chiamata manuale da checkbox)
+        window.sincronizzaColoreCassonetto = (projectId) => {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
             
             const coloreInt = project.configInfissi?.coloreInt || '';
             if (!coloreInt) {
@@ -12765,15 +12790,27 @@
             project.configCassonetti.coloreCass = coloreInt;
             console.log('🧱 Config Cassonetti: coloreCass =', coloreInt);
             
-            // Aggiorna tutte le posizioni con cassonetto Finstral
-            if (project.positions) {
-                project.positions.forEach(pos => {
-                    if (pos.cassonetto && pos.cassonetto.azienda === 'Finstral') {
-                        pos.cassonetto.coloreCass = coloreInt;
-                        console.log(`🧱 Pos ${pos.id}: cassonetto coloreCass =`, coloreInt);
-                    }
-                });
+            saveState();
+            render();
+        };
+        
+        // 🆕 v5.54: Sincronizza colore cassonetto per singola posizione
+        window.sincronizzaColoreCassonettoPos = (projectId, posId) => {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const pos = project.positions.find(p => p.id === posId);
+            if (!pos || !pos.cassonetto) return;
+            
+            // Prende colore dall'infisso della stessa posizione, o da config globale
+            const coloreInt = pos.infisso?.coloreInt || project.configInfissi?.coloreInt || '';
+            if (!coloreInt) {
+                console.log('🧱 Nessun colore interno da sincronizzare');
+                return;
             }
+            
+            pos.cassonetto.coloreCass = coloreInt;
+            console.log(`🧱 Pos ${posId}: cassonetto coloreCass =`, coloreInt);
             
             saveState();
             render();
@@ -14869,17 +14906,6 @@
                                 'infisso',
                                 '5. Colore Interno'
                             )}
-                            
-                            <!-- 5b. CHECKBOX: Cassonetto stesso colore -->
-                            <div class="flex items-center mt-1">
-                                <label class="text-xs text-gray-600 flex items-center gap-1 cursor-pointer">
-                                    <input type="checkbox" 
-                                           ${project.configInfissi?.coloreCassonettoSync !== false ? 'checked' : ''}
-                                           onchange="updateConfigInfissi('${project.id}', 'coloreCassonettoSync', this.checked); sincronizzaColoreCassonetto('${project.id}');"
-                                           class="w-3 h-3">
-                                    <span>🧱 Cassonetto stesso colore</span>
-                                </label>
-                            </div>
 
                             <!-- 6. COLORE ESTERNO -->
                             ${renderSelectColoreStandard(
@@ -15507,25 +15533,14 @@
                                             </label>
                                         </div>
                                         
-                                        <!-- 3. ISOLAMENTO POSACLIMA (checkbox) -->
-                                        <div>
-                                            <label class="block text-sm font-medium mb-2 flex items-center gap-2">
-                                                <input type="checkbox" 
-                                                       ${project.configCassonetti?.isolamentoPosaclima ? 'checked' : ''}
-                                                       onchange="updateConfigCassonetti('${project.id}', 'isolamentoPosaclima', this.checked); render();"
-                                                       class="w-4 h-4">
-                                                3. Isolamento Posaclima
-                                            </label>
-                                        </div>
-                                        
                                         <!-- ===== CAMPI CALCOLO PREZZI v5.54 ===== -->
                                         <div class="col-span-2 border-t-2 border-orange-300 pt-3 mt-2">
                                             <p class="text-sm font-bold text-orange-700 mb-2">📊 Dati per Calcolo Prezzo:</p>
                                         </div>
                                         
-                                        <!-- 4. MATERIALE CASSONETTO -->
+                                        <!-- 3. MATERIALE CASSONETTO -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">4. Materiale</label>
+                                            <label class="block text-sm font-medium mb-1">3. Materiale</label>
                                             <select onchange="updateConfigCassonetti('${project.id}', 'materialeCass', this.value); render();"
                                                     class="w-full px-3 py-2 border rounded-lg">
                                                 <option value="">Seleziona materiale...</option>
@@ -15534,37 +15549,43 @@
                                             </select>
                                         </div>
                                         
-                                        <!-- 5. CODICE CASSONETTO (dipende da materiale) -->
+                                        <!-- 4. CODICE CASSONETTO (dipende da materiale) -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">5. Codice Cassonetto</label>
+                                            <label class="block text-sm font-medium mb-1">4. Codice Cassonetto</label>
                                             ${renderSelectCodiceCassonetto(project)}
                                         </div>
                                         
-                                        <!-- 6. GRUPPO COLORE (dipende da materiale) -->
+                                        <!-- 5. GRUPPO COLORE (dipende da materiale) -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">6. Gruppo Colore</label>
+                                            <label class="block text-sm font-medium mb-1">5. Gruppo Colore</label>
                                             ${renderSelectGruppoColoreCass(project)}
                                         </div>
                                         
-                                        <!-- 7. COLORE SPECIFICO (dipende da gruppo) -->
+                                        <!-- 6. COLORE SPECIFICO (dipende da gruppo) -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">7. Colore</label>
+                                            <label class="block text-sm font-medium mb-1">6. Colore</label>
                                             ${renderSelectColoreCassGlobal(project)}
-                                        </div>
+                                            <!-- Checkbox sync colore -->
+                                            <label class="text-xs text-gray-500 flex items-center gap-1 mt-1 cursor-pointer">
+                                                <input type="checkbox" 
+                                                       ${project.configCassonetti?.coloreDaInfisso !== false ? 'checked' : ''}
+                                                       onchange="updateConfigCassonetti('${project.id}', 'coloreDaInfisso', this.checked); if(this.checked) sincronizzaColoreCassonetto('${project.id}');"
+                                                       class="w-3 h-3">
+                                                = colore serramento
+                                            </label>
                                         </div>
                                         
-                                        <!-- 8. CODICE ISOLAMENTO (solo se checkbox attivo) -->
-                                        ${project.configCassonetti?.isolamentoPosaclima ? `
+                                        <!-- 7. ISOLAMENTO (sempre visibile) -->
                                         <div>
-                                            <label class="block text-sm font-medium mb-1">8. Codice Isolamento</label>
+                                            <label class="block text-sm font-medium mb-1">7. Isolamento</label>
                                             <select onchange="updateConfigCassonetti('${project.id}', 'codiceIsolamento', this.value)"
                                                     class="w-full px-3 py-2 border rounded-lg bg-yellow-50">
                                                 <option value="" ${!project.configCassonetti?.codiceIsolamento ? 'selected' : ''}>--</option>
+                                                <option value="posaclima" ${project.configCassonetti?.codiceIsolamento === 'posaclima' ? 'selected' : ''}>Isolamento Posaclima</option>
                                                 <option value="40830" ${project.configCassonetti?.codiceIsolamento === '40830' ? 'selected' : ''}>40830 (25mm)</option>
                                                 <option value="40831" ${project.configCassonetti?.codiceIsolamento === '40831' ? 'selected' : ''}>40831 (13mm)</option>
                                             </select>
                                         </div>
-                                        ` : ''}
                                     `;
                                 }
                                 
@@ -21041,26 +21062,15 @@
                                                         2. A Soffitto
                                                     </label>
                                                 </div>
-                                                
-                                                <!-- 3. ISOLAMENTO POSACLIMA (checkbox) -->
-                                                <div>
-                                                    <label class="text-xs font-medium flex items-center gap-2">
-                                                        <input type="checkbox" 
-                                                               ${cas.isolamentoPosaclima ? 'checked' : ''}
-                                                               onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'isolamentoPosaclima', this.checked); render();"
-                                                               class="w-4 h-4">
-                                                        3. Isolamento Posaclima
-                                                    </label>
-                                                </div>
                                             </div>
                                             
                                             <!-- ===== v5.54: CAMPI CALCOLO PREZZI RISTRUTTURATI ===== -->
                                             <div class="border-t-2 border-orange-300 pt-3 mt-3">
                                                 <p class="text-xs font-bold text-orange-700 mb-2">📊 Dati per Calcolo Prezzo:</p>
                                                 <div class="grid md:grid-cols-4 gap-3">
-                                                    <!-- 4. MATERIALE -->
+                                                    <!-- 3. MATERIALE -->
                                                     <div>
-                                                        <label class="text-xs font-medium">4. Materiale</label>
+                                                        <label class="text-xs font-medium">3. Materiale</label>
                                                         <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'materialeCass', this.value); render();"
                                                                 class="w-full compact-input border rounded mt-1">
                                                             <option value="">--</option>
@@ -21069,39 +21079,46 @@
                                                         </select>
                                                     </div>
                                                     
-                                                    <!-- 5. CODICE CASSONETTO -->
+                                                    <!-- 4. CODICE CASSONETTO -->
                                                     <div>
-                                                        <label class="text-xs font-medium">5. Codice</label>
+                                                        <label class="text-xs font-medium">4. Codice</label>
                                                         ${renderSelectCodiceCassPos(cas, project.id, pos.id)}
                                                     </div>
                                                     
-                                                    <!-- 6. GRUPPO COLORE -->
+                                                    <!-- 5. GRUPPO COLORE -->
                                                     <div>
-                                                        <label class="text-xs font-medium">6. Gruppo Colore</label>
+                                                        <label class="text-xs font-medium">5. Gruppo Colore</label>
                                                         ${renderSelectGruppoColoreCassPos(cas, project.id, pos.id)}
                                                     </div>
                                                     
-                                                    <!-- 7. COLORE (codice specifico, auto da infisso) -->
+                                                    <!-- 6. COLORE (codice specifico, auto da infisso) -->
                                                     <div>
-                                                        <label class="text-xs font-medium">7. Colore</label>
+                                                        <label class="text-xs font-medium">6. Colore</label>
                                                         ${renderSelectColoreCassPos(cas, pos, project.id, pos.id)}
+                                                        <!-- Checkbox sync colore -->
+                                                        <label class="text-xs text-gray-500 flex items-center gap-1 mt-1 cursor-pointer">
+                                                            <input type="checkbox" 
+                                                                   ${cas.coloreDaInfisso !== false ? 'checked' : ''}
+                                                                   onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'coloreDaInfisso', this.checked); if(this.checked) sincronizzaColoreCassonettoPos('${project.id}', '${pos.id}');"
+                                                                   class="w-3 h-3">
+                                                            = colore serramento
+                                                        </label>
                                                     </div>
                                                 </div>
                                                 
-                                                <!-- 8. ISOLAMENTO (seconda riga, solo se checkbox attivo) -->
-                                                ${cas.isolamentoPosaclima ? `
+                                                <!-- 7. ISOLAMENTO (sempre visibile) -->
                                                 <div class="grid md:grid-cols-4 gap-3 mt-3">
                                                     <div>
-                                                        <label class="text-xs font-medium">8. Codice Isolamento</label>
+                                                        <label class="text-xs font-medium">7. Isolamento</label>
                                                         <select onchange="updateProduct('${project.id}', '${pos.id}', 'cassonetto', 'codiceIsolamento', this.value)"
                                                                 class="w-full compact-input border rounded mt-1 bg-yellow-50">
                                                             <option value="" ${!cas.codiceIsolamento ? 'selected' : ''}>--</option>
+                                                            <option value="posaclima" ${cas.codiceIsolamento === 'posaclima' ? 'selected' : ''}>Isolamento Posaclima</option>
                                                             <option value="40830" ${cas.codiceIsolamento === '40830' ? 'selected' : ''}>40830 (25mm)</option>
                                                             <option value="40831" ${cas.codiceIsolamento === '40831' ? 'selected' : ''}>40831 (13mm)</option>
                                                         </select>
                                                     </div>
                                                 </div>
-                                                ` : ''}
                                             </div>
                                         `;
                                     }
