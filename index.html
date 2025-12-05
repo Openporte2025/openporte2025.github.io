@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.51 - 🔧 CAMPI NASCOSTI SE NON FINSTRAL ✅
+    Open Porte v5.52 - 🔧 CODICI MODELLO COMPLETI + NO BARRA IN CONFIG ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.47 (04 DIC 2025) - UI DINAMICA PER FORNITORE
@@ -1963,7 +1963,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.51 - Campi Nascosti se non Finstral</title>
+    <title>Open Porte v5.52 - Codici Modello Completi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3191,8 +3191,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.51';
-        const APP_VERSION_NOTE = '🔧 CAMPI NASCOSTI SE NON FINSTRAL';
+        const APP_VERSION = '5.52';
+        const APP_VERSION_NOTE = '🔧 CODICI MODELLO COMPLETI + NO BARRA IN CONFIG';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -14545,105 +14545,19 @@
                                 '1. Azienda'
                             )}
                             
-                            <!-- ═══ CAMPI SPECIFICI FINSTRAL (Config Globale) ═══ -->
-                            ${(project.configInfissi?.azienda?.toLowerCase() === 'finstral') ? `
-                            <div class="col-span-2 bg-blue-100 border-2 border-blue-300 rounded-lg p-3 my-2">
-                                <div class="flex items-center gap-2 mb-3">
-                                    <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-bold">FINSTRAL</span>
-                                    <span class="text-xs text-blue-700">Codici specifici (default per nuove posizioni)</span>
-                                </div>
-                                <div class="grid md:grid-cols-4 gap-3">
-                                    <!-- CODICE MODELLO DEFAULT -->
-                                    <div>
-                                        <label class="text-xs font-medium">Cod. Modello</label>
-                                        <select onchange="updateConfigInfissi('${project.id}', 'codiceModello', this.value); render();"
-                                                class="w-full compact-input border rounded mt-1 text-xs">
-                                            <option value="">--</option>
-                                            <optgroup label="1 Campo">
-                                                <option value="101" ${project.configInfissi?.codiceModello === '101' ? 'selected' : ''}>101 - anta</option>
-                                                <option value="102" ${project.configInfissi?.codiceModello === '102' ? 'selected' : ''}>102 - fisso</option>
-                                            </optgroup>
-                                            <optgroup label="2 Campi">
-                                                <option value="201" ${project.configInfissi?.codiceModello === '201' ? 'selected' : ''}>201 - 2 ante</option>
-                                                <option value="202" ${project.configInfissi?.codiceModello === '202' ? 'selected' : ''}>202 - anta+fisso</option>
-                                                <option value="203" ${project.configInfissi?.codiceModello === '203' ? 'selected' : ''}>203 - fisso+anta</option>
-                                                <option value="401" ${project.configInfissi?.codiceModello === '401' ? 'selected' : ''}>401 - 2 ante montante</option>
-                                            </optgroup>
-                                            <optgroup label="3+ Campi">
-                                                <option value="301" ${project.configInfissi?.codiceModello === '301' ? 'selected' : ''}>301 - 3 ante</option>
-                                                <option value="302" ${project.configInfissi?.codiceModello === '302' ? 'selected' : ''}>302 - a+f+a</option>
-                                            </optgroup>
-                                            <optgroup label="Scorrevoli">
-                                                <option value="500" ${project.configInfissi?.codiceModello === '500' ? 'selected' : ''}>500 - scorr. parallela</option>
-                                            </optgroup>
-                                        </select>
-                                    </div>
-                                    <!-- FERRAMENTA DEFAULT -->
-                                    <div>
-                                        <label class="text-xs font-medium">Ferramenta</label>
-                                        <select onchange="updateConfigInfissi('${project.id}', 'ferramenta1', this.value); render();"
-                                                class="w-full compact-input border rounded mt-1 text-xs">
-                                            <option value="">--</option>
-                                            <optgroup label="Anta/Ribalta">
-                                                <option value="411" ${project.configInfissi?.ferramenta1 === '411' ? 'selected' : ''}>411 - A/R vista</option>
-                                                <option value="211" ${project.configInfissi?.ferramenta1 === '211' ? 'selected' : ''}>211 - A/R scomp.</option>
-                                            </optgroup>
-                                            <optgroup label="Solo Anta">
-                                                <option value="430" ${project.configInfissi?.ferramenta1 === '430' ? 'selected' : ''}>430 - Anta int.</option>
-                                                <option value="230" ${project.configInfissi?.ferramenta1 === '230' ? 'selected' : ''}>230 - Anta scomp.</option>
-                                            </optgroup>
-                                            <optgroup label="Con Montante">
-                                                <option value="425" ${project.configInfissi?.ferramenta1 === '425' ? 'selected' : ''}>425 - +leva vista</option>
-                                                <option value="225" ${project.configInfissi?.ferramenta1 === '225' ? 'selected' : ''}>225 - +leva scomp.</option>
-                                            </optgroup>
-                                            <optgroup label="Porta-Finestra">
-                                                <option value="475" ${project.configInfissi?.ferramenta1 === '475' ? 'selected' : ''}>475 - A/R+serr.</option>
-                                                <option value="473" ${project.configInfissi?.ferramenta1 === '473' ? 'selected' : ''}>473 - Anta+serr.</option>
-                                            </optgroup>
-                                            <optgroup label="Scorrevoli">
-                                                <option value="710" ${project.configInfissi?.ferramenta1 === '710' ? 'selected' : ''}>710 - Scorr. ribalta</option>
-                                                <option value="720" ${project.configInfissi?.ferramenta1 === '720' ? 'selected' : ''}>720 - Scorr. par.</option>
-                                            </optgroup>
-                                        </select>
-                                    </div>
-                                    <!-- LATO DEFAULT -->
-                                    <div>
-                                        <label class="text-xs font-medium">Lato</label>
-                                        <select onchange="updateConfigInfissi('${project.id}', 'lato1', this.value); render();"
-                                                class="w-full compact-input border rounded mt-1 text-xs">
-                                            <option value="">--</option>
-                                            <option value="-1" ${project.configInfissi?.lato1 === '-1' ? 'selected' : ''}>SX (-1)</option>
-                                            <option value="-2" ${project.configInfissi?.lato1 === '-2' ? 'selected' : ''}>DX (-2)</option>
-                                        </select>
-                                    </div>
-                                    <!-- ESECUZIONE DEFAULT -->
-                                    <div>
-                                        <label class="text-xs font-medium">Esec.</label>
-                                        <select onchange="updateConfigInfissi('${project.id}', 'esecuzione1', this.value); render();"
-                                                class="w-full compact-input border rounded mt-1 text-xs">
-                                            <option value="0" ${(project.configInfissi?.esecuzione1 || '0') === '0' ? 'selected' : ''}>0 - Std</option>
-                                            <option value="3" ${project.configInfissi?.esecuzione1 === '3' ? 'selected' : ''}>3 - Perim+ang</option>
-                                            <option value="4" ${project.configInfissi?.esecuzione1 === '4' ? 'selected' : ''}>4 - Perim</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="mt-2 text-xs text-blue-700 font-mono">
-                                    → Default: <strong>${project.configInfissi?.codiceModello || '???'}</strong> | Ferr: <strong>${project.configInfissi?.ferramenta1 || '???'}${project.configInfissi?.lato1 || ''}</strong> (esec.${project.configInfissi?.esecuzione1 || '0'})
-                                </div>
-                            </div>
-                            ` : `
-                            <!-- MESSAGGIO PER ALTRI FORNITORI -->
+                            <!-- ═══ MESSAGGIO PER ALTRI FORNITORI (Config Globale) ═══ -->
+                            ${(project.configInfissi?.azienda && project.configInfissi?.azienda?.toLowerCase() !== 'finstral') ? `
                             <div class="col-span-2 bg-amber-50 border-2 border-amber-300 rounded-lg p-4 my-2">
                                 <div class="flex items-center gap-3">
                                     <span class="text-3xl">⚠️</span>
                                     <div>
-                                        <p class="font-bold text-amber-800">Valori per ${project.configInfissi?.azienda?.toUpperCase() || 'questo fornitore'} in arrivo</p>
+                                        <p class="font-bold text-amber-800">Valori per ${project.configInfissi?.azienda?.toUpperCase()} in arrivo</p>
                                         <p class="text-sm text-amber-700 mt-1">I campi specifici per questo fornitore saranno disponibili prossimamente.</p>
                                         <p class="text-xs text-amber-600 mt-2">💡 Per urgenze, usa "Scrivi manualmente" nel campo Azienda</p>
                                     </div>
                                 </div>
                             </div>
-                            `}
+                            ` : ''}
                             
                             <!-- ═══ CAMPI 2-14 SOLO PER FINSTRAL ═══ -->
                             ${(project.configInfissi?.azienda?.toLowerCase() === 'finstral') ? `
@@ -19105,23 +19019,71 @@
                                                 <select onchange="updateProduct('${project.id}', '${pos.id}', 'infisso', 'codiceModello', this.value)"
                                                         class="w-full compact-input border rounded mt-1 text-xs ${!inf.codiceModello ? 'border-orange-400 bg-orange-50' : ''}">
                                                     <option value="">--</option>
-                                                    <optgroup label="1 Campo">
+                                                    <optgroup label="📦 1 Campo">
                                                         <option value="101" ${inf.codiceModello === '101' ? 'selected' : ''}>101 - anta</option>
                                                         <option value="102" ${inf.codiceModello === '102' ? 'selected' : ''}>102 - fisso</option>
                                                     </optgroup>
-                                                    <optgroup label="2 Campi">
+                                                    <optgroup label="📦📦 2 Campi Orizz.">
                                                         <option value="201" ${inf.codiceModello === '201' ? 'selected' : ''}>201 - 2 ante</option>
                                                         <option value="202" ${inf.codiceModello === '202' ? 'selected' : ''}>202 - anta+fisso</option>
                                                         <option value="203" ${inf.codiceModello === '203' ? 'selected' : ''}>203 - fisso+anta</option>
-                                                        <option value="401" ${inf.codiceModello === '401' ? 'selected' : ''}>401 - 2 ante montante</option>
+                                                        <option value="204" ${inf.codiceModello === '204' ? 'selected' : ''}>204 - 2 fissi</option>
                                                     </optgroup>
-                                                    <optgroup label="3+ Campi">
+                                                    <optgroup label="📦📦 2 Campi Vert.">
+                                                        <option value="205" ${inf.codiceModello === '205' ? 'selected' : ''}>205 - 2 ante vert.</option>
+                                                        <option value="206" ${inf.codiceModello === '206' ? 'selected' : ''}>206 - anta+fisso vert.</option>
+                                                        <option value="207" ${inf.codiceModello === '207' ? 'selected' : ''}>207 - fisso+anta vert.</option>
+                                                        <option value="208" ${inf.codiceModello === '208' ? 'selected' : ''}>208 - 2 fissi vert.</option>
+                                                    </optgroup>
+                                                    <optgroup label="📦📦📦 3 Campi">
                                                         <option value="301" ${inf.codiceModello === '301' ? 'selected' : ''}>301 - 3 ante</option>
                                                         <option value="302" ${inf.codiceModello === '302' ? 'selected' : ''}>302 - a+f+a</option>
+                                                        <option value="303" ${inf.codiceModello === '303' ? 'selected' : ''}>303 - f+a+f</option>
+                                                        <option value="304" ${inf.codiceModello === '304' ? 'selected' : ''}>304 - 3 fissi</option>
+                                                        <option value="305" ${inf.codiceModello === '305' ? 'selected' : ''}>305 - f+a+f vert.</option>
+                                                        <option value="306" ${inf.codiceModello === '306' ? 'selected' : ''}>306 - f+a+a vert.</option>
+                                                        <option value="307" ${inf.codiceModello === '307' ? 'selected' : ''}>307 - 3 fissi vert.</option>
+                                                        <option value="308" ${inf.codiceModello === '308' ? 'selected' : ''}>308 - f+2a alto</option>
+                                                        <option value="309" ${inf.codiceModello === '309' ? 'selected' : ''}>309 - 2a basso+f</option>
+                                                        <option value="310" ${inf.codiceModello === '310' ? 'selected' : ''}>310 - 2a basso+a</option>
+                                                        <option value="321" ${inf.codiceModello === '321' ? 'selected' : ''}>321 - f+a+a</option>
+                                                        <option value="322" ${inf.codiceModello === '322' ? 'selected' : ''}>322 - a+a+f</option>
+                                                        <option value="324" ${inf.codiceModello === '324' ? 'selected' : ''}>324 - a+f+a</option>
+                                                        <option value="340" ${inf.codiceModello === '340' ? 'selected' : ''}>340 - a+2a alto</option>
                                                     </optgroup>
-                                                    <optgroup label="Scorrevoli">
+                                                    <optgroup label="📦📦📦📦 4 Campi">
+                                                        <option value="311" ${inf.codiceModello === '311' ? 'selected' : ''}>311 - 2f basso+2a alto</option>
+                                                        <option value="314" ${inf.codiceModello === '314' ? 'selected' : ''}>314 - 2a basso+2f alto</option>
+                                                        <option value="316" ${inf.codiceModello === '316' ? 'selected' : ''}>316 - 4 ante</option>
+                                                        <option value="317" ${inf.codiceModello === '317' ? 'selected' : ''}>317 - 4 fissi</option>
+                                                    </optgroup>
+                                                    <optgroup label="🔗 Montante Mobile">
+                                                        <option value="401" ${inf.codiceModello === '401' ? 'selected' : ''}>401 - 2 ante montante</option>
+                                                        <option value="402" ${inf.codiceModello === '402' ? 'selected' : ''}>402 - f+2a mont. alto</option>
+                                                        <option value="403" ${inf.codiceModello === '403' ? 'selected' : ''}>403 - 2a mont.+f alto</option>
+                                                        <option value="404" ${inf.codiceModello === '404' ? 'selected' : ''}>404 - 2f mont.+a alto</option>
+                                                        <option value="405" ${inf.codiceModello === '405' ? 'selected' : ''}>405 - a+2a mont. alto</option>
+                                                        <option value="414" ${inf.codiceModello === '414' ? 'selected' : ''}>414 - f+a mont. DX</option>
+                                                        <option value="415" ${inf.codiceModello === '415' ? 'selected' : ''}>415 - a mont. SX+f</option>
+                                                        <option value="420" ${inf.codiceModello === '420' ? 'selected' : ''}>420 - a+a mont. DX</option>
+                                                        <option value="421" ${inf.codiceModello === '421' ? 'selected' : ''}>421 - a mont. SX+a</option>
+                                                        <option value="424" ${inf.codiceModello === '424' ? 'selected' : ''}>424 - 3 ante mont.</option>
+                                                    </optgroup>
+                                                    <optgroup label="↔️ Bilico">
+                                                        <option value="450" ${inf.codiceModello === '450' ? 'selected' : ''}>450 - bilico</option>
+                                                        <option value="451" ${inf.codiceModello === '451' ? 'selected' : ''}>451 - bilico+f DX</option>
+                                                        <option value="452" ${inf.codiceModello === '452' ? 'selected' : ''}>452 - f SX+bilico</option>
+                                                        <option value="453" ${inf.codiceModello === '453' ? 'selected' : ''}>453 - f+bilico+f</option>
+                                                        <option value="456" ${inf.codiceModello === '456' ? 'selected' : ''}>456 - bilico+f alto</option>
+                                                        <option value="457" ${inf.codiceModello === '457' ? 'selected' : ''}>457 - f basso+bilico</option>
+                                                    </optgroup>
+                                                    <optgroup label="🚪 Scorrevoli">
                                                         <option value="500" ${inf.codiceModello === '500' ? 'selected' : ''}>500 - scorr. parallela</option>
                                                         <option value="501" ${inf.codiceModello === '501' ? 'selected' : ''}>501 - scorr. SX</option>
+                                                        <option value="503" ${inf.codiceModello === '503' ? 'selected' : ''}>503 - scorr. SX+a DX</option>
+                                                        <option value="504" ${inf.codiceModello === '504' ? 'selected' : ''}>504 - a SX+scorr. DX</option>
+                                                        <option value="510" ${inf.codiceModello === '510' ? 'selected' : ''}>510 - 2 scorr.</option>
+                                                        <option value="511" ${inf.codiceModello === '511' ? 'selected' : ''}>511 - scorr. DX</option>
                                                     </optgroup>
                                                 </select>
                                             </div>
