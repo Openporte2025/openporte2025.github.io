@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.50 - 🔧 FINSTRAL IN CONFIG GLOBALE + POSIZIONI ✅
+    Open Porte v5.51 - 🔧 CAMPI NASCOSTI SE NON FINSTRAL ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.47 (04 DIC 2025) - UI DINAMICA PER FORNITORE
@@ -1963,7 +1963,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.50 - Finstral Config Globale + Posizioni</title>
+    <title>Open Porte v5.51 - Campi Nascosti se non Finstral</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3191,8 +3191,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.50';
-        const APP_VERSION_NOTE = '🔧 FINSTRAL CONFIG GLOBALE + POSIZIONI';
+        const APP_VERSION = '5.51';
+        const APP_VERSION_NOTE = '🔧 CAMPI NASCOSTI SE NON FINSTRAL';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -14631,7 +14631,22 @@
                                     → Default: <strong>${project.configInfissi?.codiceModello || '???'}</strong> | Ferr: <strong>${project.configInfissi?.ferramenta1 || '???'}${project.configInfissi?.lato1 || ''}</strong> (esec.${project.configInfissi?.esecuzione1 || '0'})
                                 </div>
                             </div>
-                            ` : ''}
+                            ` : `
+                            <!-- MESSAGGIO PER ALTRI FORNITORI -->
+                            <div class="col-span-2 bg-amber-50 border-2 border-amber-300 rounded-lg p-4 my-2">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-3xl">⚠️</span>
+                                    <div>
+                                        <p class="font-bold text-amber-800">Valori per ${project.configInfissi?.azienda?.toUpperCase() || 'questo fornitore'} in arrivo</p>
+                                        <p class="text-sm text-amber-700 mt-1">I campi specifici per questo fornitore saranno disponibili prossimamente.</p>
+                                        <p class="text-xs text-amber-600 mt-2">💡 Per urgenze, usa "Scrivi manualmente" nel campo Azienda</p>
+                                    </div>
+                                </div>
+                            </div>
+                            `}
+                            
+                            <!-- ═══ CAMPI 2-14 SOLO PER FINSTRAL ═══ -->
+                            ${(project.configInfissi?.azienda?.toLowerCase() === 'finstral') ? `
 
                             <!-- 2. TIPO ANTA -->
                             ${renderSelectWithCustom(
@@ -14827,6 +14842,7 @@
                             </div>
                         </div>
                     </div>
+                    ` : ''}
                     
                     ${renderBRMConfig(project, 'infissi', 'Infissi', '🪟')}
                 </div>
@@ -19162,7 +19178,21 @@
                                             → Codice: <strong>${inf.codiceModello || '???'}</strong> | Ferr: <strong>${inf.ferramenta1 || '???'}${inf.lato1 || ''}</strong> (esec.${inf.esecuzione1 || '0'})
                                         </div>
                                     </div>
-                                    ` : ''}
+                                    ` : `
+                                    <!-- MESSAGGIO PER ALTRI FORNITORI (Posizioni) -->
+                                    <div class="col-span-3 bg-amber-50 border-2 border-amber-300 rounded-lg p-3 my-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xl">⚠️</span>
+                                            <div>
+                                                <p class="font-bold text-amber-800 text-sm">Valori per ${inf.azienda?.toUpperCase() || 'questo fornitore'} in arrivo</p>
+                                                <p class="text-xs text-amber-600">I campi specifici saranno disponibili prossimamente</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    `}
+                                    
+                                    <!-- ═══ CAMPI SOLO PER FINSTRAL (Posizioni) ═══ -->
+                                    ${(inf.azienda?.toLowerCase() === 'finstral') ? `
 
                                     <!-- TIPO ANTA -->
                                     ${renderSelectWithCustom(
@@ -19350,6 +19380,7 @@
                                     <p class="text-xs text-gray-400 mt-1">💡 Valori copiati da Config Globale (modificabili qui)</p>
                                 </div>
                             </div>
+                            ` : ''}
 
                             <div class="bg-amber-50 border-2 border-amber-300 rounded-lg p-4 mb-3">
                                 <div class="flex justify-between items-center mb-3">
