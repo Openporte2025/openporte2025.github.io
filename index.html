@@ -5345,11 +5345,12 @@
         function renderSelectColoreCassGlobal(project) {
             const gruppo = project.configCassonetti?.gruppoColoreCass || '';
             const mat = project.configCassonetti?.materialeCass || '';
-            const current = project.configCassonetti?.coloreCass || '';
             
-            // Auto-recupera da infisso INTERNO config globale se non impostato
-            const autoFromInfisso = project.configInfissi?.coloreInt || '';
-            const displayValue = current || autoFromInfisso;
+            // LOGICA SEMPLICE: se sync ON → legge da infisso, se OFF → legge da coloreCass
+            const syncAttivo = project.configCassonetti?.coloreDaInfisso !== false;
+            const coloreInfisso = project.configInfissi?.coloreInt || '';
+            const coloreCass = project.configCassonetti?.coloreCass || '';
+            const displayValue = syncAttivo ? coloreInfisso : coloreCass;
             
             // Colori PVC da listino Finstral
             const coloriBianco = [
@@ -5403,6 +5404,19 @@
                 return '<p class="text-gray-400 text-sm py-2">← Seleziona prima gruppo colore</p>';
             }
             
+            // Se sync attivo, mostra valore ma disabilitato
+            if (syncAttivo) {
+                const coloreObj = colori.find(c => c.code === displayValue);
+                const nomeColore = coloreObj ? coloreObj.name : (displayValue || 'Da serramento');
+                return `
+                    <input type="text" 
+                           value="${nomeColore}"
+                           disabled
+                           class="w-full px-3 py-2 border rounded-lg bg-blue-100 text-gray-600">
+                `;
+            }
+            
+            // Se sync disattivo, select editabile
             let options = '<option value="">Seleziona colore...</option>';
             colori.forEach(c => {
                 const sel = displayValue === c.code ? 'selected' : '';
@@ -5411,10 +5425,9 @@
             
             return `
                 <select onchange="updateConfigCassonetti('${project.id}', 'coloreCass', this.value)"
-                        class="w-full px-3 py-2 border rounded-lg bg-blue-50">
+                        class="w-full px-3 py-2 border rounded-lg">
                     ${options}
                 </select>
-                ${autoFromInfisso && !current ? '<p class="text-xs text-gray-500 mt-1">⚡ Auto da infisso</p>' : ''}
             `;
         }
         
@@ -5495,11 +5508,12 @@
         function renderSelectColoreCassPos(cas, pos, projectId, posId) {
             const gruppo = cas.gruppoColoreCass || '';
             const mat = cas.materialeCass || '';
-            const current = cas.coloreCass || '';
             
-            // Auto-recupera da infisso INTERNO se non impostato
-            const autoFromInfisso = pos.infisso?.coloreInt || '';
-            const displayValue = current || autoFromInfisso;
+            // LOGICA SEMPLICE: se sync ON → legge da infisso, se OFF → legge da coloreCass
+            const syncAttivo = cas.coloreDaInfisso !== false;
+            const coloreInfisso = pos.infisso?.coloreInt || '';
+            const coloreCass = cas.coloreCass || '';
+            const displayValue = syncAttivo ? coloreInfisso : coloreCass;
             
             // Colori PVC da listino Finstral
             const coloriBianco = [
@@ -5553,6 +5567,19 @@
                 return '<span class="text-xs text-gray-400 mt-1 block">← Gruppo Colore</span>';
             }
             
+            // Se sync attivo, mostra valore ma disabilitato
+            if (syncAttivo) {
+                const coloreObj = colori.find(c => c.code === displayValue);
+                const nomeColore = coloreObj ? coloreObj.name : (displayValue || 'Da serramento');
+                return `
+                    <input type="text" 
+                           value="${nomeColore}"
+                           disabled
+                           class="w-full compact-input border rounded mt-1 bg-blue-100 text-gray-600 text-xs">
+                `;
+            }
+            
+            // Se sync disattivo, select editabile
             let options = '<option value="">--</option>';
             colori.forEach(c => {
                 const sel = displayValue === c.code ? 'selected' : '';
@@ -5561,10 +5588,9 @@
             
             return `
                 <select onchange="updateProduct('${projectId}', '${posId}', 'cassonetto', 'coloreCass', this.value)"
-                        class="w-full compact-input border rounded mt-1 bg-blue-50">
+                        class="w-full compact-input border rounded mt-1">
                     ${options}
                 </select>
-                ${autoFromInfisso && !current ? '<p class="text-xs text-gray-500 mt-0.5">⚡ Auto da infisso</p>' : ''}
             `;
         }
         
@@ -12736,83 +12762,22 @@
                     render();
                 }
                 
-                // 🆕 v5.54: Se cambia coloreInt, aggiorna cassonetti con sync attivo
+                // 🆕 v5.54: Se cambia coloreInt, render per aggiornare cassonetti con sync attivo
                 if (field === 'coloreInt') {
-                    sincronizzaColoreCassonettoSeAttivo(projectId);
+                    render();
                 }
                 // render(); ← RIMOSSO: Evita reload pagina, mantiene focus
             }
         };
         
-        // 🆕 v5.54: Sincronizza colore cassonetto SE checkbox coloreDaInfisso è attivo
-        window.sincronizzaColoreCassonettoSeAttivo = (projectId) => {
-            const project = state.projects.find(p => p.id === projectId);
-            if (!project) return;
-            
-            const coloreInt = project.configInfissi?.coloreInt || '';
-            if (!coloreInt) return;
-            
-            // Aggiorna Config Globale Cassonetti SE sync attivo
-            if (project.configCassonetti?.coloreDaInfisso !== false) {
-                if (!project.configCassonetti) project.configCassonetti = {};
-                project.configCassonetti.coloreCass = coloreInt;
-                console.log('🧱 Config Cassonetti: coloreCass =', coloreInt);
-            }
-            
-            // Aggiorna posizioni con cassonetto Finstral SE sync attivo
-            if (project.positions) {
-                project.positions.forEach(pos => {
-                    if (pos.cassonetto && pos.cassonetto.azienda === 'Finstral' && pos.cassonetto.coloreDaInfisso !== false) {
-                        // Prende colore dall'infisso della stessa posizione
-                        const coloreInfissoPos = pos.infisso?.coloreInt || coloreInt;
-                        pos.cassonetto.coloreCass = coloreInfissoPos;
-                        console.log(`🧱 Pos ${pos.id}: cassonetto coloreCass =`, coloreInfissoPos);
-                    }
-                });
-            }
-            
-            saveState();
-        };
-        
-        // 🆕 v5.54: Sincronizza colore cassonetto da config globale (chiamata manuale da checkbox)
+        // 🆕 v5.54: Funzione chiamata quando si attiva checkbox "= colore serramento"
+        // Non serve fare nulla di speciale, basta render() per mostrare il nuovo valore
         window.sincronizzaColoreCassonetto = (projectId) => {
-            const project = state.projects.find(p => p.id === projectId);
-            if (!project) return;
-            
-            const coloreInt = project.configInfissi?.coloreInt || '';
-            if (!coloreInt) {
-                console.log('🧱 Nessun colore interno da sincronizzare');
-                return;
-            }
-            
-            // Aggiorna Config Globale Cassonetti
-            if (!project.configCassonetti) project.configCassonetti = {};
-            project.configCassonetti.coloreCass = coloreInt;
-            console.log('🧱 Config Cassonetti: coloreCass =', coloreInt);
-            
-            saveState();
             render();
         };
         
-        // 🆕 v5.54: Sincronizza colore cassonetto per singola posizione
+        // 🆕 v5.54: Funzione chiamata quando si attiva checkbox in posizione
         window.sincronizzaColoreCassonettoPos = (projectId, posId) => {
-            const project = state.projects.find(p => p.id === projectId);
-            if (!project) return;
-            
-            const pos = project.positions.find(p => p.id === posId);
-            if (!pos || !pos.cassonetto) return;
-            
-            // Prende colore dall'infisso della stessa posizione, o da config globale
-            const coloreInt = pos.infisso?.coloreInt || project.configInfissi?.coloreInt || '';
-            if (!coloreInt) {
-                console.log('🧱 Nessun colore interno da sincronizzare');
-                return;
-            }
-            
-            pos.cassonetto.coloreCass = coloreInt;
-            console.log(`🧱 Pos ${posId}: cassonetto coloreCass =`, coloreInt);
-            
-            saveState();
             render();
         };
         
