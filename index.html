@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.55 - 🦟 ZANZARIERE PALAGINA CASCATA ✅
+    Open Porte v5.551 - 🦟 ZANZARIERE PALAGINA CASCATA FIX ✅
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.54 (05 DIC 2025) - CASSONETTI: CAMPI DA LISTINO
@@ -15452,32 +15452,15 @@
                             <!-- TIPO GENERICO -->
                             <div>
                                 <label class="block text-sm font-medium mb-1">2. Tipo Zanzariera</label>
-                                ${(() => {
-                                    const options = ['Avvolgibile', 'Plissé', 'Battente', 'Scorrevole', 'Fissa'];
-                                    const current = project.configZanzariere?.tipo || '';
-                                    const isCustom = current && !options.includes(current);
-                                    const selectId = `zanz-tipo-${project.id}`;
-                                    const inputId = `zanz-tipo-input-${project.id}`;
-                                    
-                                    return \`
-                                        <select id="\${selectId}" 
-                                                onchange="handleConfigSelectWithCustom('\${project.id}', 'zanzariere', 'tipo', '\${selectId}', '\${inputId}', this.value)"
-                                                class="w-full px-3 py-2 border rounded-lg">
-                                            <option value="">Seleziona tipo...</option>
-                                            \${options.map(opt => \`
-                                                <option value="\${opt}" \${current === opt ? 'selected' : ''}>\${opt}</option>
-                                            \`).join('')}
-                                            <option value="__ALTRO__" \${isCustom ? 'selected' : ''}>✏️ Altro...</option>
-                                        </select>
-                                        <input type="text" 
-                                               id="\${inputId}"
-                                               value="\${isCustom ? current : ''}"
-                                               onchange="updateConfigZanzariere('\${project.id}', 'tipo', this.value)"
-                                               placeholder="Tipo personalizzato..."
-                                               style="display: \${isCustom ? 'block' : 'none'};"
-                                               class="w-full px-3 py-2 border rounded-lg mt-2">
-                                    \`;
-                                })()}
+                                <select onchange="updateConfigZanzariere('${project.id}', 'tipo', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona tipo...</option>
+                                    <option value="Avvolgibile" ${project.configZanzariere?.tipo === 'Avvolgibile' ? 'selected' : ''}>Avvolgibile</option>
+                                    <option value="Plissé" ${project.configZanzariere?.tipo === 'Plissé' ? 'selected' : ''}>Plissé</option>
+                                    <option value="Battente" ${project.configZanzariere?.tipo === 'Battente' ? 'selected' : ''}>Battente</option>
+                                    <option value="Scorrevole" ${project.configZanzariere?.tipo === 'Scorrevole' ? 'selected' : ''}>Scorrevole</option>
+                                    <option value="Fissa" ${project.configZanzariere?.tipo === 'Fissa' ? 'selected' : ''}>Fissa</option>
+                                </select>
                             </div>
                             `}
                         </div>
@@ -15579,32 +15562,14 @@
                             
                             <div>
                                 <label class="block text-sm font-medium mb-1">4. Tipo Rete</label>
-                                ${(() => {
-                                    const options = ['Standard', 'Anti-polline', 'Pet-resistant', 'Micro-forata'];
-                                    const current = project.configZanzariere?.tipoRete || '';
-                                    const isCustom = current && !options.includes(current);
-                                    const selectId = `zanz-rete-${project.id}`;
-                                    const inputId = `zanz-rete-input-${project.id}`;
-                                    
-                                    return \`
-                                        <select id="\${selectId}" 
-                                                onchange="handleConfigSelectWithCustom('\${project.id}', 'zanzariere', 'tipoRete', '\${selectId}', '\${inputId}', this.value)"
-                                                class="w-full px-3 py-2 border rounded-lg">
-                                            <option value="">Seleziona...</option>
-                                            \${options.map(opt => \`
-                                                <option value="\${opt}" \${current === opt ? 'selected' : ''}>\${opt}</option>
-                                            \`).join('')}
-                                            <option value="__ALTRO__" \${isCustom ? 'selected' : ''}>✏️ Altro...</option>
-                                        </select>
-                                        <input type="text" 
-                                               id="\${inputId}"
-                                               value="\${isCustom ? current : ''}"
-                                               onchange="updateConfigZanzariere('\${project.id}', 'tipoRete', this.value)"
-                                               placeholder="Tipo rete personalizzato..."
-                                               style="display: \${isCustom ? 'block' : 'none'};"
-                                               class="w-full px-3 py-2 border rounded-lg mt-2">
-                                    \`;
-                                })()}
+                                <select onchange="updateConfigZanzariere('${project.id}', 'tipoRete', this.value)"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona...</option>
+                                    <option value="Standard" ${project.configZanzariere?.tipoRete === 'Standard' ? 'selected' : ''}>Standard</option>
+                                    <option value="Anti-polline" ${project.configZanzariere?.tipoRete === 'Anti-polline' ? 'selected' : ''}>Anti-polline</option>
+                                    <option value="Pet-resistant" ${project.configZanzariere?.tipoRete === 'Pet-resistant' ? 'selected' : ''}>Pet-resistant</option>
+                                    <option value="Micro-forata" ${project.configZanzariere?.tipoRete === 'Micro-forata' ? 'selected' : ''}>Micro-forata</option>
+                                </select>
                             </div>
                         </div>
                         `}
