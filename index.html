@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.551 - 🦟 ZANZARIERE PALAGINA CASCATA FIX ✅
+    Open Porte v5.552 - 🔧 FIX handleZanzariereAziendaChange
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.54 (05 DIC 2025) - CASSONETTI: CAMPI DA LISTINO
@@ -2003,7 +2003,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.54 - Cassonetti Ristrutturati</title>
+    <title>Open Porte v5.552 - Fix Zanzariere</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -15582,7 +15582,7 @@
         
         // Handler per cambio azienda zanzariere (reset campi Palagina)
         function handleZanzariereAziendaChange(projectId, value, selectId, inputId) {
-            const project = projectsData.find(p => p.id === projectId);
+            const project = state.projects.find(p => p.id === projectId);
             if (!project) return;
             
             if (value === '__ALTRO__') {
