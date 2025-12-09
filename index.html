@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.554 - 🔧 FIX Menu Hamburger iPad
+    Open Porte v5.556 - 📦 SELECT Modelli Tapparelle per Azienda
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.54 (05 DIC 2025) - CASSONETTI: CAMPI DA LISTINO
@@ -2003,7 +2003,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.554 - Fix Menu iPad</title>
+    <title>Open Porte v5.556 - Modelli Tapparelle</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -2986,6 +2986,13 @@
             min-width: 200px;
             width: 100%;
         }
+        
+        /* 🆕 v5.555: Previene auto-zoom iOS su input/select con font piccolo */
+        @supports (-webkit-touch-callout: none) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+        }
     </style>
     
     <!-- Menu Sistema Module INTEGRATO -->
@@ -3231,8 +3238,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.554';
-        const APP_VERSION_NOTE = '🔧 FIX Menu Hamburger iPad';
+        const APP_VERSION = '5.556';
+        const APP_VERSION_NOTE = '📦 SELECT Modelli Tapparelle per Azienda';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -5935,6 +5942,64 @@
                 ...COLORI_GUIDE_PLASTICINO['VERNICIATO'],
                 'RAL a richiesta'
             ];
+        }
+        
+        // ───────────────────────────────────────────────────────────────
+        // 📦 MODELLI TAPPARELLE PER AZIENDA - v5.556
+        // ───────────────────────────────────────────────────────────────
+        
+        const MODELLI_TAPPARELLE = {
+            'Plasticino': [
+                // Alluminio Coibentato Media/Alta Densità
+                { cod: 'TA01', nome: 'Tipo ALUPROFIL MD 13x55', dim: '13x55', tipo: 'Alluminio Coibentato' },
+                { cod: 'TA25', nome: 'Tipo ALUPROFIL AD 13x55', dim: '13x55', tipo: 'Alluminio Coibentato' },
+                { cod: 'TA05', nome: 'Tipo ALUPROFIL MD 9x41', dim: '9x41', tipo: 'Alluminio Coibentato' },
+                { cod: 'TA30', nome: 'Tipo ALUPROFIL AD 9x41', dim: '9x41', tipo: 'Alluminio Coibentato' },
+                { cod: 'TA42', nome: 'Tipo ALUPROFIL MD 8,5x32', dim: '8.5x32', tipo: 'Alluminio Coibentato' },
+                { cod: 'TA07', nome: 'Tipo ALUPROFIL MD 8x37', dim: '8x37', tipo: 'Alluminio Coibentato' },
+                // Acciaio Coibentato
+                { cod: 'TA15', nome: 'Tipo STEELPROFIL 13x55', dim: '13x55', tipo: 'Acciaio Coibentato' },
+                { cod: 'TA20', nome: 'Tipo STEELPROFIL 9x40', dim: '9x40', tipo: 'Acciaio Coibentato' },
+                // PVC
+                { cod: 'A01', nome: 'Tipo ANTIGRANDINE 14x50', dim: '14x50', tipo: 'PVC' },
+                { cod: 'A10', nome: 'Tipo PESANTE 14x50', dim: '14x50', tipo: 'PVC' },
+                { cod: 'A16', nome: 'Tipo MINI 10 11x32', dim: '11x32', tipo: 'PVC' },
+                { cod: 'A15', nome: 'Tipo MINI 8 8x33', dim: '8x33', tipo: 'PVC' },
+                // Alluminio Estruso Sicurezza
+                { cod: 'TA10', nome: 'Tipo ALUBLIND 13x45', dim: '13x45', tipo: 'Alluminio Sicurezza' },
+                { cod: 'TA13', nome: 'Tipo ALUBLIND 9x27', dim: '9x27', tipo: 'Alluminio Sicurezza' },
+                // Termoisolante
+                { cod: 'A18', nome: 'Tipo COMBI 13x53', dim: '13x53', tipo: 'Termoisolante' },
+                { cod: 'A20', nome: 'Tipo COMBI 10x39', dim: '10x39', tipo: 'Termoisolante' },
+                // Orientabili
+                { cod: 'A40', nome: 'Tipo ORIENTA', dim: '', tipo: 'Orientabile' },
+                // Areazione
+                { cod: 'A50', nome: 'Tipo ESTELLA CLASSIC', dim: '', tipo: 'Areazione' }
+            ],
+            'New solar': [],  // Da completare con listino
+            'Estella': []     // Da completare con listino
+        };
+        
+        // Funzione per ottenere modelli per azienda
+        function getModelliTapparella(azienda) {
+            if (!azienda || !MODELLI_TAPPARELLE[azienda]) {
+                // Ritorna tutti i modelli Plasticino come default
+                return MODELLI_TAPPARELLE['Plasticino'] || [];
+            }
+            return MODELLI_TAPPARELLE[azienda];
+        }
+        
+        // Funzione per ottenere le opzioni HTML per il select modelli
+        function getModelliTapparellaOptions(azienda, currentValue) {
+            const modelli = getModelliTapparella(azienda);
+            if (modelli.length === 0) {
+                return '<option value="">Nessun modello disponibile</option>';
+            }
+            return modelli.map(m => {
+                const value = `${m.cod} - ${m.nome}`;
+                const selected = currentValue === value ? 'selected' : '';
+                return `<option value="${value}" ${selected}>${m.cod} - ${m.nome}</option>`;
+            }).join('');
         }
         
         // ───────────────────────────────────────────────────────────────
@@ -15274,29 +15339,12 @@
                             <!-- 2. MODELLO -->
                             <div>
                                 <label class="block text-sm font-medium mb-1">2. Modello</label>
-                                <input type="text" 
-                                       id="config-tap-modello-${project.id}"
-                                       value="${project.configTapparelle?.modello || ''}"
-                                       placeholder="Seleziona modello"
-                                       list="config-modello-tap-list-${project.id}"
-                                       onchange="updateConfigTapparelle('${project.id}', 'modello', this.value); updateColoriTapparellaDatalistConfig('${project.id}', this.value);"
-                                       class="w-full px-3 py-2 border rounded-lg">
-                                <datalist id="config-modello-tap-list-${project.id}">
-                                    <option value="TA01 - Tipo ALUPROFIL MD 13x55">
-                                    <option value="TA25 - Tipo ALUPROFIL AD 13x55">
-                                    <option value="TA15 - Tipo STEELPROFIL 13x55">
-                                    <option value="A01 - Tipo ANTIGRANDINE 14x50">
-                                    <option value="A10 - Tipo PESANTE 14x50">
-                                    <option value="A16 - Tipo MINI 10 11x32">
-                                    <option value="A15 - Tipo MINI 8 8x33">
-                                    <option value="TA10 - Tipo ALUBLIND 13x45">
-                                    <option value="TA13 - Tipo ALUBLIND 9x27">
-                                    <option value="A18 - Tipo COMBI 13x53">
-                                    <option value="A20 - Tipo COMBI 10x39">
-                                    <option value="A40 - Tipo ORIENTA">
-                                    <option value="A50 - Tipo ESTELLA CLASSIC (A)">
-                                    <option value="A50 - Tipo ESTELLA CLASSIC (B)">
-                                </datalist>
+                                <select id="config-tap-modello-${project.id}"
+                                        onchange="updateConfigTapparelle('${project.id}', 'modello', this.value); updateColoriTapparellaDatalistConfig('${project.id}', this.value);"
+                                        class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">Seleziona modello...</option>
+                                    ${getModelliTapparellaOptions(project.configTapparelle?.azienda, project.configTapparelle?.modello)}
+                                </select>
                             </div>
                             
                             <!-- 3. COLORE TELO -->
@@ -23042,10 +23090,21 @@
                 
                 project.configTapparelle[field] = value;
                 
+                // 🆕 v5.556: Se cambia azienda, resetta modello e colore
+                if (field === 'azienda' && oldValue !== value) {
+                    project.configTapparelle.modello = '';
+                    project.configTapparelle.colore = '';
+                }
+                
                 // 🆕 AUTO-SYNC: Aggiorna automaticamente le posizioni dove non è stato modificato manualmente
                 syncConfigToPositions(project, 'tapparella', field, value, oldValue);
                 
                 saveState();
+                
+                // 🆕 v5.556: Render per aggiornare select modelli se cambia azienda
+                if (field === 'azienda') {
+                    render();
+                }
             }
         };
         
