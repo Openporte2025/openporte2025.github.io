@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.553 - 🔧 FIX saveState Zanzariere
+    Open Porte v5.554 - 🔧 FIX Menu Hamburger iPad
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.54 (05 DIC 2025) - CASSONETTI: CAMPI DA LISTINO
@@ -2003,7 +2003,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.553 - Fix Zanzariere</title>
+    <title>Open Porte v5.554 - Fix Menu iPad</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3231,8 +3231,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.553';
-        const APP_VERSION_NOTE = '🔧 FIX saveState Zanzariere';
+        const APP_VERSION = '5.554';
+        const APP_VERSION_NOTE = '🔧 FIX Menu Hamburger iPad';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -13339,6 +13339,11 @@
         // ═══════════════════════════════════════════════════════════════
         
         function MainMenu() {
+            // 🆕 v5.554: NON mostrare MainMenu se siamo dentro un progetto
+            if (state.currentProject) {
+                return ''; // Nasconde completamente il menu principale
+            }
+            
             return `
                 <!-- Main Menu Laterale -->
                 <aside class="main-menu ${state.mainMenuOpen ? 'open' : ''}" id="mainSideMenu">
@@ -25040,6 +25045,23 @@ ${generateBRMExplanation(pos, pos.cassonetto, 'cassonetto', project)}</table>` :
                 ${NewProjectModal()}
                 ${FotoModal()}
             `;
+            
+            // 🆕 v5.554: Nasconde menu-sistema quando in progetto
+            const menuSistema = document.querySelector('.menu-sistema');
+            const menuToggle = document.querySelector('.menu-toggle:not(.app-header .menu-toggle)');
+            const menuOverlay = document.querySelector('.menu-overlay');
+            
+            if (state.currentProject) {
+                // Dentro un progetto: nascondi menu principale
+                if (menuSistema) menuSistema.style.display = 'none';
+                if (menuToggle) menuToggle.style.display = 'none';
+                if (menuOverlay) menuOverlay.style.display = 'none';
+            } else {
+                // Lista progetti: mostra menu principale
+                if (menuSistema) menuSistema.style.display = '';
+                if (menuToggle) menuToggle.style.display = '';
+                if (menuOverlay) menuOverlay.style.display = '';
+            }
         }
 
         // Navigation function for setup steps
