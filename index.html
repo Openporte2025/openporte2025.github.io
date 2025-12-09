@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.561 - 🔧 FIX BRM Config + Indirizzo export
+    Open Porte v5.563 - 🔧 FIX operazione BRM auto-default
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.54 (05 DIC 2025) - CASSONETTI: CAMPI DA LISTINO
@@ -2003,7 +2003,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Favicon inline per evitare errore 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>">
-    <title>Open Porte v5.561 - BRM Config Fix</title>
+    <title>Open Porte v5.563 - BRM Auto-default</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- RIMOSSO: Google Fonts per velocità -->
     <style>
@@ -3238,8 +3238,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.561';
-        const APP_VERSION_NOTE = '🔧 FIX BRM_PF export + campo indirizzo';
+        const APP_VERSION = '5.563';
+        const APP_VERSION_NOTE = '🔧 Auto-default operazione BRM + Sync header';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -9612,6 +9612,7 @@
                                 title="Modifica link schizzo">
                             ⚙️
                         </button>
+                        <button class="btn-icon" onclick="uploadToGitHub()" title="Sync GitHub">☁️</button>
                         <button class="btn-icon" onclick="exportCurrentProjectJSON()" title="Export JSON">💾</button>
                         <button class="btn-icon" onclick="printCurrentProjectPDF()" title="Export PDF">🖨️</button>
                     </div>
@@ -23400,6 +23401,15 @@
                 }
                 
                 project[configKey][field] = value;
+                
+                // 🆕 v5.563: Auto-imposta operazione a '-' quando si seleziona una misura
+                if (field.startsWith('misuraBase') && value) {
+                    const opField = field.replace('misuraBase', 'operazione');
+                    if (!project[configKey][opField]) {
+                        project[configKey][opField] = '-';
+                        console.log(`📐 Auto-impostato ${opField} = '-'`);
+                    }
+                }
                 
                 // ✅ NUOVO: Ricalcola automaticamente tutti i BRM che usano questa config globale
                 ricalcolaTuttiiBRMGlobali(project, configKey);
