@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.57 - 🚪 PORTE INTERNE (FerreroLegno, Flessya)
+    Open Porte v5.571 - 🔧 FIX SyntaxError backtick
     ═══════════════════════════════════════════════════════════════
     
     🚪 v5.57 (11 DIC 2025) - PORTE INTERNE
@@ -17323,7 +17323,7 @@
             if (!pos.portaInterna) pos.portaInterna = {};
             pos.portaInterna[field] = value;
             
-            console.log(\`🚪 Porta Interna aggiornata: \${field} = \${value}\`);
+            console.log('🚪 Porta Interna aggiornata: ' + field + ' = ' + value);
             saveState();
             render();
         };
