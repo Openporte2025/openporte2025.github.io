@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚪 Catalogo Porte v1.01 - FERREROLEGNO & FLESSYA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .header h1 { font-size: 1.5em; margin-bottom: 12px; }
+        
+        .header-controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 180px;
+            max-width: 300px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #333;
+            border-radius: 20px;
+            background: #0f0f23;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .search-box input:focus { border-color: #4a9eff; }
+        .search-box input::placeholder { color: #666; }
+        
+        .tabs { display: flex; gap: 8px; }
+        
+        .tab {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .tab.ferrero { background: #3d2d1a; color: #d4a574; }
+        .tab.ferrero.active, .tab.ferrero:hover { background: #5d4d3a; }
+        .tab.flessya { background: #1a3d2d; color: #74d4a5; }
+        .tab.flessya.active, .tab.flessya:hover { background: #2a5d4d; }
+        .tab .count { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+        
+        .stats { background: #0f0f23; padding: 8px 12px; border-radius: 12px; font-size: 13px; color: #888; }
+        
+        .btn-catalogo {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #4a9eff, #2d7fd3);
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+        .btn-catalogo:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(74, 158, 255, 0.4); }
+        
+        .instructions {
+            text-align: center;
+            padding: 10px;
+            background: rgba(74, 158, 255, 0.1);
+            font-size: 13px;
+            color: #888;
+        }
+        .instructions strong { color: #4a9eff; }
+        
+        .list-container { padding: 15px; max-width: 1200px; margin: 0 auto; }
+        
+        .section-title {
+            background: #0f0f23;
+            padding: 10px 15px;
+            margin-top: 15px;
+            border-radius: 10px 10px 0 0;
+            font-weight: 700;
+            font-size: 14px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .section-title:first-child { margin-top: 0; }
+        
+        .section-title.ferrero { border-left: 4px solid #d4a574; }
+        .section-title.flessya { border-left: 4px solid #74d4a5; }
+        
+        .list-header {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1fr 1fr 80px;
+            padding: 8px 15px;
+            background: #12122a;
+            font-weight: 600;
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        
+        .list { background: #16162e; border-radius: 0 0 10px 10px; margin-bottom: 5px; }
+        
+        .item {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1fr 1fr 80px;
+            padding: 12px 15px;
+            border-bottom: 1px solid #252545;
+            cursor: pointer;
+            transition: all 0.2s;
+            align-items: center;
+        }
+        
+        .item:hover { background: #1e1e3f; }
+        .item:last-child { border-bottom: none; border-radius: 0 0 10px 10px; }
+        
+        .item.copied { background: rgba(74, 158, 255, 0.2) !important; }
+        
+        .item-name {
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .item-name .badge {
+            font-size: 8px;
+            padding: 2px 5px;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+        
+        .item.ferrero .badge { background: #3d2d1a; color: #d4a574; }
+        .item.flessya .badge { background: #1a3d2d; color: #74d4a5; }
+        
+        .item-tipo { color: #888; font-size: 12px; }
+        
+        .item-price { font-weight: 600; font-size: 14px; }
+        .item.ferrero .item-price { color: #d4a574; }
+        .item.flessya .item-price { color: #74d4a5; }
+        
+        .item-netto { color: #666; font-size: 12px; }
+        
+        .item-link {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .item-link span {
+            opacity: 0.5;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .item-link span:hover { opacity: 1; transform: scale(1.2); }
+        .item-link .link-prodotti { color: #4a9eff; }
+        .item-link .link-catalogo { color: #ffa54a; }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #4a9eff;
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 5px 20px rgba(74, 158, 255, 0.4);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        
+        .empty-state { text-align: center; padding: 40px; color: #666; }
+        .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+        
+        @media (max-width: 768px) {
+            .list-header { display: none; }
+            .item {
+                grid-template-columns: 1fr auto auto;
+                gap: 5px;
+            }
+            .item-name { grid-column: 1; }
+            .item-tipo { grid-column: 1; font-size: 11px; }
+            .item-price { grid-column: 2; grid-row: 1; text-align: right; }
+            .item-netto { grid-column: 2; grid-row: 2; text-align: right; }
+            .item-link { grid-column: 3; grid-row: 1 / 3; flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🚪 Catalogo Porte Interne <small style="font-size:0.5em;color:#666">v1.01</small></h1>
+    <div class="header-controls">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Cerca collezione...">
+        </div>
+        <div class="tabs">
+            <button class="tab ferrero active" onclick="showBrand('ferrero')">
+                FERREROLEGNO <span class="count" id="countFerrero">32</span>
+            </button>
+            <button class="tab flessya" onclick="showBrand('flessya')">
+                FLESSYA <span class="count" id="countFlessya">19</span>
+            </button>
+        </div>
+        <a href="https://www.ferrerolegno.com/it/204-tutte-le-porte" target="_blank" class="btn-catalogo" id="btnCatalogo">
+            🌐 Tutte le porte
+        </a>
+        <div class="stats">Visualizzati: <span id="visibleCount">32</span></div>
+    </div>
+</div>
+
+<div class="instructions">
+    <strong>👆 Click</strong> = Copia nome &nbsp;|&nbsp; 
+    <strong>🖼️</strong> = Vedi prodotti &nbsp;|&nbsp;
+    <strong>📋</strong> = Info collezione
+</div>
+
+<div class="list-container" id="listContainer"></div>
+
+<div class="toast" id="toast">✓ Copiato!</div>
+
+<script>
+// ==================== DATABASE FERREROLEGNO ====================
+const FERREROLEGNO = {
+    collezioni_fl: [
+        { nome: "EXIT", tipo: "Tamburata cristallo", prezzo_da: 327, spessore: 44, url: "https://www.ferrerolegno.com/it/exit/", catalogo: "https://www.ferrerolegno.com/it/192-collezione-porte-exit" },
+        { nome: "EXITLYNE", tipo: "Tamburata cristallo", prezzo_da: 533, spessore: 44, url: "https://www.ferrerolegno.com/it/exitlyne/", catalogo: "https://www.ferrerolegno.com/it/191-collezione-porte-exitlyne" },
+        { nome: "EQUA", tipo: "Tamburata", prezzo_da: 361, spessore: 44, url: "https://www.ferrerolegno.com/it/equa/", catalogo: "https://www.ferrerolegno.com/it/193-collezione-porte-equa" },
+        { nome: "EQUA STYLA", tipo: "Tamburata incisa", prezzo_da: 520, spessore: 44, url: "https://www.ferrerolegno.com/it/equa-styla/", catalogo: "https://www.ferrerolegno.com/it/194-collezione-porte-equa-styla" },
+        { nome: "NOVA", tipo: "Tamburata economica", prezzo_da: 266, spessore: 44, url: "https://www.ferrerolegno.com/it/nova/", catalogo: "https://www.ferrerolegno.com/it/195-collezione-porte-nova" },
+        { nome: "GLASS", tipo: "Vetro centrale", prezzo_da: 844, spessore: 44, url: "https://www.ferrerolegno.com/it/glass/", catalogo: "https://www.ferrerolegno.com/it/196-collezione-porte-glass" },
+        { nome: "INTAGLIO", tipo: "Pantografata", prezzo_da: 472, spessore: 44, url: "https://www.ferrerolegno.com/it/intaglio/", catalogo: "https://www.ferrerolegno.com/it/197-collezione-porte-intaglio" },
+        { nome: "PLISSÈ", tipo: "Tamburata", prezzo_da: 423, spessore: 44, url: "https://www.ferrerolegno.com/it/plisse/", catalogo: "https://www.ferrerolegno.com/it/199-collezione-porte-plisse" },
+        { nome: "SUITE", tipo: "Tamburata modelli", prezzo_da: 403, spessore: 44, url: "https://www.ferrerolegno.com/it/suite/", catalogo: "https://www.ferrerolegno.com/it/198-collezione-porte-interne-suite" },
+        { nome: "MIXY", tipo: "Pantografata classica", prezzo_da: 367, spessore: 44, url: "https://www.ferrerolegno.com/it/199-collezione-porte-mixy", catalogo: "https://www.ferrerolegno.com/it/199-collezione-porte-mixy" },
+        { nome: "YNCISA", tipo: "Tamburata incisa", prezzo_da: 414, spessore: 44, url: "https://www.ferrerolegno.com/it/200-collezione-porte-yncisa", catalogo: "https://www.ferrerolegno.com/it/200-collezione-porte-yncisa" },
+        { nome: "KÉVIA", tipo: "Pantografata inglese", prezzo_da: 403, spessore: 44, url: "https://www.ferrerolegno.com/it/201-collezione-porte-kevia", catalogo: "https://www.ferrerolegno.com/it/201-collezione-porte-kevia" },
+        { nome: "DIVA", tipo: "Pantografata classica", prezzo_da: 563, spessore: 44, url: "https://www.ferrerolegno.com/it/diva/", catalogo: "https://www.ferrerolegno.com/it/202-diva-epoca-talento-mito" },
+        { nome: "EPOCA", tipo: "Pantografata classica", prezzo_da: 563, spessore: 44, url: "https://www.ferrerolegno.com/it/epoca/", catalogo: "https://www.ferrerolegno.com/it/202-diva-epoca-talento-mito" }
+    ],
+    replica: [
+        { nome: "LISS", tipo: "Liscia sintetica", prezzo_da: 173, spessore: 38, url: "https://www.ferrerolegno.com/it/liss/", catalogo: "https://www.ferrerolegno.com/it/181-collezione-porte-liss" },
+        { nome: "LOGICA", tipo: "Sintetica orizzontale", prezzo_da: 193, spessore: 38, url: "https://www.ferrerolegno.com/it/logica/", catalogo: "https://www.ferrerolegno.com/it/182-collezione-porte-logica" },
+        { nome: "AREA", tipo: "Sintetica pannello", prezzo_da: 213, spessore: 38, url: "https://www.ferrerolegno.com/it/area/", catalogo: "https://www.ferrerolegno.com/it/183-collezione-porte-area" },
+        { nome: "SEGNI", tipo: "Sintetica incisa", prezzo_da: 233, spessore: 38, url: "https://www.ferrerolegno.com/it/segni/", catalogo: "https://www.ferrerolegno.com/it/184-collezione-porte-segni" },
+        { nome: "FORMA", tipo: "Sintetica classica", prezzo_da: 203, spessore: 38, url: "https://www.ferrerolegno.com/it/forma/", catalogo: "https://www.ferrerolegno.com/it/185-collezione-porte-forma" },
+        { nome: "SINTESI", tipo: "Sintetica pantografata", prezzo_da: 243, spessore: 38, url: "https://www.ferrerolegno.com/it/sintesi/", catalogo: "https://www.ferrerolegno.com/it/186-collezione-porte-sintesi" },
+        { nome: "TRATTO", tipo: "Sintetica inserto legno", prezzo_da: 253, spessore: 38, url: "https://www.ferrerolegno.com/it/tratto/", catalogo: "https://www.ferrerolegno.com/it/183-collezione-porte-tratto" }
+    ],
+    zero: [
+        { nome: "EXIT ZERO", tipo: "Filo muro cristallo", prezzo_da: 892, spessore: 44, url: "https://www.ferrerolegno.com/it/collezione-porte-exit-zero/", catalogo: "https://www.ferrerolegno.com/it/80-collezione-porte-exit-zero" },
+        { nome: "EXITLYNE ZERO", tipo: "Filo muro cristallo", prezzo_da: 920, spessore: 44, url: "https://www.ferrerolegno.com/it/collezione-porte-exitlyne-zero/", catalogo: "https://www.ferrerolegno.com/it/81-collezione-porte-exitlyne-zero" },
+        { nome: "EQUA ZERO", tipo: "Filo muro tamburata", prezzo_da: 542, spessore: 44, url: "https://www.ferrerolegno.com/it/equa-zero/", catalogo: "https://www.ferrerolegno.com/it/73-collezione-porte-equa-zero" },
+        { nome: "NOVA ZERO", tipo: "Filo muro economica", prezzo_da: 468, spessore: 44, url: "https://www.ferrerolegno.com/it/nova-zero/", catalogo: "https://www.ferrerolegno.com/it/74-collezione-porte-nova-zero" },
+        { nome: "GLASS ZERO", tipo: "Filo muro vetro", prezzo_da: 1168, spessore: 44, url: "https://www.ferrerolegno.com/it/glass-zero/", catalogo: "https://www.ferrerolegno.com/it/75-collezione-porte-glass-zero" },
+        { nome: "PLISSÈ ZERO", tipo: "Filo muro tamburata", prezzo_da: 612, spessore: 44, url: "https://www.ferrerolegno.com/it/plisse-zero/", catalogo: "https://www.ferrerolegno.com/it/163-collezione-porte-plisse-zero" },
+        { nome: "SUITE ZERO", tipo: "Filo muro modelli", prezzo_da: 612, spessore: 44, url: "https://www.ferrerolegno.com/it/suite-zero/", catalogo: "https://www.ferrerolegno.com/it/76-collezione-porte-suite-zero" },
+        { nome: "MIXY ZERO", tipo: "Filo muro incisa", prezzo_da: 580, spessore: 44, url: "https://www.ferrerolegno.com/it/mixy-zero/", catalogo: "https://www.ferrerolegno.com/it/77-collezione-porte-mixy-zero" },
+        { nome: "YNCISA ZERO", tipo: "Filo muro incisa", prezzo_da: 620, spessore: 44, url: "https://www.ferrerolegno.com/it/223-collezione-porte-yncisa-zero", catalogo: "https://www.ferrerolegno.com/it/223-collezione-porte-yncisa-zero" },
+        { nome: "LISS ZERO", tipo: "Filo muro sintetica", prezzo_da: 438, spessore: 38, url: "https://www.ferrerolegno.com/it/collezione-porte-liss-zero/", catalogo: "https://www.ferrerolegno.com/it/156-collezione-porte-liss-zero" },
+        { nome: "LOGICA ZERO", tipo: "Filo muro sintetica", prezzo_da: 458, spessore: 38, url: "https://www.ferrerolegno.com/it/logica-zero/", catalogo: "https://www.ferrerolegno.com/it/157-collezione-porte-logica-zero" }
+    ]
+};
+
+// ==================== DATABASE FLESSYA ====================
+const FLESSYA = {
+    tamburate: [
+        { nome: "NIDIO", codice: "N00", tipo: "Tamburata legno", prezzo_da: 180, url: "https://www.flessya.com/categoria-prodotto/nidio/" },
+        { nome: "NIDIO INCISE", codice: "N13", tipo: "Tamburata incisa", prezzo_da: 220, url: "https://www.flessya.com/categoria-prodotto/nidio/" },
+        { nome: "EMPIRIA", codice: "EN00", tipo: "Tamburata / PVC / HPL", prezzo_da: 160, url: "https://www.flessya.com/categoria-prodotto/empiria/" },
+        { nome: "LAMINIO", codice: "LM00", tipo: "Laminato", prezzo_da: 150, url: "https://www.flessya.com/categoria-prodotto/laminio/" },
+        { nome: "LAMINIO PLUS", codice: "LMP00", tipo: "Laminato premium", prezzo_da: 175, url: "https://www.flessya.com/categoria-prodotto/laminioplus/" }
+    ],
+    pantografate: [
+        { nome: "TALEA", codice: "T00", tipo: "Pantografata moderna", prezzo_da: 280, url: "https://www.flessya.com/categoria-prodotto/talea/" },
+        { nome: "CLASSIKA", codice: "C00", tipo: "Pantografata classica", prezzo_da: 320, url: "https://www.flessya.com/categoria-prodotto/classika/" },
+        { nome: "PLENIA", codice: "P00", tipo: "Massello impiallacciato", prezzo_da: 380, url: "https://www.flessya.com/categoria-prodotto/plenia/" }
+    ],
+    vetro: [
+        { nome: "KIKKA", codice: "K00", tipo: "Vetro bordato legno", prezzo_da: 450, url: "https://www.flessya.com/categoria-prodotto/kikka/" },
+        { nome: "VETRA", codice: "V00", tipo: "Tutto vetro", prezzo_da: 520, url: "https://www.flessya.com/categoria-prodotto/vetra/" },
+        { nome: "S-NZIALE MONO", codice: "S00-M", tipo: "Vetro + alluminio mono", prezzo_da: 480, url: "https://www.flessya.com/categoria-prodotto/s-nziale/" },
+        { nome: "S-NZIALE DUO", codice: "S00-D", tipo: "Vetro + alluminio doppio", prezzo_da: 540, url: "https://www.flessya.com/categoria-prodotto/s-nziale/" }
+    ],
+    speciali: [
+        { nome: "RASOMURO", codice: "RMU", tipo: "Filo parete", prezzo_da: 580, url: "https://www.flessya.com/categoria-prodotto/rasomuro/" },
+        { nome: "RECEPTIVA EI30", codice: "EI30", tipo: "Antincendio EI30", prezzo_da: 650, url: "https://www.flessya.com/categoria-prodotto/receptiva/" },
+        { nome: "RECEPTIVA EI60", codice: "EI60", tipo: "Antincendio EI60", prezzo_da: 850, url: "https://www.flessya.com/categoria-prodotto/receptiva/" },
+        { nome: "RECEPTIVA 27dB", codice: "N00-27", tipo: "Acustica 27dB", prezzo_da: 420, url: "https://www.flessya.com/categoria-prodotto/receptiva/" },
+        { nome: "RECEPTIVA 32dB", codice: "N00-32", tipo: "Acustica 32dB", prezzo_da: 480, url: "https://www.flessya.com/categoria-prodotto/receptiva/" },
+        { nome: "RECEPTIVA 40dB", codice: "N00-40", tipo: "Acustica 40dB", prezzo_da: 580, url: "https://www.flessya.com/categoria-prodotto/receptiva/" },
+        { nome: "RECEPTIVA 42dB", codice: "N00-42", tipo: "Acustica 42dB", prezzo_da: 650, url: "https://www.flessya.com/categoria-prodotto/receptiva/" }
+    ]
+};
+
+const SCONTO_FERRERO = 0.50;
+const SCONTO_FLESSYA = 0.53;
+
+let currentBrand = 'ferrero';
+let searchTerm = '';
+
+function getSiteUrl(brand, item) {
+    return item.url || (brand === 'ferrero' ? 'https://www.ferrerolegno.com/' : 'https://www.flessya.com/');
+}
+
+function createSection(title, items, brand) {
+    const sconto = brand === 'ferrero' ? SCONTO_FERRERO : SCONTO_FLESSYA;
+    
+    let html = `<div class="section-title ${brand}">${title}</div>`;
+    html += `<div class="list-header">
+        <div>Collezione</div>
+        <div>Tipologia</div>
+        <div>Da €</div>
+        <div>Netto</div>
+        <div>Link</div>
+    </div>`;
+    html += `<div class="list">`;
+    
+    items.forEach((item, idx) => {
+        const netto = item.prezzo_da * (1 - sconto);
+        const codice = item.codice ? `[${item.codice}]` : (item.spessore ? `sp.${item.spessore}mm` : '');
+        const catalogoUrl = item.catalogo || item.url;
+        
+        html += `
+            <div class="item ${brand}" data-nome="${item.nome}" data-idx="${idx}" data-url="${item.url || ''}" data-catalogo="${catalogoUrl}">
+                <div class="item-name">
+                    <span class="badge">${brand === 'ferrero' ? 'FL' : 'FX'}</span>
+                    ${item.nome}
+                </div>
+                <div class="item-tipo">${item.tipo} ${codice}</div>
+                <div class="item-price">€${item.prezzo_da.toFixed(0)}</div>
+                <div class="item-netto">€${netto.toFixed(0)}</div>
+                <div class="item-link">
+                    <span class="link-prodotti" title="🖼️ Vedi prodotti">🖼️</span>
+                    <span class="link-catalogo" title="📋 Info collezione">📋</span>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `</div>`;
+    return html;
+}
+
+function filterItems(items) {
+    if (!searchTerm) return items;
+    const term = searchTerm.toLowerCase();
+    return items.filter(item => 
+        item.nome.toLowerCase().includes(term) ||
+        item.tipo.toLowerCase().includes(term) ||
+        (item.codice && item.codice.toLowerCase().includes(term))
+    );
+}
+
+function countItems(brand) {
+    if (brand === 'ferrero') {
+        return FERREROLEGNO.collezioni_fl.length + 
+               FERREROLEGNO.replica.length + 
+               FERREROLEGNO.zero.length;
+    } else {
+        return FLESSYA.tamburate.length + 
+               FLESSYA.pantografate.length + 
+               FLESSYA.vetro.length + 
+               FLESSYA.speciali.length;
+    }
+}
+
+function countVisibleItems() {
+    if (currentBrand === 'ferrero') {
+        return filterItems(FERREROLEGNO.collezioni_fl).length + 
+               filterItems(FERREROLEGNO.replica).length + 
+               filterItems(FERREROLEGNO.zero).length;
+    } else {
+        return filterItems(FLESSYA.tamburate).length + 
+               filterItems(FLESSYA.pantografate).length + 
+               filterItems(FLESSYA.vetro).length + 
+               filterItems(FLESSYA.speciali).length;
+    }
+}
+
+function renderList() {
+    const container = document.getElementById('listContainer');
+    let html = '';
+    
+    if (currentBrand === 'ferrero') {
+        const fl = filterItems(FERREROLEGNO.collezioni_fl);
+        const rep = filterItems(FERREROLEGNO.replica);
+        const zero = filterItems(FERREROLEGNO.zero);
+        
+        if (fl.length > 0) html += createSection('📦 Collezioni FL (Legno/Laccato)', fl, 'ferrero');
+        if (rep.length > 0) html += createSection('🔄 Replica (Sintetico)', rep, 'ferrero');
+        if (zero.length > 0) html += createSection('⬜ Zero (Filo Muro)', zero, 'ferrero');
+    } else {
+        const tamb = filterItems(FLESSYA.tamburate);
+        const pant = filterItems(FLESSYA.pantografate);
+        const vetro = filterItems(FLESSYA.vetro);
+        const spec = filterItems(FLESSYA.speciali);
+        
+        if (tamb.length > 0) html += createSection('📦 Tamburate', tamb, 'flessya');
+        if (pant.length > 0) html += createSection('🎨 Pantografate', pant, 'flessya');
+        if (vetro.length > 0) html += createSection('🪟 Vetro', vetro, 'flessya');
+        if (spec.length > 0) html += createSection('🔥 Speciali (REI / Acustica)', spec, 'flessya');
+    }
+    
+    if (html === '') {
+        html = `<div class="empty-state">
+            <div class="icon">🔍</div>
+            <p>Nessun risultato</p>
+        </div>`;
+    }
+    
+    container.innerHTML = html;
+    
+    // Attach event listeners
+    document.querySelectorAll('.item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.classList.contains('link-prodotti') || e.target.classList.contains('link-catalogo')) return;
+            const nome = item.dataset.nome;
+            copyToClipboard(nome);
+            item.classList.add('copied');
+            setTimeout(() => item.classList.remove('copied'), 500);
+        });
+        
+        // Link prodotti (🖼️) - va alla lista prodotti
+        item.querySelector('.link-prodotti').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const url = item.dataset.url;
+            if (url) {
+                window.open(url, '_blank');
+            } else {
+                window.open(currentBrand === 'ferrero' ? 'https://www.ferrerolegno.com/it/204-tutte-le-porte' : 'https://www.flessya.com/', '_blank');
+            }
+        });
+        
+        // Link catalogo (📋) - va alla pagina descrittiva
+        item.querySelector('.link-catalogo').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const url = item.dataset.catalogo || item.dataset.url;
+            if (url) {
+                window.open(url, '_blank');
+            }
+        });
+    });
+    
+    document.getElementById('visibleCount').textContent = countVisibleItems();
+}
+
+function showBrand(brand) {
+    currentBrand = brand;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab.${brand}`).classList.add('active');
+    
+    // Aggiorna bottone "Tutte le porte"
+    const btnCatalogo = document.getElementById('btnCatalogo');
+    if (brand === 'ferrero') {
+        btnCatalogo.href = 'https://www.ferrerolegno.com/it/204-tutte-le-porte';
+        btnCatalogo.textContent = '🌐 Tutte le porte FL';
+    } else {
+        btnCatalogo.href = 'https://www.flessya.com/categoria-prodotto/';
+        btnCatalogo.textContent = '🌐 Catalogo FLESSYA';
+    }
+    
+    renderList();
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast(`✓ "${text}" copiato`);
+    }).catch(() => {
+        const input = document.createElement('input');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast(`✓ "${text}" copiato`);
+    });
+}
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('countFerrero').textContent = countItems('ferrero');
+    document.getElementById('countFlessya').textContent = countItems('flessya');
+    
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchTerm = e.target.value;
+        renderList();
+    });
+    
+    renderList();
+});
+</script>
+
+</body>
+</html>
