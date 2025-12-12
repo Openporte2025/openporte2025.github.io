@@ -1,6 +1,25 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.563 - 🔧 FIX operazione BRM auto-default
+    Open Porte v5.57 - 🚪 PORTE INTERNE (FerreroLegno, Flessya)
+    ═══════════════════════════════════════════════════════════════
+    
+    🚪 v5.57 (11 DIC 2025) - PORTE INTERNE
+    
+    CHECKBOX STEP 2:
+    - ✅ Nuovo checkbox "Porte Interne" (FerreroLegno, Flessya)
+    
+    TIPO POSIZIONE:
+    - ✅ Terza opzione: Finestra | Ingresso | Porta Interna
+    - ✅ Visibile solo se progetto ha porteInterne=true
+    
+    TAB PORTA INTERNA:
+    - ✅ Scelta azienda: FerreroLegno (50%) o Flessya (53%)
+    - ✅ Quantità, Larghezza/Altezza vano
+    - ✅ Apertura: DX, SX, Scorrevole Int/Est, A Libro
+    - ✅ Tipologia: Cieca, Vetro, Vetro Large
+    - ✅ Collezione/Modello e Finitura (testo libero)
+    - ✅ Telaio, Maniglia (Olivari/Colombo/Inclusa), Note
+    
     ═══════════════════════════════════════════════════════════════
     
     🔧 v5.54 (05 DIC 2025) - CASSONETTI: CAMPI DA LISTINO
@@ -14202,6 +14221,19 @@
                                 <div class="text-xs opacity-75">Cassonetti avvolgibili</div>
                             </div>
                         </label>
+
+                        <label class="product-pill ${project.prodotti?.porteInterne ? 'selected bg-rose-50 border-rose-500 text-rose-700' : 'border-gray-300'}">
+                            <input type="checkbox" 
+                                   ${project.prodotti?.porteInterne ? 'checked' : ''}
+                                   onchange="updateProdotti('${project.id}', 'porteInterne', this.checked)"
+                                   onclick="event.stopPropagation()"
+                                   class="sr-only">
+                            <span class="text-xl">🚪</span>
+                            <div>
+                                <div class="font-semibold">Porte Interne</div>
+                                <div class="text-xs opacity-75">FerreroLegno, Flessya</div>
+                            </div>
+                        </label>
                     </div>
                     
                     <!-- 💡 INFO: Portoncini e Blindate si configurano direttamente nella posizione -->
@@ -16877,6 +16909,25 @@
                                     </div>
                                 </div>
                             </label>
+                            ${project.prodotti?.porteInterne ? `
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="tipopos-${pos.id}" value="porta_interna"
+                                       ${pos.tipoposizione === 'porta_interna' ? 'checked' : ''}
+                                       onchange="updateTipoPosizione('${project.id}', '${pos.id}', 'porta_interna')"
+                                       class="sr-only">
+                                <div class="p-3 rounded-lg border-2 transition-all ${pos.tipoposizione === 'porta_interna' 
+                                    ? 'border-rose-500 bg-rose-100 shadow-md' 
+                                    : 'border-gray-300 bg-white hover:border-rose-300'}">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-2xl">🚪</span>
+                                        <div>
+                                            <div class="font-semibold ${pos.tipoposizione === 'porta_interna' ? 'text-rose-700' : 'text-gray-700'}">Porta Interna</div>
+                                            <div class="text-xs text-gray-500">FerreroLegno, Flessya</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                            ` : ''}
                         </div>
                     </div>
                     
@@ -16939,6 +16990,12 @@
                                         📦 Cassonetti
                                     </button>
                                 ` : ''}
+                            ` : pos.tipoposizione === 'porta_interna' ? `
+                                <!-- TIPO PORTA INTERNA: mostra tab dedicato -->
+                                <button onclick="setPositionTab('${pos.id}', 'porta_interna')"
+                                        class="tab-btn ${(pos.activeTab || 'porta_interna') === 'porta_interna' ? 'active' : ''}">
+                                    🚪 Porta Interna
+                                </button>
                             ` : `
                                 <!-- TIPO INGRESSO: mostra solo tab ingresso -->
                                 <button onclick="setPositionTab('${pos.id}', 'ingresso')"
@@ -16962,9 +17019,13 @@
 
         function renderPositionTabContent(project, pos) {
             // 🚪 v5.09: Se tipo ingresso, forza tab ingresso come default
+            // 🚪 v5.57: Se tipo porta_interna, forza tab porta_interna come default
             let tab = pos.activeTab || 'misure';
             if (pos.tipoposizione === 'ingresso' && tab !== 'foto' && tab !== 'ingresso') {
                 tab = 'ingresso';
+            }
+            if (pos.tipoposizione === 'porta_interna' && tab !== 'foto' && tab !== 'porta_interna') {
+                tab = 'porta_interna';
             }
 
             if (tab === 'misure') return renderMisureTab(project, pos);
@@ -16974,6 +17035,7 @@
             if (tab === 'zanzariere') return renderZanzariereTab(project, pos);
             if (tab === 'cassonetti') return renderCassonettiTab(project, pos);
             if (tab === 'ingresso') return renderIngressoTab(project, pos);  // 🚪 v5.09
+            if (tab === 'porta_interna') return renderPortaInternaTab(project, pos);  // 🚪 v5.57
             if (tab === 'foto') return renderFotoTab(project, pos);
 
             return '';
@@ -16990,6 +17052,8 @@
             // Reset tab attivo in base al nuovo tipo
             if (tipo === 'ingresso') {
                 pos.activeTab = 'ingresso';
+            } else if (tipo === 'porta_interna') {
+                pos.activeTab = 'porta_interna';
             } else {
                 pos.activeTab = 'misure';
             }
@@ -17078,6 +17142,191 @@
             };
             return info[tipo] || 'Seleziona tipo apertura';
         }
+        
+        // 🚪 v5.57: Tab PORTA INTERNA (FerreroLegno o Flessya)
+        function renderPortaInternaTab(project, pos) {
+            const pi = pos.portaInterna || {};
+            
+            return `
+                <div class="space-y-4">
+                    <!-- SCELTA AZIENDA -->
+                    <div class="bg-gradient-to-r from-rose-50 to-amber-50 border-2 border-rose-200 rounded-lg p-4">
+                        <h3 class="font-bold text-gray-800 mb-3">🚪 Scegli il produttore</h3>
+                        <div class="flex gap-4">
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="aziendaPI-${pos.id}" value="FERREROLEGNO"
+                                       ${pi.azienda === 'FERREROLEGNO' ? 'checked' : ''}
+                                       onchange="updatePortaInterna('${project.id}', '${pos.id}', 'azienda', 'FERREROLEGNO')"
+                                       class="sr-only">
+                                <div class="p-4 rounded-lg border-2 transition-all text-center ${pi.azienda === 'FERREROLEGNO' 
+                                    ? 'border-rose-500 bg-rose-100 shadow-lg' 
+                                    : 'border-gray-300 bg-white hover:border-rose-300'}">
+                                    <span class="text-3xl block mb-2">🚪</span>
+                                    <div class="font-bold ${pi.azienda === 'FERREROLEGNO' ? 'text-rose-700' : 'text-gray-700'}">FerreroLegno</div>
+                                    <div class="text-xs text-gray-500">Sconto 50%</div>
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="aziendaPI-${pos.id}" value="FLESSYA"
+                                       ${pi.azienda === 'FLESSYA' ? 'checked' : ''}
+                                       onchange="updatePortaInterna('${project.id}', '${pos.id}', 'azienda', 'FLESSYA')"
+                                       class="sr-only">
+                                <div class="p-4 rounded-lg border-2 transition-all text-center ${pi.azienda === 'FLESSYA' 
+                                    ? 'border-amber-500 bg-amber-100 shadow-lg' 
+                                    : 'border-gray-300 bg-white hover:border-amber-300'}">
+                                    <span class="text-3xl block mb-2">🚪</span>
+                                    <div class="font-bold ${pi.azienda === 'FLESSYA' ? 'text-amber-700' : 'text-gray-700'}">Flessya</div>
+                                    <div class="text-xs text-gray-500">Sconto 53%</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    ${!pi.azienda ? `
+                        <div class="text-center py-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                            <p class="text-yellow-700 font-medium">⚠️ Seleziona il produttore per continuare</p>
+                        </div>
+                    ` : renderPortaInternaConfig(project, pos, pi)}
+                </div>
+            `;
+        }
+        
+        // 🚪 v5.57: Configurazione porta interna
+        function renderPortaInternaConfig(project, pos, pi) {
+            return `
+                <!-- QUANTITÀ E MISURE -->
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="section-card">
+                        <label class="text-xs font-medium text-gray-600">Quantità</label>
+                        <input type="number" min="1" value="${pi.quantita || 1}"
+                               onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'quantita', this.value)"
+                               class="w-full p-2 border rounded text-center text-lg font-bold">
+                    </div>
+                    <div class="section-card">
+                        <label class="text-xs font-medium text-gray-600">Larghezza Vano (mm)</label>
+                        <input type="number" min="500" max="1200" step="10" value="${pi.larghezzaVano || ''}"
+                               placeholder="es. 900"
+                               onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'larghezzaVano', this.value)"
+                               class="w-full p-2 border rounded">
+                    </div>
+                    <div class="section-card">
+                        <label class="text-xs font-medium text-gray-600">Altezza Vano (mm)</label>
+                        <input type="number" min="1800" max="2400" step="10" value="${pi.altezzaVano || ''}"
+                               placeholder="es. 2100"
+                               onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'altezzaVano', this.value)"
+                               class="w-full p-2 border rounded">
+                    </div>
+                </div>
+                
+                <!-- APERTURA E TIPOLOGIA -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="section-card">
+                        <label class="text-xs font-medium text-gray-600">Apertura</label>
+                        <select onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'apertura', this.value)"
+                                class="w-full p-2 border rounded">
+                            <option value="">-- Seleziona --</option>
+                            <option value="DX" ${pi.apertura === 'DX' ? 'selected' : ''}>🔄 Destra (DX)</option>
+                            <option value="SX" ${pi.apertura === 'SX' ? 'selected' : ''}>🔄 Sinistra (SX)</option>
+                            <option value="SCORREVOLE_INT" ${pi.apertura === 'SCORREVOLE_INT' ? 'selected' : ''}>➡️ Scorrevole Interno</option>
+                            <option value="SCORREVOLE_EST" ${pi.apertura === 'SCORREVOLE_EST' ? 'selected' : ''}>⬅️ Scorrevole Esterno</option>
+                            <option value="LIBRO" ${pi.apertura === 'LIBRO' ? 'selected' : ''}>📖 A Libro</option>
+                        </select>
+                    </div>
+                    <div class="section-card">
+                        <label class="text-xs font-medium text-gray-600">Tipologia Anta</label>
+                        <select onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'tipologia', this.value)"
+                                class="w-full p-2 border rounded">
+                            <option value="">-- Seleziona --</option>
+                            <option value="cieca" ${pi.tipologia === 'cieca' ? 'selected' : ''}>🚪 Cieca</option>
+                            <option value="vetro" ${pi.tipologia === 'vetro' ? 'selected' : ''}>🔲 Con Vetro</option>
+                            <option value="vetro_large" ${pi.tipologia === 'vetro_large' ? 'selected' : ''}>🔳 Vetro Grande</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- COLLEZIONE E FINITURA (campi testo libero per ora) -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="section-card">
+                        <label class="text-xs font-medium text-gray-600">Collezione / Modello</label>
+                        <input type="text" value="${pi.collezione || ''}"
+                               placeholder="es. EQUA, LISS, NIDIO..."
+                               onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'collezione', this.value)"
+                               class="w-full p-2 border rounded">
+                        <p class="text-xs text-gray-400 mt-1">📋 Vedi catalogo per i modelli</p>
+                    </div>
+                    <div class="section-card">
+                        <label class="text-xs font-medium text-gray-600">Finitura</label>
+                        <input type="text" value="${pi.finitura || ''}"
+                               placeholder="es. Opaco Bianco, Rovere..."
+                               onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'finitura', this.value)"
+                               class="w-full p-2 border rounded">
+                    </div>
+                </div>
+                
+                <!-- TELAIO -->
+                <div class="section-card">
+                    <label class="text-xs font-medium text-gray-600">Telaio</label>
+                    <input type="text" value="${pi.telaio || ''}"
+                           placeholder="es. GENIUS ELEVA, FLAT, A FILO..."
+                           onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'telaio', this.value)"
+                           class="w-full p-2 border rounded">
+                </div>
+                
+                <!-- MANIGLIA -->
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-700 mb-3">🔧 Maniglia</h4>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-600">Azienda</label>
+                            <select onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'manigliaAzienda', this.value)"
+                                    class="w-full p-2 border rounded">
+                                <option value="">-- Seleziona --</option>
+                                <option value="OLIVARI" ${pi.manigliaAzienda === 'OLIVARI' ? 'selected' : ''}>OLIVARI (43%)</option>
+                                <option value="COLOMBO" ${pi.manigliaAzienda === 'COLOMBO' ? 'selected' : ''}>COLOMBO DESIGN (40%)</option>
+                                <option value="INCLUSA" ${pi.manigliaAzienda === 'INCLUSA' ? 'selected' : ''}>Inclusa nella porta</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-600">Modello</label>
+                            <input type="text" value="${pi.manigliaModello || ''}"
+                                   placeholder="es. AGATA, PLANET..."
+                                   onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'manigliaModello', this.value)"
+                                   class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-600">Finitura</label>
+                            <input type="text" value="${pi.manigliaFinitura || ''}"
+                                   placeholder="es. Cromo, Satinato..."
+                                   onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'manigliaFinitura', this.value)"
+                                   class="w-full p-2 border rounded">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- NOTE -->
+                <div class="section-card">
+                    <label class="text-xs font-medium text-gray-600">Note</label>
+                    <textarea rows="2" 
+                              placeholder="Note aggiuntive..."
+                              onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'note', this.value)"
+                              class="w-full p-2 border rounded">${pi.note || ''}</textarea>
+                </div>
+            `;
+        }
+        
+        // 🚪 v5.57: Funzione aggiornamento porta interna
+        window.updatePortaInterna = function(projectId, positionId, field, value) {
+            const project = state.projects.find(p => p.id === projectId);
+            const pos = project?.positions.find(p => p.id === positionId);
+            if (!pos) return;
+            
+            if (!pos.portaInterna) pos.portaInterna = {};
+            pos.portaInterna[field] = value;
+            
+            console.log(\`🚪 Porta Interna aggiornata: \${field} = \${value}\`);
+            saveState();
+            render();
+        };
         
         function renderPortoncinoConfig(project, pos, ing) {
             const ptc = ing.portoncino || {};
