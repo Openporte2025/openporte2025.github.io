@@ -1,7 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.582 - 📋 Auto-incolla da catalogo
+    Open Porte v5.59 - 🎨 Cascata collezione/finitura porte interne
     ═══════════════════════════════════════════════════════════════
+    
+    🎨 v5.59 (11 DIC 2025) - CASCATA COLLEZIONE/FINITURA
+    - ✅ Database collezioni FerreroLegno (22 collezioni)
+    - ✅ Database collezioni Flessya (15 collezioni)
+    - ✅ Finiture per ogni collezione
+    - ✅ Dropdown dinamici: Azienda → Collezione → Finitura
+    - ✅ Reset automatico campi quando cambia selezione superiore
     
     📋 v5.582 (11 DIC 2025) - AUTO-INCOLLA DA CATALOGO
     - ✅ Copia collezione porta dal catalogo → auto-incolla nell'app
@@ -3285,8 +3292,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.582';
-        const APP_VERSION_NOTE = '📋 Auto-incolla da catalogo (localStorage)';
+        const APP_VERSION = '5.59';
+        const APP_VERSION_NOTE = '🎨 Cascata collezione/finitura porte interne';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -17272,22 +17279,30 @@
                     </div>
                 </div>
                 
-                <!-- COLLEZIONE E FINITURA (campi testo libero per ora) -->
+                <!-- COLLEZIONE E FINITURA (cascata dinamica v5.59) -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="section-card">
                         <label class="text-xs font-medium text-gray-600">Collezione / Modello</label>
-                        <input type="text" value="${pi.collezione || ''}"
-                               placeholder="es. EQUA, LISS, NIDIO..."
-                               onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'collezione', this.value)"
-                               class="w-full p-2 border rounded">
+                        <select id="collezione-${pos.id}"
+                                onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'collezione', this.value)"
+                                class="w-full p-2 border rounded">
+                            <option value="">-- Seleziona collezione --</option>
+                            ${pi.azienda ? getCollezioniPorta(pi.azienda).map(c => 
+                                '<option value="' + c + '"' + (pi.collezione === c ? ' selected' : '') + '>' + c + '</option>'
+                            ).join('') : ''}
+                        </select>
                         <a href="https://openporte2025.github.io/catalogo-porte-v1_01.html" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1 inline-block">📋 Apri catalogo porte →</a>
                     </div>
                     <div class="section-card">
                         <label class="text-xs font-medium text-gray-600">Finitura</label>
-                        <input type="text" value="${pi.finitura || ''}"
-                               placeholder="es. Opaco Bianco, Rovere..."
-                               onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'finitura', this.value)"
-                               class="w-full p-2 border rounded">
+                        <select id="finitura-${pos.id}"
+                                onchange="updatePortaInterna('${pos.projectId || project.id}', '${pos.id}', 'finitura', this.value)"
+                                class="w-full p-2 border rounded">
+                            <option value="">-- Seleziona finitura --</option>
+                            ${pi.azienda && pi.collezione ? getFiniturePora(pi.azienda, pi.collezione).map(f => 
+                                '<option value="' + f + '"' + (pi.finitura === f ? ' selected' : '') + '>' + f + '</option>'
+                            ).join('') : ''}
+                        </select>
                     </div>
                 </div>
                 
@@ -17402,6 +17417,99 @@
         }
         
         // 🚪 v5.57: Funzione aggiornamento porta interna
+        // 🚪 v5.59: DATABASE COLLEZIONI E FINITURE PORTE INTERNE
+        const PORTE_DATABASE = {
+            FERREROLEGNO: {
+                collezioni: {
+                    "EXIT": ["Grezzo Prefinito", "Iride", "Natural Touch Rovere", "Natural Touch Noce", "Ultralucido Base", "Ultralucido Cartella"],
+                    "EXITLYNE": ["Iride", "Natural Touch Rovere", "Natural Touch Noce"],
+                    "EQUA": ["Blond Tanganika", "Noce Nazionale", "Opaco Base", "Opaco RAL", "Ultraopaco Base", "Ultraopaco Cartella"],
+                    "EQUA STYLA": ["Blond Tanganika", "Noce Nazionale", "Opaco Base", "Opaco RAL", "Ultraopaco Base", "Ultraopaco Cartella"],
+                    "NOVA": ["Iride", "Natural Touch Rovere", "Natural Touch Noce", "Opaco Base", "Opaco RAL"],
+                    "GLASS": ["Iride", "Natural Touch Rovere", "Natural Touch Noce", "Opaco Base", "Opaco RAL", "Ultralucido"],
+                    "INTAGLIO": ["Grezzo Prefinito", "Iride", "Natural Touch Rovere", "Opaco Base", "Ultraopaco Base"],
+                    "PLISSE": ["Grezzo Prefinito", "Iride", "Natural Touch Rovere", "Opaco Base", "Ultraopaco Base"],
+                    "SUITE": ["Blond Tanganika", "Noce Nazionale", "Opaco Base", "Opaco RAL", "Ultraopaco Base"],
+                    "MIXY": ["Blond Tanganika", "Noce Nazionale", "Opaco Base", "Opaco RAL", "Ultraopaco Base"],
+                    "YNCISA": ["Blond Tanganika", "Noce Nazionale", "Opaco Base", "Opaco RAL", "Ultraopaco Base"],
+                    "KEVIA": ["Blond Tanganika", "Noce Nazionale", "Opaco Base", "Opaco RAL", "Ultraopaco Base"],
+                    "DIVA": ["Blond Tanganika", "Noce Nazionale", "Opaco Base", "Opaco RAL", "Ultraopaco Base"],
+                    "EPOCA": ["Blond Tanganika", "Noce Nazionale", "Opaco Base", "Opaco RAL", "Ultraopaco Base"],
+                    "LISS": ["Opaco Base", "Opaco RAL", "Ultraopaco Base", "Ultraopaco Cartella", "Ultralucido Base"],
+                    "LOGICA": ["Opaco Base", "Opaco RAL", "Ultraopaco Base", "Ultraopaco Cartella"],
+                    "TRATTO": ["Opaco Base", "Opaco RAL", "Ultraopaco Base"],
+                    "SEGNI": ["Opaco Base", "Opaco RAL", "Ultraopaco Base"],
+                    "AREA": ["Opaco Base", "Opaco RAL", "Ultraopaco Base", "Vetro"],
+                    "FORMA": ["Opaco Base", "Opaco RAL", "Ultraopaco Base"],
+                    "FLAT": ["Opaco Base", "Opaco RAL", "Ultraopaco Base", "Ultralucido"],
+                    "GENIUS ELEVA": ["Opaco Base", "Opaco RAL", "Ultraopaco Base"],
+                    "A FILO": ["Opaco Base", "Opaco RAL", "Ultraopaco Base", "Ultralucido"]
+                }
+            },
+            FLESSYA: {
+                collezioni: {
+                    "NIDIO": ["Laccato Bianco RAL 9016", "Laccato Avorio RAL 1013", "Laccato Nero RAL 9005", "Laccato Base", "Laccato Extra", "Tanganika", "Rovere", "Rovere Grigio"],
+                    "NIDIO INCISE": ["Laccato Bianco RAL 9016", "Laccato Avorio RAL 1013", "Laccato Base", "Laccato Extra"],
+                    "TALEA": ["Laccato Bianco RAL 9016", "Laccato Avorio RAL 1013", "Laccato Base", "Laccato Extra", "Tanganika", "Rovere"],
+                    "CLASSIKA": ["Laccato Bianco RAL 9016", "Laccato Avorio RAL 1013", "Laccato Base", "Laccato Extra"],
+                    "PLENIA": ["Laccato Bianco RAL 9016", "Laccato Avorio RAL 1013", "Laccato Base", "Goffrato Standard"],
+                    "KIKKA": ["Laccato Bianco RAL 9016", "Laccato Base", "Laccato Extra", "Tanganika", "Rovere"],
+                    "GEMMA": ["Laccato Bianco RAL 9016", "Laccato Base", "Laccato Extra"],
+                    "GEA": ["Laccato Bianco RAL 9016", "Laccato Base", "Rovere", "Rovere Grigio"],
+                    "CLASS": ["Laccato Bianco RAL 9016", "Laccato Base", "Tanganika", "Rovere", "Frassino Poro Aperto"],
+                    "WOOD": ["Rovere", "Rovere Tabacco", "Rovere Caffè", "Rovere Sbiancato", "Rovere Grigio", "Rovere Cenere"],
+                    "SUITE": ["Laccato Bianco RAL 9016", "Laccato Base", "Laccato Extra", "Tanganika", "Rovere"],
+                    "STYLE": ["Laccato Bianco RAL 9016", "Laccato Base", "Laccato Lucido"],
+                    "PRIMA": ["Laccato Bianco RAL 9016", "Laccato Avorio RAL 1013", "Laccato Base"],
+                    "DUO": ["Laccato Bianco RAL 9016", "Laccato Base", "Laccato Extra"],
+                    "LUCE": ["Laccato Bianco RAL 9016", "Laccato Base", "Vetro Satinato", "Vetro Trasparente"]
+                }
+            }
+        };
+        
+        // Funzione per ottenere collezioni in base all'azienda
+        window.getCollezioniPorta = function(azienda) {
+            if (!azienda || !PORTE_DATABASE[azienda]) return [];
+            return Object.keys(PORTE_DATABASE[azienda].collezioni).sort();
+        };
+        
+        // Funzione per ottenere finiture in base all'azienda e collezione
+        window.getFiniturePora = function(azienda, collezione) {
+            if (!azienda || !collezione || !PORTE_DATABASE[azienda]) return [];
+            return PORTE_DATABASE[azienda].collezioni[collezione] || [];
+        };
+        
+        // Funzione per aggiornare dropdown collezione
+        window.updateCollezioneDropdown = function(projectId, positionId) {
+            const project = state.projects.find(p => p.id === projectId);
+            const pos = project?.positions.find(p => p.id === positionId);
+            if (!pos || !pos.portaInterna) return;
+            
+            const azienda = pos.portaInterna.azienda;
+            const collezioni = getCollezioniPorta(azienda);
+            const select = document.getElementById('collezione-' + positionId);
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">-- Seleziona collezione --</option>' +
+                collezioni.map(c => '<option value="' + c + '"' + (pos.portaInterna.collezione === c ? ' selected' : '') + '>' + c + '</option>').join('');
+        };
+        
+        // Funzione per aggiornare dropdown finitura
+        window.updateFinituraDropdown = function(projectId, positionId) {
+            const project = state.projects.find(p => p.id === projectId);
+            const pos = project?.positions.find(p => p.id === positionId);
+            if (!pos || !pos.portaInterna) return;
+            
+            const azienda = pos.portaInterna.azienda;
+            const collezione = pos.portaInterna.collezione;
+            const finiture = getFiniturePora(azienda, collezione);
+            const select = document.getElementById('finitura-' + positionId);
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">-- Seleziona finitura --</option>' +
+                finiture.map(f => '<option value="' + f + '"' + (pos.portaInterna.finitura === f ? ' selected' : '') + '>' + f + '</option>').join('');
+        };
+        
         window.updatePortaInterna = function(projectId, positionId, field, value) {
             const project = state.projects.find(p => p.id === projectId);
             const pos = project?.positions.find(p => p.id === positionId);
@@ -17409,6 +17517,19 @@
             
             if (!pos.portaInterna) pos.portaInterna = {};
             pos.portaInterna[field] = value;
+            
+            // 🚪 v5.59: Cascata - se cambia azienda, resetta collezione e finitura
+            if (field === 'azienda') {
+                pos.portaInterna.collezione = '';
+                pos.portaInterna.finitura = '';
+                console.log('🚪 Cambiata azienda → reset collezione e finitura');
+            }
+            
+            // 🚪 v5.59: Cascata - se cambia collezione, resetta finitura
+            if (field === 'collezione') {
+                pos.portaInterna.finitura = '';
+                console.log('🚪 Cambiata collezione → reset finitura');
+            }
             
             // Se attivo battiscopa, inizializza pareti
             if (field === 'battiscopa' && value === true) {
