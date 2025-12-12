@@ -500,8 +500,12 @@ function showBrand(brand) {
 }
 
 function copyToClipboard(text) {
+    // Salva in localStorage per auto-incolla nell'app rilievo
+    localStorage.setItem('catalogoPorta_collezione', text);
+    localStorage.setItem('catalogoPorta_timestamp', Date.now());
+    
     navigator.clipboard.writeText(text).then(() => {
-        showToast(`✓ "${text}" copiato`);
+        showToast(`✓ "${text}" copiato - Torna all'app per incollare automaticamente`);
     }).catch(() => {
         const input = document.createElement('input');
         input.value = text;
@@ -509,7 +513,7 @@ function copyToClipboard(text) {
         input.select();
         document.execCommand('copy');
         document.body.removeChild(input);
-        showToast(`✓ "${text}" copiato`);
+        showToast(`✓ "${text}" copiato - Torna all'app per incollare automaticamente`);
     });
 }
 
