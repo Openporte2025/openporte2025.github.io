@@ -1,7 +1,14 @@
 <!DOCTYPE html>
 <!--
-    Open Porte v5.581 - 🔗 FIX URL cataloghi
+    Open Porte v5.582 - 📋 Auto-incolla da catalogo
     ═══════════════════════════════════════════════════════════════
+    
+    📋 v5.582 (11 DIC 2025) - AUTO-INCOLLA DA CATALOGO
+    - ✅ Copia collezione porta dal catalogo → auto-incolla nell'app
+    - ✅ Copia maniglia dal catalogo → auto-incolla modello + azienda
+    - ✅ Listener focus window per rilevare ritorno dal catalogo
+    - ✅ Notifica visiva quando dati inseriti automaticamente
+    - ✅ Timeout 5 minuti per dati copiati
     
     🔗 v5.581 (11 DIC 2025) - FIX URL CATALOGHI
     - ✅ Corretto URL: openporte2025.github.io (non open-porte.github.io)
@@ -3278,8 +3285,8 @@
         };
 
         // ⚙️ VERSIONE APP - UNICO PUNTO DA MODIFICARE
-        const APP_VERSION = '5.581';
-        const APP_VERSION_NOTE = '🔗 FIX URL cataloghi (openporte2025.github.io)';
+        const APP_VERSION = '5.582';
+        const APP_VERSION_NOTE = '📋 Auto-incolla da catalogo (localStorage)';
         
         // 🆕 v4.79: Mappa codici taglio disponibili per tipo telaio (da catalogo Finstral EUR 2025/3)
         const CODICI_TAGLIO_PER_TELAIO = {
@@ -17446,6 +17453,74 @@
             saveState();
             render();
         };
+        
+        // 📋 v5.582: Auto-incolla da catalogo (localStorage)
+        window.addEventListener('focus', function() {
+            checkCatalogoData();
+        });
+        
+        // Controlla anche al caricamento pagina
+        setTimeout(checkCatalogoData, 1000);
+        
+        function checkCatalogoData() {
+            const now = Date.now();
+            const maxAge = 5 * 60 * 1000; // 5 minuti
+            
+            // Controlla dati porta
+            const portaTimestamp = localStorage.getItem('catalogoPorta_timestamp');
+            const portaCollezione = localStorage.getItem('catalogoPorta_collezione');
+            
+            if (portaCollezione && portaTimestamp && (now - parseInt(portaTimestamp)) < maxAge) {
+                // Trova la posizione attiva con porta interna
+                const project = state.currentProject ? state.projects.find(p => p.id === state.currentProject) : null;
+                if (project && project.positions) {
+                    const posPorta = project.positions.find(p => p.tipoposizione === 'porta_interna');
+                    if (posPorta) {
+                        if (!posPorta.portaInterna) posPorta.portaInterna = {};
+                        posPorta.portaInterna.collezione = portaCollezione;
+                        
+                        // Pulisci localStorage
+                        localStorage.removeItem('catalogoPorta_collezione');
+                        localStorage.removeItem('catalogoPorta_timestamp');
+                        
+                        console.log('📋 Auto-incollato collezione porta: ' + portaCollezione);
+                        showNotification('📋 Collezione "' + portaCollezione + '" inserita automaticamente!', 'success', 3000);
+                        saveState();
+                        render();
+                    }
+                }
+            }
+            
+            // Controlla dati maniglia
+            const manigliaTimestamp = localStorage.getItem('catalogoManiglia_timestamp');
+            const manigliaModello = localStorage.getItem('catalogoManiglia_modello');
+            const manigliaAzienda = localStorage.getItem('catalogoManiglia_azienda');
+            
+            if (manigliaModello && manigliaTimestamp && (now - parseInt(manigliaTimestamp)) < maxAge) {
+                // Trova la posizione attiva con porta interna
+                const project = state.currentProject ? state.projects.find(p => p.id === state.currentProject) : null;
+                if (project && project.positions) {
+                    const posPorta = project.positions.find(p => p.tipoposizione === 'porta_interna');
+                    if (posPorta) {
+                        if (!posPorta.portaInterna) posPorta.portaInterna = {};
+                        posPorta.portaInterna.manigliaModello = manigliaModello;
+                        if (manigliaAzienda) {
+                            posPorta.portaInterna.manigliaAzienda = manigliaAzienda;
+                        }
+                        
+                        // Pulisci localStorage
+                        localStorage.removeItem('catalogoManiglia_modello');
+                        localStorage.removeItem('catalogoManiglia_azienda');
+                        localStorage.removeItem('catalogoManiglia_timestamp');
+                        
+                        console.log('📋 Auto-incollato maniglia: ' + manigliaModello + ' (' + manigliaAzienda + ')');
+                        showNotification('📋 Maniglia "' + manigliaModello + '" inserita automaticamente!', 'success', 3000);
+                        saveState();
+                        render();
+                    }
+                }
+            }
+        }
         
         function renderPortoncinoConfig(project, pos, ing) {
             const ptc = ing.portoncino || {};
