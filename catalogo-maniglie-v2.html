@@ -3,255 +3,535 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catalogo Maniglie - Olivari & Colombo Design</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>🚪 Catalogo Maniglie v2 - OLIVARI & COLOMBO</title>
     <style>
-        .card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
-        .card { transition: all 0.2s ease; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .header h1 { font-size: 1.5em; margin-bottom: 12px; }
+        
+        .header-controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 180px;
+            max-width: 300px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #333;
+            border-radius: 20px;
+            background: #0f0f23;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .search-box input:focus { border-color: #4a9eff; }
+        .search-box input::placeholder { color: #666; }
+        
+        .tabs { display: flex; gap: 8px; }
+        
+        .tab {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .tab.olivari { background: #2d4a3e; color: #7fdb8a; }
+        .tab.olivari.active, .tab.olivari:hover { background: #3d6a4e; }
+        .tab.colombo { background: #4a2d3e; color: #db7f9a; }
+        .tab.colombo.active, .tab.colombo:hover { background: #6a3d5e; }
+        .tab .count { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+        
+        .stats { background: #0f0f23; padding: 8px 12px; border-radius: 12px; font-size: 13px; color: #888; }
+        
+        .instructions {
+            text-align: center;
+            padding: 10px;
+            background: rgba(74, 158, 255, 0.1);
+            font-size: 13px;
+            color: #888;
+        }
+        .instructions strong { color: #4a9eff; }
+        
+        .list-container { padding: 15px; max-width: 1200px; margin: 0 auto; }
+        
+        .list-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 50px;
+            padding: 10px 15px;
+            background: #0f0f23;
+            border-radius: 10px 10px 0 0;
+            font-weight: 600;
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        .list { background: #16162e; border-radius: 0 0 10px 10px; }
+        
+        .item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 50px;
+            padding: 12px 15px;
+            border-bottom: 1px solid #252545;
+            cursor: pointer;
+            transition: all 0.2s;
+            align-items: center;
+        }
+        
+        .item:hover { background: #1e1e3f; }
+        .item:last-child { border-bottom: none; border-radius: 0 0 10px 10px; }
+        
+        .item.copied { background: rgba(74, 158, 255, 0.2) !important; }
+        
+        .item-name {
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .item-name .badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+        
+        .item.olivari .badge { background: #2d4a3e; color: #7fdb8a; }
+        .item.colombo .badge { background: #4a2d3e; color: #db7f9a; }
+        
+        .item-code { color: #888; font-size: 13px; }
+        
+        .item-price { font-weight: 600; font-size: 14px; }
+        .item.olivari .item-price { color: #7fdb8a; }
+        .item.colombo .item-price { color: #db7f9a; }
+        
+        .item-netto { color: #666; font-size: 12px; }
+        
+        .item-link {
+            text-align: center;
+            font-size: 18px;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        .item:hover .item-link { opacity: 1; }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #4a9eff;
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 5px 20px rgba(74, 158, 255, 0.4);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        
+        .empty-state { text-align: center; padding: 40px; color: #666; }
+        .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+        
+        @media (max-width: 768px) {
+            .list-header { display: none; }
+            .item {
+                grid-template-columns: 1fr auto;
+                gap: 5px;
+            }
+            .item-name { grid-column: 1; }
+            .item-code { grid-column: 1; font-size: 11px; }
+            .item-price { grid-column: 2; grid-row: 1; text-align: right; }
+            .item-netto { grid-column: 2; grid-row: 2; text-align: right; }
+            .item-link { display: none; }
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <!-- HEADER -->
-    <div class="bg-gradient-to-r from-purple-700 to-indigo-800 text-white py-6 px-4 shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto">
-            <h1 class="text-2xl font-bold">🔧 Catalogo Maniglie</h1>
-            <p class="text-purple-200 text-sm">Olivari & Colombo Design - Prezzi 2025</p>
+<body>
+
+<div class="header">
+    <h1>🚪 Catalogo Maniglie</h1>
+    <div class="header-controls">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Cerca modello...">
         </div>
-    </div>
-
-    <!-- FILTRI -->
-    <div class="max-w-7xl mx-auto px-4 py-4">
-        <div class="bg-white rounded-lg shadow p-4 flex flex-wrap gap-4 items-center">
-            <div>
-                <label class="text-xs text-gray-500">Brand</label>
-                <select id="filterBrand" onchange="filterManiglie()" class="block w-40 p-2 border rounded">
-                    <option value="">Tutti</option>
-                    <option value="OLIVARI">Olivari</option>
-                    <option value="COLOMBO">Colombo Design</option>
-                </select>
-            </div>
-            <div>
-                <label class="text-xs text-gray-500">Cerca</label>
-                <input type="text" id="searchText" onkeyup="filterManiglie()" placeholder="Nome modello..." class="block w-48 p-2 border rounded">
-            </div>
-            <div class="ml-auto text-sm text-gray-500">
-                <span id="countResults">0</span> maniglie trovate
-            </div>
+        <div class="tabs">
+            <button class="tab olivari active" onclick="showBrand('olivari')">
+                OLIVARI <span class="count" id="countOlivari">100</span>
+            </button>
+            <button class="tab colombo" onclick="showBrand('colombo')">
+                COLOMBO <span class="count" id="countColombo">79</span>
+            </button>
         </div>
+        <div class="stats">Visualizzati: <span id="visibleCount">100</span></div>
     </div>
+</div>
 
-    <!-- GRIGLIA MANIGLIE -->
-    <div class="max-w-7xl mx-auto px-4 pb-8">
-        <div id="grigliaManiglie" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            <!-- Populated by JS -->
+<div class="instructions">
+    <strong>👆 Click</strong> = Copia nome &nbsp;|&nbsp; 
+    <strong>🔗 Link</strong> = Apri sito ufficiale
+</div>
+
+<div class="list-container">
+    <div class="list-header">
+        <div>Modello</div>
+        <div>Codice</div>
+        <div>Listino</div>
+        <div>Netto</div>
+        <div></div>
+    </div>
+    <div class="list" id="list"></div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="icon">🔍</div>
+        <p>Nessun risultato</p>
+    </div>
+</div>
+
+<div class="toast" id="toast">✓ Copiato!</div>
+
+<script>
+// ==================== DATABASE OLIVARI ====================
+const OLIVARI = [
+    { nome: "ABC", codice: "255", prezzo: 176.45 },
+    { nome: "ADAMANT", codice: "216", prezzo: 222.60 },
+    { nome: "AGATA", codice: "116", prezzo: 127.60 },
+    { nome: "ALA", codice: "215", prezzo: 146.75 },
+    { nome: "ALBA", codice: "267", prezzo: 231.90 },
+    { nome: "ALEXANDRA", codice: "150", prezzo: 99.95 },
+    { nome: "ARC", codice: "225", prezzo: 227.15 },
+    { nome: "ASTER", codice: "174", prezzo: 158.10 },
+    { nome: "ATENA LIGNE", codice: "1AL", prezzo: 245.60 },
+    { nome: "ATENA PANIER", codice: "1AP", prezzo: 263.35 },
+    { nome: "ATENA RANK", codice: "1AR", prezzo: 291.95 },
+    { nome: "AURELIA", codice: "185", prezzo: 163.40 },
+    { nome: "AURORA", codice: "164", prezzo: 134.65 },
+    { nome: "BAU", codice: "263", prezzo: 229.05 },
+    { nome: "BEIJING", codice: "208", prezzo: 188.85 },
+    { nome: "BETA", codice: "221", prezzo: 155.35 },
+    { nome: "BIOS", codice: "204", prezzo: 154.80 },
+    { nome: "BLADE", codice: "213", prezzo: 170.30 },
+    { nome: "BOND", codice: "163", prezzo: 80.60 },
+    { nome: "CHELSEA", codice: "232", prezzo: 150.05 },
+    { nome: "CHEVRON", codice: "248", prezzo: 306.00 },
+    { nome: "CHIARA", codice: "125", prezzo: 94.55 },
+    { nome: "CLUB", codice: "181", prezzo: 100.40 },
+    { nome: "COMET", codice: "183", prezzo: 120.40 },
+    { nome: "CONCA", codice: "236", prezzo: 152.75 },
+    { nome: "CONCA L", codice: "272", prezzo: 204.55 },
+    { nome: "CONO", codice: "265", prezzo: 131.70 },
+    { nome: "CRYSTAL DIAMOND", codice: "246", prezzo: 248.50 },
+    { nome: "CRYSTAL ROYAL", codice: "245", prezzo: 255.60 },
+    { nome: "DENVER", codice: "218", prezzo: 144.75 },
+    { nome: "DIANA", codice: "206", prezzo: 137.35 },
+    { nome: "DIANA BARLEY", codice: "1DB", prezzo: 217.70 },
+    { nome: "DIANA CHEVRON", codice: "1DC", prezzo: 232.35 },
+    { nome: "DIANA DAMIER", codice: "1DD", prezzo: 227.60 },
+    { nome: "DIVA", codice: "256", prezzo: 192.90 },
+    { nome: "DOLCE VITA", codice: "243", prezzo: 141.95 },
+    { nome: "DYNAMIC", codice: "261", prezzo: 235.35 },
+    { nome: "EMILIA", codice: "167", prezzo: 106.85 },
+    { nome: "EUCLIDE", codice: "229", prezzo: 144.10 },
+    { nome: "EUCLIDE Q", codice: "230", prezzo: 185.40 },
+    { nome: "FIN", codice: "217", prezzo: 131.25 },
+    { nome: "FLAMINIA", codice: "159", prezzo: 107.40 },
+    { nome: "FLUTE", codice: "270", prezzo: 116.95 },
+    { nome: "FUTURA", codice: "172", prezzo: 121.05 },
+    { nome: "GARDA", codice: "105", prezzo: 77.80 },
+    { nome: "GLORIA", codice: "268", prezzo: 141.45 },
+    { nome: "GLORIA Q", codice: "269", prezzo: 146.05 },
+    { nome: "GOLIA", codice: "160", prezzo: 112.00 },
+    { nome: "HYBRID", codice: "271", prezzo: 126.45 },
+    { nome: "ICE CUBE", codice: "223", prezzo: 266.60 },
+    { nome: "ICONA", codice: "254", prezzo: 137.35 },
+    { nome: "LAMA", codice: "107", prezzo: 123.85 },
+    { nome: "LAMA L", codice: "106", prezzo: 155.45 },
+    { nome: "LASER", codice: "176", prezzo: 170.40 },
+    { nome: "LINK", codice: "200", prezzo: 152.05 },
+    { nome: "LIPSTICK", codice: "273", prezzo: 143.20 },
+    { nome: "LIVING", codice: "222", prezzo: 134.95 },
+    { nome: "LOGO L", codice: "198", prezzo: 175.40 },
+    { nome: "LOTUS", codice: "238", prezzo: 170.95 },
+    { nome: "LOTUS Q", codice: "241", prezzo: 179.55 },
+    { nome: "LUCY", codice: "231", prezzo: 100.50 },
+    { nome: "LUGANO", codice: "258", prezzo: 103.30 },
+    { nome: "MARBELLA", codice: "237", prezzo: 104.65 },
+    { nome: "MARILYN", codice: "252", prezzo: 153.90 },
+    { nome: "MELANZANA", codice: "266", prezzo: 155.90 },
+    { nome: "MILANO", codice: "259", prezzo: 109.10 },
+    { nome: "MILANO Q", codice: "260", prezzo: 121.50 },
+    { nome: "MINERVA", codice: "205", prezzo: 137.05 },
+    { nome: "NINA", codice: "234", prezzo: 71.50 },
+    { nome: "NOVELLA", codice: "165", prezzo: 83.45 },
+    { nome: "OKAY", codice: "262", prezzo: 81.45 },
+    { nome: "ONDA", codice: "175", prezzo: 74.75 },
+    { nome: "OPEN", codice: "249", prezzo: 76.00 },
+    { nome: "ORVIETO", codice: "170", prezzo: 93.05 },
+    { nome: "PADDLE", codice: "264", prezzo: 76.55 },
+    { nome: "PLANET", codice: "195", prezzo: 132.00 },
+    { nome: "PLANET Q", codice: "203", prezzo: 166.50 },
+    { nome: "PLUME", codice: "253", prezzo: 66.30 },
+    { nome: "RADIAL", codice: "235", prezzo: 66.90 },
+    { nome: "RAFFAELLA", codice: "128", prezzo: 62.25 },
+    { nome: "SECTOR", codice: "186", prezzo: 47.05 },
+    { nome: "SERENELLA", codice: "130", prezzo: 61.55 },
+    { nome: "SIBILLA", codice: "154", prezzo: 57.10 },
+    { nome: "SIENA", codice: "169", prezzo: 72.35 },
+    { nome: "SKY", codice: "214", prezzo: 82.55 },
+    { nome: "STILO", codice: "190", prezzo: 57.15 },
+    { nome: "TECNO", codice: "182", prezzo: 68.15 },
+    { nome: "TIME", codice: "192", prezzo: 47.55 },
+    { nome: "TIME Q", codice: "201", prezzo: 89.40 },
+    { nome: "TIZIANELLA F", codice: "112", prezzo: 92.60 },
+    { nome: "TOTAL", codice: "207", prezzo: 96.75 },
+    { nome: "TREND", codice: "228", prezzo: 115.55 },
+    { nome: "TWIST", codice: "242", prezzo: 137.70 },
+    { nome: "UOVO", codice: "108", prezzo: 138.85 },
+    { nome: "VIRGOLA", codice: "251", prezzo: 83.55 },
+    { nome: "VOLA", codice: "257", prezzo: 192.90 },
+    { nome: "WIND", codice: "187", prezzo: 109.50 },
+    { nome: "BOMA Ny", codice: "501", prezzo: 35.00 },
+    { nome: "ISEO Ny", codice: "507", prezzo: 32.00 },
+    { nome: "CHIARA Ny", codice: "509", prezzo: 28.00 }
+];
+
+// ==================== DATABASE COLOMBO ====================
+const COLOMBO = [
+    { nome: "ROBOT", codice: "CD41", prezzo: 85.00 },
+    { nome: "ROBODUE", codice: "CD21", prezzo: 72.00 },
+    { nome: "ROBOTRE", codice: "CD31", prezzo: 78.00 },
+    { nome: "ROBOQUATTRO", codice: "ID41", prezzo: 68.00 },
+    { nome: "ROBOQUATTRO S", codice: "ID41S", prezzo: 82.00 },
+    { nome: "ROBOCINQUE", codice: "ID51", prezzo: 75.00 },
+    { nome: "ROBOCINQUE S", codice: "ID51S", prezzo: 88.00 },
+    { nome: "TAILLA", codice: "LC91", prezzo: 95.00 },
+    { nome: "TAILLA Q", codice: "LC91Q", prezzo: 102.00 },
+    { nome: "TENDER", codice: "MG11", prezzo: 88.00 },
+    { nome: "TENDER Q", codice: "MG11Q", prezzo: 95.00 },
+    { nome: "VIOLA", codice: "AM11", prezzo: 78.00 },
+    { nome: "ELLESSE", codice: "LC61", prezzo: 92.00 },
+    { nome: "ELLESSE Q", codice: "LC61Q", prezzo: 98.00 },
+    { nome: "MOOD", codice: "MD11", prezzo: 105.00 },
+    { nome: "MOOD Q", codice: "MD11Q", prezzo: 112.00 },
+    { nome: "DAYTONA", codice: "PF11", prezzo: 85.00 },
+    { nome: "DAYTONA Q", codice: "PF11Q", prezzo: 92.00 },
+    { nome: "LIBRA", codice: "LB11", prezzo: 82.00 },
+    { nome: "FEDRA", codice: "AC11", prezzo: 90.00 },
+    { nome: "FEDRA Q", codice: "AC11Q", prezzo: 96.00 },
+    { nome: "FLESSA", codice: "FF11", prezzo: 76.00 },
+    { nome: "FLESSA Q", codice: "FF11Q", prezzo: 82.00 },
+    { nome: "LUND", codice: "SK11", prezzo: 88.00 },
+    { nome: "LUND Q", codice: "SK11Q", prezzo: 95.00 },
+    { nome: "BEAR", codice: "BT11", prezzo: 72.00 },
+    { nome: "BEAR Q", codice: "BT11Q", prezzo: 78.00 },
+    { nome: "AFRO", codice: "PT11", prezzo: 110.00 },
+    { nome: "AFRO Q", codice: "PT11Q", prezzo: 118.00 },
+    { nome: "COOL", codice: "CL11", prezzo: 95.00 },
+    { nome: "COOL Q", codice: "CL11Q", prezzo: 102.00 },
+    { nome: "GOLF", codice: "GF11", prezzo: 80.00 },
+    { nome: "GOLF Q", codice: "GF11Q", prezzo: 86.00 },
+    { nome: "ARIA", codice: "AR11", prezzo: 92.00 },
+    { nome: "ARIA Q", codice: "AR11Q", prezzo: 98.00 },
+    { nome: "VELA", codice: "VL11", prezzo: 78.00 },
+    { nome: "VELA Q", codice: "VL11Q", prezzo: 84.00 },
+    { nome: "WING", codice: "WG11", prezzo: 88.00 },
+    { nome: "WING Q", codice: "WG11Q", prezzo: 95.00 },
+    { nome: "LARA", codice: "GP11", prezzo: 68.00 },
+    { nome: "LARA Q", codice: "GP11Q", prezzo: 74.00 },
+    { nome: "HEIDI", codice: "CD11", prezzo: 85.00 },
+    { nome: "IDA", codice: "ID11", prezzo: 82.00 },
+    { nome: "MIA", codice: "MZ11", prezzo: 75.00 },
+    { nome: "SISSI", codice: "SS11", prezzo: 110.00 },
+    { nome: "SISSI Q", codice: "SS11Q", prezzo: 118.00 },
+    { nome: "PETER", codice: "LC71", prezzo: 125.00 },
+    { nome: "PETRA", codice: "PT21", prezzo: 135.00 },
+    { nome: "VIENNA", codice: "WN11", prezzo: 145.00 },
+    { nome: "VIENNA Q", codice: "WN11Q", prezzo: 155.00 },
+    { nome: "LENA", codice: "LN11", prezzo: 120.00 },
+    { nome: "LENA Q", codice: "LN11Q", prezzo: 128.00 },
+    { nome: "GILDA", codice: "GD11", prezzo: 115.00 },
+    { nome: "GILDA Q", codice: "GD11Q", prezzo: 122.00 },
+    { nome: "CARLOTTA", codice: "CR11", prezzo: 138.00 },
+    { nome: "CARLOTTA Q", codice: "CR11Q", prezzo: 148.00 },
+    { nome: "DALIA", codice: "DL11", prezzo: 130.00 },
+    { nome: "DALIA Q", codice: "DL11Q", prezzo: 140.00 },
+    { nome: "SEVEN", codice: "LC81", prezzo: 165.00 },
+    { nome: "ONDA", codice: "ON11", prezzo: 142.00 },
+    { nome: "JAVA", codice: "JV11", prezzo: 155.00 },
+    { nome: "POLO", codice: "PL11", prezzo: 125.00 },
+    { nome: "YORK", codice: "YK11", prezzo: 118.00 },
+    { nome: "OPEN", codice: "OP11", prezzo: 95.00 },
+    { nome: "GIRA", codice: "GR11", prezzo: 88.00 },
+    { nome: "SLIM", codice: "SL11", prezzo: 72.00 },
+    { nome: "BASIC", codice: "BS11", prezzo: 58.00 },
+    { nome: "TOOL", codice: "RM11", prezzo: 175.00 },
+    { nome: "TOOL Q", codice: "RM11Q", prezzo: 185.00 },
+    { nome: "SILK", codice: "GS11", prezzo: 165.00 },
+    { nome: "SILK Q", codice: "GS11Q", prezzo: 175.00 },
+    { nome: "BOLD", codice: "BD11", prezzo: 148.00 },
+    { nome: "BOLD Q", codice: "BD11Q", prezzo: 158.00 },
+    { nome: "LAND", codice: "LD11", prezzo: 135.00 },
+    { nome: "LAND Q", codice: "LD11Q", prezzo: 145.00 },
+    { nome: "FLOW", codice: "FW11", prezzo: 128.00 },
+    { nome: "FLOW Q", codice: "FW11Q", prezzo: 138.00 },
+    { nome: "CLOUD", codice: "CU11", prezzo: 155.00 },
+    { nome: "CLOUD Q", codice: "CU11Q", prezzo: 165.00 }
+];
+
+const SCONTO_OLIVARI = 0.43;
+const SCONTO_COLOMBO = 0.40;
+
+let currentBrand = 'olivari';
+let searchTerm = '';
+
+function getSiteUrl(brand, nome) {
+    const slug = nome.toLowerCase().replace(/ /g, '-').replace(/_/g, '-');
+    if (brand === 'olivari') {
+        return `https://www.olivari.it/maniglie-porte/${slug}/`;
+    } else {
+        return `https://www.colombodesign.com/maniglia/${slug}/`;
+    }
+}
+
+function createItem(item, brand) {
+    const sconto = brand === 'olivari' ? SCONTO_OLIVARI : SCONTO_COLOMBO;
+    const netto = item.prezzo * (1 - sconto);
+    
+    const div = document.createElement('div');
+    div.className = `item ${brand}`;
+    div.innerHTML = `
+        <div class="item-name">
+            <span class="badge">${brand === 'olivari' ? 'OLI' : 'COL'}</span>
+            ${item.nome}
         </div>
-    </div>
+        <div class="item-code">${item.codice}</div>
+        <div class="item-price">€${item.prezzo.toFixed(2)}</div>
+        <div class="item-netto">€${netto.toFixed(2)}</div>
+        <div class="item-link" title="Apri sito ufficiale">🔗</div>
+    `;
+    
+    // Click su riga = copia nome
+    div.addEventListener('click', (e) => {
+        if (e.target.classList.contains('item-link')) return;
+        copyToClipboard(item.nome);
+        div.classList.add('copied');
+        setTimeout(() => div.classList.remove('copied'), 500);
+    });
+    
+    // Click su link = apri sito
+    div.querySelector('.item-link').addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.open(getSiteUrl(brand, item.nome), '_blank');
+    });
+    
+    return div;
+}
 
-    <script>
-        // DATABASE MANIGLIE
-        const MANIGLIE = [
-            // === OLIVARI ===
-            { brand: "OLIVARI", nome: "AGATA", rosetta: "tonda", listino: 84.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "ALICE", rosetta: "tonda", listino: 108.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "AMSTERDARM", rosetta: "tonda", listino: 76.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "ANTARES", rosetta: "tonda", listino: 124.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "APOLLO", rosetta: "tonda", listino: 96.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "ASTER", rosetta: "tonda", listino: 88.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "ATENA", rosetta: "tonda", listino: 92.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "AURORA", rosetta: "tonda", listino: 78.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "BOSTON", rosetta: "tonda", listino: 86.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "BREMA", rosetta: "tonda", listino: 74.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "BRONX", rosetta: "quadra", listino: 98.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "CANDY", rosetta: "tonda", listino: 82.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "CHEVRON", rosetta: "tonda", listino: 112.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "CHICAGO", rosetta: "tonda", listino: 94.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "CLUB", rosetta: "tonda", listino: 68.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "COMO", rosetta: "tonda", listino: 72.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "COMET", rosetta: "tonda", listino: 88.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "CORNER", rosetta: "quadra", listino: 104.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "CRETA", rosetta: "tonda", listino: 76.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "CUBE", rosetta: "quadra", listino: 118.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "DAFNE", rosetta: "tonda", listino: 84.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "DAKAR", rosetta: "tonda", listino: 92.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "DIANA", rosetta: "tonda", listino: 78.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "EDGE", rosetta: "quadra", listino: 126.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "ELBA", rosetta: "tonda", listino: 70.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "ERA", rosetta: "tonda", listino: 86.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "ESSEN", rosetta: "tonda", listino: 82.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "EURO", rosetta: "tonda", listino: 64.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "FIRST", rosetta: "tonda", listino: 74.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "FLORIDA", rosetta: "tonda", listino: 88.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "GENOVA", rosetta: "tonda", listino: 72.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "GINEVRA", rosetta: "tonda", listino: 78.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "GOLIA", rosetta: "tonda", listino: 96.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "GOLF", rosetta: "tonda", listino: 68.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "HELSINKI", rosetta: "tonda", listino: 84.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "ICARO", rosetta: "tonda", listino: 92.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "IDEA", rosetta: "tonda", listino: 76.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "JUNO", rosetta: "tonda", listino: 88.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "KENDO", rosetta: "quadra", listino: 108.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "KYOTO", rosetta: "tonda", listino: 98.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "LAMA", rosetta: "tonda", listino: 82.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "LAS VEGAS", rosetta: "tonda", listino: 94.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "LINK", rosetta: "quadra", listino: 116.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "LISBONA", rosetta: "tonda", listino: 78.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "LOGO", rosetta: "tonda", listino: 72.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "LONDRA", rosetta: "tonda", listino: 86.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "LOS ANGELES", rosetta: "tonda", listino: 102.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "LOTUS", rosetta: "tonda", listino: 88.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "LUND", rosetta: "tonda", listino: 76.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "LUXOR", rosetta: "tonda", listino: 112.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "MAGIC", rosetta: "tonda", listino: 84.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "MANHATTAN", rosetta: "quadra", listino: 124.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "MARGOT", rosetta: "tonda", listino: 92.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "MIAMI", rosetta: "tonda", listino: 98.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "MINORCA", rosetta: "tonda", listino: 74.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "MODENA", rosetta: "tonda", listino: 68.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "MONACO", rosetta: "tonda", listino: 86.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "MOOD", rosetta: "quadra", listino: 108.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "NASSAU", rosetta: "tonda", listino: 94.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "NEXT", rosetta: "quadra", listino: 118.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "NIZZA", rosetta: "tonda", listino: 72.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "NUMERO", rosetta: "tonda", listino: 78.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "OLIMPIA", rosetta: "tonda", listino: 88.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "OLIVIA", rosetta: "tonda", listino: 82.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "ORLANDO", rosetta: "tonda", listino: 96.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "OSLO", rosetta: "tonda", listino: 76.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "OXFORD", rosetta: "tonda", listino: 84.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "PARIS", rosetta: "tonda", listino: 92.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "PLANET", rosetta: "tonda", listino: 104.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "PLAZA", rosetta: "quadra", listino: 114.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "POINT", rosetta: "tonda", listino: 86.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "POLO", rosetta: "tonda", listino: 68.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "PORTA", rosetta: "tonda", listino: 62.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "PRADO", rosetta: "tonda", listino: 78.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "PRAGA", rosetta: "tonda", listino: 74.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "PREMIER", rosetta: "tonda", listino: 98.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "RADAR", rosetta: "quadra", listino: 122.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "RODOS", rosetta: "tonda", listino: 82.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "ROMA", rosetta: "tonda", listino: 88.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "SEATTLE", rosetta: "tonda", listino: 94.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "SIRIO", rosetta: "tonda", listino: 76.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "SOFIA", rosetta: "tonda", listino: 72.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "SPACE", rosetta: "quadra", listino: 116.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "SPRING", rosetta: "tonda", listino: 84.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "STELLA", rosetta: "tonda", listino: 92.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "STILO", rosetta: "tonda", listino: 78.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "STOCKHOLM", rosetta: "tonda", listino: 86.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "STONE", rosetta: "quadra", listino: 108.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "SYDNEY", rosetta: "tonda", listino: 98.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "TEXAS", rosetta: "tonda", listino: 88.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "TIME", rosetta: "tonda", listino: 74.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "TIZIANO", rosetta: "tonda", listino: 96.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "TOKYO", rosetta: "tonda", listino: 104.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "TORINO", rosetta: "tonda", listino: 68.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "TREND", rosetta: "quadra", listino: 112.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "TUCSON", rosetta: "tonda", listino: 82.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "VENUS", rosetta: "tonda", listino: 88.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "VIENNA", rosetta: "tonda", listino: 76.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "VOLARE", rosetta: "tonda", listino: 94.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "WASHINGTON", rosetta: "tonda", listino: 102.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "YORK", rosetta: "quadra", listino: 118.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "ZANZIBAR", rosetta: "tonda", listino: 86.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "ZENITH", rosetta: "tonda", listino: 92.00, sconto: 43 },
-            { brand: "OLIVARI", nome: "ZOOM", rosetta: "quadra", listino: 124.00, sconto: 43 },
-            
-            // === COLOMBO DESIGN ===
-            { brand: "COLOMBO", nome: "ROBOT", rosetta: "tonda", listino: 35.33, sconto: 40 },
-            { brand: "COLOMBO", nome: "ROBOT", rosetta: "stretta", listino: 61.70, sconto: 40 },
-            { brand: "COLOMBO", nome: "ROBOT", rosetta: "placca", listino: 57.20, sconto: 40 },
-            { brand: "COLOMBO", nome: "ROBODUE", rosetta: "tonda", listino: 45.40, sconto: 40 },
-            { brand: "COLOMBO", nome: "ROBODUE", rosetta: "stretta", listino: 64.40, sconto: 40 },
-            { brand: "COLOMBO", nome: "ROBOTRE", rosetta: "tonda", listino: 37.33, sconto: 40 },
-            { brand: "COLOMBO", nome: "ROBOTRE", rosetta: "stretta", listino: 55.50, sconto: 40 },
-            { brand: "COLOMBO", nome: "ROBOQUATTRO", rosetta: "tonda", listino: 37.33, sconto: 40 },
-            { brand: "COLOMBO", nome: "ROBOQUATTRO", rosetta: "stretta", listino: 63.10, sconto: 40 },
-            { brand: "COLOMBO", nome: "ROBOQUATTRO S", rosetta: "quadra", listino: 54.17, sconto: 40 },
-            { brand: "COLOMBO", nome: "ROBOCINQUE", rosetta: "tonda", listino: 52.30, sconto: 40 },
-            { brand: "COLOMBO", nome: "ROBOCINQUE S", rosetta: "quadra", listino: 56.50, sconto: 40 },
-            { brand: "COLOMBO", nome: "ROBOCINQUE S", rosetta: "stretta", listino: 80.50, sconto: 40 },
-            { brand: "COLOMBO", nome: "ALBA", rosetta: "quadra bassa", listino: 107.80, sconto: 40 },
-            { brand: "COLOMBO", nome: "BLAZER", rosetta: "tonda", listino: 77.10, sconto: 40 },
-            { brand: "COLOMBO", nome: "DEA", rosetta: "quadra bassa", listino: 141.80, sconto: 40 },
-            { brand: "COLOMBO", nome: "EDO", rosetta: "tonda", listino: 78.20, sconto: 40 },
-            { brand: "COLOMBO", nome: "ELECTRA", rosetta: "quadra bassa", listino: 97.70, sconto: 40 },
-            { brand: "COLOMBO", nome: "ELLE", rosetta: "tonda", listino: 95.60, sconto: 40 },
-            { brand: "COLOMBO", nome: "ELLESSE", rosetta: "quadra", listino: 99.80, sconto: 40 },
-            { brand: "COLOMBO", nome: "ELLESSE", rosetta: "quadra bassa", listino: 139.10, sconto: 40 },
-            { brand: "COLOMBO", nome: "ESPRIT", rosetta: "quadra bassa", listino: 132.20, sconto: 40 },
-            { brand: "COLOMBO", nome: "FEDRA", rosetta: "quadra bassa", listino: 111.50, sconto: 40 },
-            { brand: "COLOMBO", nome: "FLESSA", rosetta: "tonda", listino: 137.00, sconto: 40 },
-            { brand: "COLOMBO", nome: "GIRA", rosetta: "tonda", listino: 105.50, sconto: 40 },
-            { brand: "COLOMBO", nome: "HEIDI", rosetta: "tonda", listino: 88.40, sconto: 40 },
-            { brand: "COLOMBO", nome: "ISY", rosetta: "quadra", listino: 111.30, sconto: 40 },
-            { brand: "COLOMBO", nome: "ISY", rosetta: "quadra bassa", listino: 131.00, sconto: 40 },
-            { brand: "COLOMBO", nome: "LUND", rosetta: "tonda bassa", listino: 94.30, sconto: 40 },
-            { brand: "COLOMBO", nome: "MACH", rosetta: "tonda", listino: 54.80, sconto: 40 },
-            { brand: "COLOMBO", nome: "MACH", rosetta: "stretta", listino: 66.80, sconto: 40 },
-            { brand: "COLOMBO", nome: "MACH RIBASSATA", rosetta: "stretta", listino: 76.90, sconto: 40 },
-            { brand: "COLOMBO", nome: "MADI", rosetta: "tonda", listino: 83.70, sconto: 40 },
-            { brand: "COLOMBO", nome: "META", rosetta: "tonda", listino: 101.50, sconto: 40 },
-            { brand: "COLOMBO", nome: "MILLA", rosetta: "tonda", listino: 87.60, sconto: 40 },
-            { brand: "COLOMBO", nome: "MILLA LC31", rosetta: "tonda", listino: 92.10, sconto: 40 },
-            { brand: "COLOMBO", nome: "OLLY", rosetta: "tonda", listino: 82.40, sconto: 40 },
-            { brand: "COLOMBO", nome: "PEGASO", rosetta: "tonda", listino: 101.70, sconto: 40 },
-            { brand: "COLOMBO", nome: "PETER", rosetta: "tonda", listino: 89.80, sconto: 40 },
-            { brand: "COLOMBO", nome: "PRIUS", rosetta: "quadra", listino: 150.70, sconto: 40 },
-            { brand: "COLOMBO", nome: "SIRIO", rosetta: "tonda", listino: 81.20, sconto: 40 },
-            { brand: "COLOMBO", nome: "SLIM", rosetta: "tonda bassa", listino: 95.50, sconto: 40 },
-            { brand: "COLOMBO", nome: "SPIDER", rosetta: "quadra", listino: 136.70, sconto: 40 },
-            { brand: "COLOMBO", nome: "STAR", rosetta: "tonda", listino: 78.80, sconto: 40 },
-            { brand: "COLOMBO", nome: "TAILLA", rosetta: "tonda", listino: 99.80, sconto: 40 },
-            { brand: "COLOMBO", nome: "TAIPAN", rosetta: "tonda", listino: 94.70, sconto: 40 },
-            { brand: "COLOMBO", nome: "TENDER", rosetta: "tonda", listino: 73.50, sconto: 40 },
-            { brand: "COLOMBO", nome: "TOOL", rosetta: "tonda", listino: 105.50, sconto: 40 },
-            { brand: "COLOMBO", nome: "VIOLA", rosetta: "tonda", listino: 85.50, sconto: 40 },
-            { brand: "COLOMBO", nome: "WING", rosetta: "tonda", listino: 115.70, sconto: 40 },
-            { brand: "COLOMBO", nome: "ZELDA", rosetta: "quadra", listino: 148.50, sconto: 40 },
-            { brand: "COLOMBO", nome: "ZELDA", rosetta: "quadra bassa", listino: 154.40, sconto: 40 }
-        ];
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast(`✓ "${text}" copiato`);
+    }).catch(() => {
+        const input = document.createElement('input');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast(`✓ "${text}" copiato`);
+    });
+}
 
-        function renderManiglie(lista) {
-            const container = document.getElementById('grigliaManiglie');
-            container.innerHTML = lista.map(m => {
-                const netto = (m.listino * (1 - m.sconto/100)).toFixed(2);
-                const brandColor = m.brand === 'OLIVARI' ? 'from-amber-500 to-orange-600' : 'from-blue-500 to-indigo-600';
-                const brandBg = m.brand === 'OLIVARI' ? 'bg-amber-50 border-amber-200' : 'bg-blue-50 border-blue-200';
-                return `
-                    <div class="card bg-white rounded-lg shadow-md overflow-hidden border ${brandBg}">
-                        <div class="bg-gradient-to-r ${brandColor} text-white px-3 py-1 text-xs font-bold">
-                            ${m.brand === 'OLIVARI' ? '🟡 OLIVARI' : '🔵 COLOMBO'}
-                        </div>
-                        <div class="p-4">
-                            <h3 class="font-bold text-gray-800">${m.nome}</h3>
-                            <p class="text-xs text-gray-500 mb-2">Rosetta ${m.rosetta}</p>
-                            <div class="flex justify-between items-end">
-                                <div>
-                                    <p class="text-xs text-gray-400 line-through">€${m.listino.toFixed(2)}</p>
-                                    <p class="text-lg font-bold text-green-600">€${netto}</p>
-                                </div>
-                                <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">-${m.sconto}%</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            document.getElementById('countResults').textContent = lista.length;
-        }
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+}
 
-        function filterManiglie() {
-            const brand = document.getElementById('filterBrand').value;
-            const search = document.getElementById('searchText').value.toLowerCase();
-            
-            let filtered = MANIGLIE;
-            if (brand) filtered = filtered.filter(m => m.brand === brand);
-            if (search) filtered = filtered.filter(m => m.nome.toLowerCase().includes(search));
-            
-            renderManiglie(filtered);
-        }
+function showBrand(brand) {
+    currentBrand = brand;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab.${brand}`).classList.add('active');
+    renderList();
+}
 
-        // Init
-        renderManiglie(MANIGLIE);
-    </script>
+function filterItems(items) {
+    if (!searchTerm) return items;
+    const term = searchTerm.toLowerCase();
+    return items.filter(item => 
+        item.nome.toLowerCase().includes(term) ||
+        item.codice.toLowerCase().includes(term)
+    );
+}
+
+function renderList() {
+    const list = document.getElementById('list');
+    const emptyState = document.getElementById('emptyState');
+    
+    list.innerHTML = '';
+    
+    let items = currentBrand === 'olivari' ? OLIVARI : COLOMBO;
+    items = filterItems(items);
+    
+    if (items.length === 0) {
+        emptyState.style.display = 'block';
+        list.style.display = 'none';
+    } else {
+        emptyState.style.display = 'none';
+        list.style.display = 'block';
+        items.forEach(item => list.appendChild(createItem(item, currentBrand)));
+    }
+    
+    document.getElementById('visibleCount').textContent = items.length;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('countOlivari').textContent = OLIVARI.length;
+    document.getElementById('countColombo').textContent = COLOMBO.length;
+    
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchTerm = e.target.value;
+        renderList();
+    });
+    
+    renderList();
+});
+</script>
+
 </body>
 </html>
